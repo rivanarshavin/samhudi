@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- Bootstrap 5 -->
+   
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href='https://fonts.googleapis.com/css?family=Libre Baskerville' rel='stylesheet'>
@@ -16,48 +16,104 @@
 
 <body style="background-color: #F5EBE2; font-family: 'Libre Baskerville';font-size: 22px;">
 
-    <div id="sidebarMenu" style="position:fixed;top:0;left:-100%;width:min(85vw,400px);height:100vh;background:#274d4f;z-index:9999;transition:.4s ease;box-shadow:0 0 20px rgba(0,0,0,.3);overflow-y:auto;">
+    <nav class="sticky-top bg-white border-bottom" style="z-index: 1050; background-color: rgba(255, 255, 255, 0.85) !important; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
+        <div class="container-fluid px-4 px-md-5 d-flex align-items-center justify-content-between" style="height: 80px;">
+            <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 1.125rem; letter-spacing: -0.025em;">
+                <a href="#" style="color: #1B3835; text-decoration: none;">HM Samhudin</a>
+            </div>
+            <ul class="d-none d-md-flex align-items-center mb-0 list-unstyled" style="gap: 50px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; font-size: 0.875rem; letter-spacing: 0.05em;">
+                <li><a href="#" class="nav-link-custom">Home</a></li>
+                <li><a href="#" class="nav-link-custom">Wasiat</a></li>
+                <li><a href="#" class="nav-link-custom">Yayasan</a></li>
+                <li><a href="#" class="nav-link-custom">Data Keluarga</a></li>
+                <li><a href="#" class="nav-link-custom">Forum Diskusi</a></li>
+            </ul>
+            <div class="d-flex align-items-center">
+                <a href="#" class="d-none d-md-inline-block style-btn-masuk">Masuk</a>
+                <button id="menuBtn" onclick="openMenu()" class="d-inline-block d-md-none" style="background: none; border: none; color: #1B3835; font-size: 32px; cursor: pointer; padding: 0; transition: opacity 0.3s;">☰</button>
+            </div>
+        </div>
+    </nav>
 
-        <button onclick="closeMenu()" style=" position:absolute; top:15px; right:20px; border:none; background:none; color:white; font-size:30px;">
-            ×
-        </button>
-
-        <div style="padding:60px 25px;">
-
-            <a href="#" style="display:block;color:white;text-decoration:none;margin-bottom:10px;">
-                Home
-            </a>
-
-            <a href="#" style=" display:block; color:white; text-decoration:none; margin-bottom:10px;">
-                Wasiat almarhum HM Samhudi
-            </a>
-
-            <a href="#" style=" display:block; color:white; text-decoration:none; margin-bottom:10px;">
-                Yayasan
-            </a>
-
-            <a href="#" style=" display:block; color:white; text-decoration:none; margin-bottom:10px;">
-                Data Keluarga Besar Samhudi
-            </a>
-
-            <a href="#" style=" display:block; color:white; text-decoration:none;">
-                Forum Diskusi
-            </a>
-
+    <div id="sidebarMenu" style="position:fixed; top:0; left:-100%; width:min(85vw,350px); height:100vh; background:#274d4f; z-index:9999; transition:.4s ease; box-shadow:0 0 20px rgba(0,0,0,.3); overflow-y:auto; font-family: 'Plus Jakarta Sans', sans-serif;">
+        <button onclick="closeMenu()" style="position:absolute; top:15px; right:20px; border:none; background:none; color:white; font-size:35px; line-height: 1;">&times;</button>
+        <div style="padding:70px 25px 30px 25px;">
+            <a href="#" class="sidebar-link-custom">Home</a>
+            <a href="#" class="sidebar-link-custom">Wasiat almarhum HM Samhudi</a>
+            <a href="#" class="sidebar-link-custom">Yayasan</a>
+            <a href="#" class="sidebar-link-custom">Data Keluarga Besar Samhudi</a>
+            <a href="#" class="sidebar-link-custom">Forum Diskusi</a>
+            <hr style="border-color: rgba(255,255,255,0.2); margin: 25px 0;">
+            <a href="#" class="sidebar-link-custom" style="background: rgba(255,255,255,0.1); text-align: center; padding: 10px; border-radius: 50px; margin-bottom: 0;">Masuk</a>
         </div>
     </div>
 
+    <style>
+        .nav-link-custom {
+            color: rgba(27, 56, 53, 0.9);
+            text-decoration: none;
+            position: relative;
+            padding: 8px 0;
+            transition: color 0.3s;
+        }
+
+        .nav-link-custom:hover {
+            color: #3D6C63;
+        }
+
+        .nav-link-custom::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: #3D6C63;
+            transition: width 0.3s;
+        }
+
+        .nav-link-custom:hover::after {
+            width: 100%;
+        }
+
+        .style-btn-masuk {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 600;
+            font-size: 0.875rem;
+            background-color: #1B3835;
+            color: white !important;
+            padding: 10px 24px;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .style-btn-masuk:hover {
+            background-color: #2E564F;
+            transform: translateY(-2px);
+        }
+
+        .sidebar-link-custom {
+            display: block;
+            color: white;
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-size: 16px;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+
+        .sidebar-link-custom:hover {
+            opacity: 0.8;
+            color: #f5ebe2;
+        }
+    </style>
     <div class="p-3" style="background-color: #2A4D4F;">
 
         <section class="position-relative d-flex align-items-center justify-content-center text-center m-1 rounded"
             style=" height:calc(100vh - 2rem); background-image:url('assets/background.png'); background-size:cover; background-position:center; background-repeat:no-repeat;">
             <div class="position-absolute top-0 start-0 w-100 h-100" style="background:rgba(0,0,0,.45);">
             </div>
-
-            <button id="menuBtn" onclick="openMenu()" style=" position:absolute; top:20px; right:25px; z-index:1000; background:none; border:none; color:white; font-size:40px; cursor:pointer;">
-                ☰
-            </button>
-
             <div class="position-relative text-white">
                 <h1 class="display-2 fw-light">
                     Keluarga Besar<br>
@@ -208,33 +264,33 @@
             </div>
         </div>
     </section>
-<section class="py-5" style="min-height:100vh; display:flex; align-items:center;">
+    <section class="py-5" style="min-height:100vh; display:flex; align-items:center;">
 
-    <div class="container">
-        <div class="row align-items-center justify-content-center g-4">
+        <div class="container">
+            <div class="row align-items-center justify-content-center g-4">
 
-            <!-- IMAGE -->
-            <div class="col-12 col-lg-7 position-relative text-center">
+                <!-- IMAGE -->
+                <div class="col-12 col-lg-7 position-relative text-center">
 
-                <img src="assets/sambutan2.png" alt="Keluarga H.M Samhudi"
-                    class="img-fluid w-100"
-                    style="object-fit:cover;">
+                    <img src="assets/sambutan2.png" alt="Keluarga H.M Samhudi"
+                        class="img-fluid w-100"
+                        style="object-fit:cover;">
 
-                <!-- dekorasi titik (hide di mobile pakai d-none d-lg-block) -->
-                <div class="d-none d-lg-block"
-                    style="position:absolute; left:-20px; top:50%; transform:translateY(-50%);
+                    <!-- dekorasi titik (hide di mobile pakai d-none d-lg-block) -->
+                    <div class="d-none d-lg-block"
+                        style="position:absolute; left:-20px; top:50%; transform:translateY(-50%);
                     width:60px; height:180px;
                     background-image:radial-gradient(#8b7d72 1px, transparent 1px);
                     background-size:8px 8px; opacity:.5;">
+                    </div>
+
                 </div>
 
-            </div>
+                <!-- TEXT -->
+                <div class="col-12 col-lg-5">
 
-            <!-- TEXT -->
-            <div class="col-12 col-lg-5">
-
-                <div class="bg-white shadow p-4 p-lg-5 mx-auto"
-                    style="
+                    <div class="bg-white shadow p-4 p-lg-5 mx-auto"
+                        style="
                         max-width:500px;
                         width:100%;
                         position:relative;
@@ -242,28 +298,28 @@
                         margin-top:-40px;
                     ">
 
-                    <p class="mb-4"
-                        style="font-family:Georgia, serif; font-size:1.25rem; font-weight:600; line-height:1.6; color:#4b382f;">
-                        Dengan rasa syukur dan bangga,
-                        kami persembahkan website ini
-                        sebagai ruang digital untuk
-                        menyambung tali silaturahmi
-                    </p>
+                        <p class="mb-4"
+                            style="font-family:Georgia, serif; font-size:1.25rem; font-weight:600; line-height:1.6; color:#4b382f;">
+                            Dengan rasa syukur dan bangga,
+                            kami persembahkan website ini
+                            sebagai ruang digital untuk
+                            menyambung tali silaturahmi
+                        </p>
 
-                    <div class="text-end">
-                        <span style="font-family:Georgia, serif; font-size:1.2rem; font-weight:700; color:#4b382f;">
-                            From (nama)
-                        </span>
+                        <div class="text-end">
+                            <span style="font-family:Georgia, serif; font-size:1.2rem; font-weight:700; color:#4b382f;">
+                                From (nama)
+                            </span>
+                        </div>
+
                     </div>
 
                 </div>
 
             </div>
-
         </div>
-    </div>
 
-</section>
+    </section>
     <section class="py-5" style="min-height:100vh; background:#274d4f;">
 
         <div class="container">
@@ -521,12 +577,12 @@
     <script>
         function openMenu() {
             document.getElementById("sidebarMenu").style.left = "0";
-            document.getElementById("menuBtn").style.display = "none";
+            document.getElementById("menuBtn").style.opacity = "0";
         }
 
         function closeMenu() {
-            document.getElementById("sidebarMenu").style.left = "-50%";
-            document.getElementById("menuBtn").style.display = "block";
+            document.getElementById("sidebarMenu").style.left = "-100%";
+            document.getElementById("menuBtn").style.opacity = "1";
         }
     </script>
 
