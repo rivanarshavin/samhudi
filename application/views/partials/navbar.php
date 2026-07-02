@@ -73,7 +73,7 @@
             </ul>
 
             <div class="flex items-center">
-                <a href="#" class="font-display font-semibold text-sm bg-teal-900 text-white px-5 py-2.5 rounded-full shadow-sm hover:bg-teal-800 transition-all duration-300 transform hover:-translate-y-0.5">
+                <a href="<?= base_url('auth/login') ?>" class="font-display font-semibold text-sm bg-teal-900 text-white px-5 py-2.5 rounded-full shadow-sm hover:bg-teal-800 transition-all duration-300 transform hover:-translate-y-0.5">
                     Masuk
                 </a>
             </div>
