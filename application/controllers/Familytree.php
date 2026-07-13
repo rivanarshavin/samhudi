@@ -1,12 +1,16 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
-class Familytree extends CI_Controller {
+class Familytree extends CI_Controller
+{
 
     public function __construct()
     {
         parent::__construct();
-        $this->load->model('Family_model');
+        $this->load->view('templates/header');
+        $this->load->view('partials/navbar');
+        $this->load->view('silsilah/familytree_view');
+        $this->load->view('templates/footer');
     }
 
     public function index()

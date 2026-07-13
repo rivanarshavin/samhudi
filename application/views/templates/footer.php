@@ -2,13 +2,13 @@
         const cards = document.querySelectorAll('.card');
 
         const layout = [
-            { x: -660, s: 0.85 },
-            { x: -440, s: 0.90 },
-            { x: -220, s: 0.95 },
-            { x: 0, s: 1.3 },
-            { x: 220, s: 0.95 },
-            { x: 440, s: 0.90 },
-            { x: 660, s: 0.85 }
+            { x: -510, s: 0.85 },
+            { x: -340, s: 0.90 },
+            { x: -170, s: 0.95 },
+            { x: 0, s: 1.15 },
+            { x: 170, s: 0.95 },
+            { x: 340, s: 0.90 },
+            { x: 510, s: 0.85 }
         ];
 
         let active = 2;
@@ -23,21 +23,15 @@
 
                 let p = layout[idx];
 
-                let rot = card.dataset.rot;
-
-                if (idx === 3) {
-                    rot = 0;
-                }
-
                 card.style.position = "absolute";
                 card.style.top = "50%";
                 card.style.left = "50%";
                 card.style.transition = "all .6s ease";
 
                 card.style.transform =
-                    `translate(calc(-50% + ${p.x}px), -50%)  rotate(${rot}deg)  scale(${p.s})`;
+                    `translate(calc(-50% + ${p.x}px), -50%) scale(${p.s})`;
 
-                card.style.zIndex = idx === 3 ? 999 : 100;
+                card.style.zIndex = Math.round(p.s * 1000);
             });
         }
 

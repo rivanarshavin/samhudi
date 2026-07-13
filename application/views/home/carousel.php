@@ -1,4 +1,31 @@
-<section class="carousel-section">
+<style>
+    html,
+    body {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+        position: relative;
+        margin: 0;
+        padding: 0;
+    }
+
+   
+    .carousel-section {
+        width: 100% !important;
+        max-width: 100vw !important;
+        overflow: hidden !important;
+        
+        position: relative;
+    }
+
+   
+    .carousel-container {
+        max-width: 100%;
+        overflow: hidden;
+    }
+</style>
+
+<section class="carousel-section w-full overflow-x-hidden">
     <div id="carousel" class="carousel-container">
 
         <div class="card carousel-card" data-rot="-10">

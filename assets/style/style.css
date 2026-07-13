@@ -53,13 +53,13 @@
 }
 
 .bg-hero-section {
-    min-height: 100svh;
-    min-height: calc(100dvh - 1rem);
-    background-image: url('../images/background.png');
+    min-height: 100dvh;
+    background-image: url('../images/image.png');
     background-size: cover;
-    background-position: center;
+    background-position: center 15%;
     background-repeat: no-repeat;
-    border-radius: 12px;
+    background-color: #2A4D4F;
+    border-radius: 0 0 12px 12px;
     overflow: hidden;
 }
 
@@ -120,6 +120,11 @@
 }
 
 /* Sambutan Section */
+.sambutan-section {
+    background-color: #FFFCDD;
+    font-family: Arial, Helvetica, Inter, sans-serif;
+}
+
 .col-foto-sambutan {
     margin-bottom: 20px;
 }
@@ -132,30 +137,36 @@
 }
 
 .sambutan-title {
-    font-family: Georgia, serif;
-    color: #4d3b2f;
+    font-family: Arial, Helvetica, Inter, sans-serif;
+    color: #274d4f;
     margin-bottom: 20px;
     font-weight: bold;
+    font-size: 2em;
 }
 
 .sambutan-text {
     text-align: justify;
-    color: #6b584c;
+    color: #274d4f;
     line-height: 1.8;
-    font-size: 15px;
+    font-size: 17px;
+    font-family: Arial, Helvetica, Inter, sans-serif;
+    margin-bottom: 1.5rem;
 }
 
 .sambutan-closing {
     margin-top: 30px;
-    font-family: Georgia, serif;
-    color: #4d3b2f;
+    font-family: Arial, Helvetica, Inter, sans-serif;
+    color: #274d4f;
     font-weight: bold;
+    font-size: 2em;
 }
 
 .sambutan-sender {
     margin-top: 15px;
     font-weight: bold;
-    color: #4d3b2f;
+    color: #274d4f;
+    font-family: Arial, Helvetica, Inter, sans-serif;
+    font-size: 2em;
 }
 
 /* Carousel Section */
@@ -174,7 +185,7 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 220px;
+    width: 260px;
     background: #fff;
     padding: 12px;
     border-radius: 0;
@@ -185,7 +196,7 @@
 
 .carousel-img {
     width: 100%;
-    height: 240px;
+    height: 280px;
     object-fit: cover;
 }
 
@@ -223,13 +234,18 @@
 
 .overlap-box {
     background: #fff;
-    width: 500px;
-    height: 350px;
-    margin-left: -80px;
+    width: auto;
+    max-width: 500px;
+    height: auto;
+    margin-left: 20px;
     position: relative;
     z-index: 2;
-    padding: 30px 35px;
+    padding: clamp(1.5rem, 4vw, 2.5rem) clamp(1.5rem, 4vw, 2.5rem);
     box-shadow: 0 20px 50px rgba(0,0,0,.12);
+}
+
+.overlap-content {
+    margin-top: 0;
 }
 
 .overlap-heading {
@@ -243,23 +259,19 @@
     white-space: nowrap;
 }
 
-.overlap-content {
-    margin-top: 45px;
-}
-
 .overlap-text {
-    font-family: Georgia, serif;
-    font-size: 1.4rem;
-    font-weight: 600;
+    font-family: Inter, sans-serif;
+    font-size: clamp(1.2rem, 3vw, 2rem);
+    font-weight: 300;
     line-height: 1.5;
     color: #4b382f;
     margin-bottom: 35px;
 }
 
 .overlap-sender {
-    font-family: Georgia, serif;
-    font-size: 1.4rem;
-    font-weight: 700;
+    font-family: Inter, sans-serif;
+    font-size: clamp(1.2rem, 3vw, 2rem);
+    font-weight: 300;
     color: #4b382f;
 }
 
@@ -364,4 +376,12 @@
 
 .news-link-grid {
     color: #f5ebe2;
+}
+
+.wasiat-container {
+  min-height: calc(100vh - 80px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
 }

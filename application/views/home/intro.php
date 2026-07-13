@@ -3,15 +3,12 @@
             <div class="row align-items-center justify-content-center">
 
                 <div class="col-lg-7 position-relative">
-                    <img src="images/sambutan2.png" alt="Keluarga H.M Samhudi" class="img-fluid overlap-img">
+                    <img src="<?= base_url('assets/images/sambutannew.png') ?>" alt="Keluarga H.M Samhudi" class="img-fluid overlap-img">
                     <div class="overlap-ornament"></div>
                 </div>
 
                 <div class="col-lg-5">
                     <div class="overlap-box">
-                        <h2 class="overlap-heading">
-                            Hii Keluarga H.M Samhudi!!!
-                        </h2>
                         <div class="overlap-content">
                             <p class="overlap-text">
                                 Dengan rasa syukur dan bangga,

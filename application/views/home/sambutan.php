@@ -1,9 +1,9 @@
-<section class="section-padding">
+<section class="section-padding sambutan-section">
         <div class="container">
             <div class="row">
 
                 <div class="col-md-4 d-flex align-items-center justify-content-center col-foto-sambutan">
-                    <img src="images/sambutan.png" alt="H.M Samhudi" class="foto-sambutan">
+                    <img src="<?= base_url('assets/images/photo.png') ?>" alt="H.M Samhudi" class="foto-sambutan">
                 </div>
 
                 <div class="col-md-8">
