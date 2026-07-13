@@ -24,11 +24,9 @@
                         <h5 class="news-title-main">
                             <?php echo htmlspecialchars($main_news['title']); ?>
                         </h5>
-                        <?php if (!empty($main_news['external_link'])): ?>
-                            <a href="<?php echo htmlspecialchars($main_news['external_link']); ?>" target="_blank" class="news-link-main" style="text-decoration:none;">
-                                BACA SELENGKAPNYA →
-                            </a>
-                        <?php endif; ?>
+                        <a href="<?php echo base_url('berita/' . $main_news['slug']); ?>" class="news-link-main" style="text-decoration:none;">
+                            BACA SELENGKAPNYA →
+                        </a>
                     </div>
                 </div>
             </div>
@@ -45,11 +43,9 @@
                                 <h6 class="news-title-grid">
                                     <?php echo htmlspecialchars($news['title']); ?>
                                 </h6>
-                                <?php if (!empty($news['external_link'])): ?>
-                                    <a href="<?php echo htmlspecialchars($news['external_link']); ?>" target="_blank" style="text-decoration:none;">
-                                        <small class="news-link-grid text-white">BACA SELENGKAPNYA</small>
-                                    </a>
-                                <?php endif; ?>
+                                <a href="<?php echo base_url('berita/' . $news['slug']); ?>" style="text-decoration:none;">
+                                    <small class="news-link-grid text-white">BACA SELENGKAPNYA</small>
+                                </a>
                             </div>
                         </div>
                     </div>

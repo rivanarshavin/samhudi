@@ -137,7 +137,6 @@ class Admin_model extends CI_Model
         return $this->db->delete('forums', ['id' => $id]);
     }
 
-    // =================== BERITA ADMIN ===================
 
     /**
      * Ambil semua berita + nama author
@@ -198,6 +197,47 @@ class Admin_model extends CI_Model
         if (!$news) return false;
         $new_status = ($news['status'] === 'publish') ? 'draft' : 'publish';
         return $this->db->update('news', ['status' => $new_status], ['id' => $id]);
+    }
+
+    /**
+     * Ambil berita berdasarkan slug (untuk halaman detail)
+     */
+    public function get_news_by_slug($slug)
+    {
+        $this->db->select('news.*, users.full_name AS author_name');
+        $this->db->from('news');
+        $this->db->join('users', 'users.id = news.author_id', 'left');
+        $this->db->where('news.slug', $slug);
+        return $this->db->get()->row_array();
+    }
+
+    /**
+     * Ambil berita lainnya selain berita yang sedang dibuka (untuk sidebar)
+     */
+    public function get_other_news($exclude_id, $limit = 4)
+    {
+        $this->db->select('news.*, users.full_name AS author_name');
+        $this->db->from('news');
+        $this->db->join('users', 'users.id = news.author_id', 'left');
+        $this->db->where('news.status', 'publish');
+        $this->db->where('news.id !=', $exclude_id);
+        $this->db->order_by('news.created_at', 'DESC');
+        $this->db->limit($limit);
+        return $this->db->get()->result_array();
+    }
+
+    /**
+     * Ambil semua berita publish untuk halaman daftar
+     */
+    public function get_all_published_news($limit = 20)
+    {
+        $this->db->select('news.*, users.full_name AS author_name');
+        $this->db->from('news');
+        $this->db->join('users', 'users.id = news.author_id', 'left');
+        $this->db->where('news.status', 'publish');
+        $this->db->order_by('news.created_at', 'DESC');
+        $this->db->limit($limit);
+        return $this->db->get()->result_array();
     }
 }
 

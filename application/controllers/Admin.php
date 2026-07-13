@@ -232,8 +232,6 @@ class Admin extends CI_Controller
         redirect('admin/silsilah');
     }
 
-    // ================= KELOLA FORUM DISKUSI =================
-
     public function forum()
     {
         $search = $this->input->get('search') ?? '';
@@ -282,6 +280,7 @@ class Admin extends CI_Controller
     {
         $this->load->library('form_validation');
         $this->form_validation->set_rules('title', 'Judul Berita', 'required|trim');
+        $this->form_validation->set_rules('content', 'Isi Berita', 'required|trim');
 
         if ($this->form_validation->run() == FALSE) {
             $data = [
@@ -315,13 +314,12 @@ class Admin extends CI_Controller
             $slug  = url_title($title, 'dash', TRUE) . '-' . time();
 
             $insert_data = [
-                'title'         => $title,
-                'slug'          => $slug,
-                'thumbnail'     => $thumbnail,
-                'content'       => $this->input->post('content'),
-                'external_link' => $this->input->post('external_link') ?: null,
-                'author_id'     => $this->session->userdata('user_id'),
-                'status'        => $this->input->post('status') ?: 'draft',
+                'title'     => $title,
+                'slug'      => $slug,
+                'thumbnail' => $thumbnail,
+                'content'   => $this->input->post('content'),
+                'author_id' => $this->session->userdata('user_id'),
+                'status'    => $this->input->post('status') ?: 'draft',
             ];
 
             $this->Admin_model->insert_news($insert_data);
@@ -339,6 +337,7 @@ class Admin extends CI_Controller
 
         $this->load->library('form_validation');
         $this->form_validation->set_rules('title', 'Judul Berita', 'required|trim');
+        $this->form_validation->set_rules('content', 'Isi Berita', 'required|trim');
 
         if ($this->form_validation->run() == FALSE) {
             $data = [
@@ -373,11 +372,10 @@ class Admin extends CI_Controller
             }
 
             $update_data = [
-                'title'         => $this->input->post('title'),
-                'thumbnail'     => $thumbnail,
-                'content'       => $this->input->post('content'),
-                'external_link' => $this->input->post('external_link') ?: null,
-                'status'        => $this->input->post('status') ?: 'draft',
+                'title'     => $this->input->post('title'),
+                'thumbnail' => $thumbnail,
+                'content'   => $this->input->post('content'),
+                'status'    => $this->input->post('status') ?: 'draft',
             ];
 
             $this->Admin_model->update_news($id, $update_data);

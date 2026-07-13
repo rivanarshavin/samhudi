@@ -115,21 +115,7 @@
                                class="form-input">
                     </div>
 
-                    <!-- Link Eksternal -->
-                    <div>
-                        <label class="form-label">
-                            Link Berita Eksternal
-                            <span class="ml-2 text-white/30 font-normal">(opsional — URL berita dari sumber lain)</span>
-                        </label>
-                        <div class="relative">
-                            <i class="bi bi-link-45deg absolute left-4 top-3.5 text-white/40 text-base"></i>
-                            <input type="url" name="external_link" id="external_link"
-                                   value="<?= set_value('external_link', htmlspecialchars($news['external_link'] ?? '')) ?>"
-                                   placeholder="https://contoh.com/berita-terbaru"
-                                   class="form-input pl-10">
-                        </div>
-                        <p class="text-xs text-white/30 mt-1.5">Jika diisi, tombol "Baca Selengkapnya" di homepage akan menuju URL ini.</p>
-                    </div>
+
 
                     <!-- Thumbnail -->
                     <div>
@@ -164,15 +150,16 @@
                         <input type="file" name="thumbnail" id="thumbnail" accept="image/*" class="hidden">
                     </div>
 
-                    <!-- Konten -->
+                    <!-- Isi Berita -->
                     <div>
                         <label class="form-label">
-                            Deskripsi / Konten Singkat
-                            <span class="ml-2 text-white/30 font-normal">(opsional)</span>
+                            Isi Berita <span class="text-red-400">*</span>
+                            <span class="ml-2 text-white/30 font-normal">(tulis isi lengkap berita di sini)</span>
                         </label>
-                        <textarea name="content" id="content" rows="5"
-                                  placeholder="Tulis ringkasan atau isi berita di sini..."
-                                  class="form-input resize-y"><?= set_value('content', htmlspecialchars($news['content'] ?? '')) ?></textarea>
+                        <textarea name="content" id="content" rows="12"
+                                  placeholder="Tulis isi berita secara lengkap di sini..."
+                                  class="form-input resize-y" required><?= set_value('content', htmlspecialchars($news['content'] ?? '')) ?></textarea>
+                        <p class="text-xs text-white/30 mt-1.5">Isi berita akan ditampilkan di halaman detail berita.</p>
                     </div>
 
                     <!-- Status -->

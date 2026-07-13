@@ -115,21 +115,7 @@
                                class="form-input">
                     </div>
 
-                    <!-- Link Eksternal -->
-                    <div>
-                        <label class="form-label">
-                            Link Berita Eksternal
-                            <span class="ml-2 text-white/30 font-normal">(opsional — URL berita dari sumber lain)</span>
-                        </label>
-                        <div class="relative">
-                            <i class="bi bi-link-45deg absolute left-4 top-3.5 text-white/40 text-base"></i>
-                            <input type="url" name="external_link" id="external_link"
-                                   value="<?= set_value('external_link') ?>"
-                                   placeholder="https://contoh.com/berita-terbaru"
-                                   class="form-input pl-10">
-                        </div>
-                        <p class="text-xs text-white/30 mt-1.5">Jika diisi, tombol "Baca Selengkapnya" di homepage akan menuju URL ini.</p>
-                    </div>
+
 
                     <!-- Thumbnail -->
                     <div>
@@ -153,15 +139,16 @@
                         <input type="file" name="thumbnail" id="thumbnail" accept="image/*" class="hidden">
                     </div>
 
-                    <!-- Konten -->
+                    <!-- Isi Berita -->
                     <div>
                         <label class="form-label">
-                            Deskripsi / Konten Singkat
-                            <span class="ml-2 text-white/30 font-normal">(opsional)</span>
+                            Isi Berita <span class="text-red-400">*</span>
+                            <span class="ml-2 text-white/30 font-normal">(tulis isi lengkap berita di sini)</span>
                         </label>
-                        <textarea name="content" id="content" rows="5"
-                                  placeholder="Tulis ringkasan atau isi berita di sini..."
-                                  class="form-input resize-y"><?= set_value('content') ?></textarea>
+                        <textarea name="content" id="content" rows="12"
+                                  placeholder="Tulis isi berita secara lengkap di sini..."
+                                  class="form-input resize-y" required><?= set_value('content') ?></textarea>
+                        <p class="text-xs text-white/30 mt-1.5">Isi berita akan ditampilkan di halaman detail berita.</p>
                     </div>
 
                     <!-- Status -->
@@ -220,20 +207,48 @@
     </main>
 
     <script>
-        // Thumbnail preview
-        document.getElementById('thumbnail').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(ev) {
-                    document.getElementById('thumbnail-preview').src = ev.target.result;
-                    document.getElementById('thumbnail-preview-wrapper').classList.remove('hidden');
-                    document.getElementById('thumbnail-placeholder').classList.add('hidden');
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-    </script>
+    // Thumbnail preview and drag-and-drop handling
+    const dropzone = document.getElementById('thumbnail-dropzone');
+    const fileInput = document.getElementById('thumbnail');
+
+    function previewThumbnail(file) {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            document.getElementById('thumbnail-preview').src = ev.target.result;
+            document.getElementById('thumbnail-preview-wrapper').classList.remove('hidden');
+            document.getElementById('thumbnail-placeholder').classList.add('hidden');
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Handle manual file selection
+    fileInput.addEventListener('change', function(e) {
+        if (e.target.files && e.target.files[0]) {
+            previewThumbnail(e.target.files[0]);
+        }
+    });
+
+    // Drag over styling
+    dropzone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        dropzone.classList.add('border-brand-medium/60');
+    });
+    dropzone.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        dropzone.classList.remove('border-brand-medium/60');
+    });
+
+    // Handle drop
+    dropzone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        dropzone.classList.remove('border-brand-medium/60');
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            fileInput.files = e.dataTransfer.files;
+            previewThumbnail(e.dataTransfer.files[0]);
+        }
+    });
+</script>
 
 </body>
 </html>
