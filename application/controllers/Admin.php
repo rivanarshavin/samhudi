@@ -423,6 +423,30 @@ class Admin extends CI_Controller
         redirect('admin/forum');
     }
 
+    public function api_get_forum_details($id)
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        $forum = $this->Admin_model->get_forum_by_id_admin($id);
+        if (!$forum) {
+            echo json_encode(['status' => false, 'message' => 'Forum tidak ditemukan.']);
+            return;
+        }
+
+        $comments = $this->Admin_model->get_forum_comments_admin($id);
+        echo json_encode([
+            'status' => true,
+            'forum' => $forum,
+            'comments' => $comments
+        ]);
+    }
+
+    public function forum_comment_delete($comment_id, $forum_id)
+    {
+        $this->Admin_model->delete_comment_admin($comment_id);
+        $this->session->set_flashdata('success', 'Komentar jorok/tidak pantas berhasil dihapus.');
+        redirect('admin/forum');
+    }
+
     // ================= KELOLA BERITA =================
 
     public function berita()

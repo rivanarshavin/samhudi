@@ -217,10 +217,15 @@
 
                                 <!-- Author info -->
                                 <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-full overflow-hidden bg-teal-800 flex-shrink-0">
-                                        <img src="<?= !empty($forum->author_avatar) ? base_url($forum->author_avatar) : base_url('assets/images/photo.png') ?>" 
-                                             alt="Avatar" class="w-full h-full object-cover">
-                                    </div>
+                                    <?php if (!empty($forum->author_avatar)): ?>
+                                        <div class="w-10 h-10 rounded-full overflow-hidden bg-teal-800 flex-shrink-0 border border-[#374D49]/30">
+                                            <img src="<?= base_url($forum->author_avatar) ?>" alt="Avatar" class="w-full h-full object-cover">
+                                        </div>
+                                    <?php else: ?>
+                                        <div class="w-10 h-10 rounded-full bg-teal-700/60 border border-[#374D49]/40 flex items-center justify-center font-bold text-white text-sm select-none flex-shrink-0">
+                                            <?= strtoupper(substr($forum->author_name ?? 'U', 0, 1)) ?>
+                                        </div>
+                                    <?php endif; ?>
                                     <div>
                                         <h4 class="text-sm font-bold text-white"><?= htmlspecialchars($forum->author_name ?? 'Anggota Keluarga') ?></h4>
                                         <p class="text-[10px] text-[#B1CDCE]/70 mt-0.5">
@@ -299,9 +304,15 @@
                                     <!-- Inline Reply Form -->
                                     <?= form_open('forum/comment/' . $forum->id, ['class' => 'flex items-center gap-3', 'onsubmit' => 'submitInlineComment(event, ' . $forum->id . ', this)']) ?>
                                         <input type="hidden" name="parent_id" id="parent-id-field-<?= $forum->id ?>" value="">
-                                        <div class="w-8 h-8 rounded-full overflow-hidden bg-teal-800 flex-shrink-0">
-                                            <img src="<?= !empty($user->avatar) ? base_url($user->avatar) : base_url('assets/images/photo.png') ?>" alt="Avatar" class="w-full h-full object-cover">
-                                        </div>
+                                        <?php if (!empty($user->avatar)): ?>
+                                            <div class="w-8 h-8 rounded-full overflow-hidden bg-teal-800 flex-shrink-0 border border-[#374D49]/30">
+                                                <img src="<?= base_url($user->avatar) ?>" alt="Avatar" class="w-full h-full object-cover">
+                                            </div>
+                                        <?php else: ?>
+                                            <div class="w-8 h-8 rounded-full bg-teal-700/60 border border-[#374D49]/40 flex items-center justify-center font-bold text-white text-xs select-none flex-shrink-0">
+                                                <?= strtoupper(substr($this->session->userdata('full_name') ?? 'U', 0, 1)) ?>
+                                            </div>
+                                        <?php endif; ?>
                                         <div class="flex-1 relative">
                                             <input type="text" name="comment" id="comment-input-field-<?= $forum->id ?>" required placeholder="Tulis balasan Anda..." 
                                                    class="w-full bg-[#0d1314] hover:bg-[#0d1314]/80 text-white placeholder-white/20 text-xs rounded-full py-2.5 pl-4 pr-12 border border-[#374D49]/50 focus:outline-none focus:ring-1 focus:ring-[#377C80] transition-all">
@@ -337,8 +348,9 @@
     <!-- Chat Header -->
     <div class="bg-[#1F3637] px-4 py-3 flex items-center justify-between rounded-t-2xl border-b border-teal-800/30">
         <div class="flex items-center gap-2 min-w-0">
-            <div class="w-8 h-8 rounded-full overflow-hidden bg-teal-800 flex-shrink-0">
-                <img id="chatActiveAvatar" src="<?= base_url('assets/images/photo.png') ?>" alt="Contact avatar" class="w-full h-full object-cover">
+            <div id="chatActiveAvatarContainer" class="w-8 h-8 rounded-full overflow-hidden bg-teal-800 flex-shrink-0 flex items-center justify-center font-bold text-white text-xs select-none border border-teal-700/50">
+                <img id="chatActiveAvatar" src="" alt="Contact avatar" class="w-full h-full object-cover">
+                <span id="chatActiveInitial" class="hidden"></span>
             </div>
             <div class="min-w-0">
                 <h4 id="chatActiveName" class="text-xs font-bold text-white truncate">Nama Kontak</h4>
@@ -681,16 +693,24 @@
 
         let html = '';
         users.forEach(u => {
-            const avatarSrc = u.avatar ? `<?= base_url() ?>${u.avatar}` : `<?= base_url('assets/images/photo.png') ?>`;
+            let avatarHtml = '';
+            if (u.avatar) {
+                avatarHtml = `<div class="w-9 h-9 rounded-full overflow-hidden bg-teal-800 flex-shrink-0 border border-[#374D49]/30 shadow-sm">
+                                  <img src="<?= base_url() ?>${u.avatar}" class="w-full h-full object-cover">
+                              </div>`;
+            } else {
+                const initial = (u.full_name || 'U').charAt(0).toUpperCase();
+                avatarHtml = `<div class="w-9 h-9 rounded-full bg-teal-700/60 border border-[#374D49]/40 flex items-center justify-center font-bold text-white text-xs select-none flex-shrink-0">
+                                  ${initial}
+                              </div>`;
+            }
             const badge = u.unread_count > 0 ? `<span class="bg-emerald-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0">${u.unread_count}</span>` : '';
             
             html += `
-                <div onclick="openChatWidget(${u.id}, '${u.full_name.replace(/'/g, "\\'")}', '${avatarSrc}')" 
+                <div onclick="openChatWidget(${u.id}, '${u.full_name.replace(/'/g, "\\'")}', '${u.avatar || ''}')" 
                      class="flex items-center justify-between gap-3 p-2 rounded-xl hover:bg-white/5 cursor-pointer transition-all border border-transparent hover:border-[#374D49]/30">
                     <div class="flex items-center gap-3 min-w-0">
-                        <div class="w-9 h-9 rounded-full overflow-hidden bg-teal-800 flex-shrink-0">
-                            <img src="${avatarSrc}" class="w-full h-full object-cover">
-                        </div>
+                        ${avatarHtml}
                         <div class="min-w-0">
                             <h4 class="text-xs font-bold text-white truncate">${u.full_name}</h4>
                             <p class="text-[10px] text-white/50 truncate mt-0.5">${u.last_message || 'Belum ada pesan'}</p>
@@ -717,11 +737,23 @@
     }
 
     // Open Chat panel
-    function openChatWidget(userId, userName, avatarUrl) {
+    function openChatWidget(userId, userName, avatar) {
         activeChatUserId = userId;
         document.getElementById('chatReceiverId').value = userId;
         document.getElementById('chatActiveName').textContent = userName;
-        document.getElementById('chatActiveAvatar').src = avatarUrl;
+        
+        const img = document.getElementById('chatActiveAvatar');
+        const initial = document.getElementById('chatActiveInitial');
+        
+        if (avatar) {
+            img.src = "<?= base_url() ?>" + avatar;
+            img.classList.remove('hidden');
+            initial.classList.add('hidden');
+        } else {
+            img.classList.add('hidden');
+            initial.textContent = (userName || 'U').charAt(0).toUpperCase();
+            initial.classList.remove('hidden');
+        }
 
         const widget = document.getElementById('floatingChatWidget');
         widget.classList.remove('hidden');
@@ -783,9 +815,15 @@
                         // Other user messages
                         html += `
                             <div class="flex gap-2 max-w-[80%]">
-                                <div class="w-6 h-6 rounded-full overflow-hidden bg-teal-800 flex-shrink-0 mt-1">
-                                    <img src="${m.sender_avatar ? `<?= base_url() ?>${m.sender_avatar}` : `<?= base_url('assets/images/photo.png') ?>`}" class="w-full h-full object-cover">
-                                </div>
+                                ${m.sender_avatar ? `
+                                    <div class="w-6 h-6 rounded-full overflow-hidden bg-teal-800 flex-shrink-0 mt-1 border border-[#374D49]/20 shadow-sm">
+                                        <img src="<?= base_url() ?>${m.sender_avatar}" class="w-full h-full object-cover">
+                                    </div>
+                                ` : `
+                                    <div class="w-6 h-6 rounded-full bg-teal-700/60 border border-[#374D49]/30 flex items-center justify-center font-bold text-white text-[9px] select-none flex-shrink-0 mt-1">
+                                        ${(m.sender_name || 'U').charAt(0).toUpperCase()}
+                                    </div>
+                                `}
                                 <div class="flex flex-col gap-1">
                                     <div class="bg-[#1b3435] text-white text-xs py-2 px-3 rounded-2-xl rounded-tl-none shadow-sm">
                                         ${escapeHtml(m.message)}
