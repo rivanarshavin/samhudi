@@ -137,6 +137,27 @@ class Admin_model extends CI_Model
         return $this->db->delete('forums', ['id' => $id]);
     }
 
+    /**
+     * Ambil semua komentar untuk forum ini
+     */
+    public function get_forum_comments_admin($forum_id)
+    {
+        $this->db->select('forum_comments.*, users.full_name AS author_name');
+        $this->db->from('forum_comments');
+        $this->db->join('users', 'users.id = forum_comments.user_id', 'left');
+        $this->db->where('forum_comments.forum_id', $forum_id);
+        $this->db->order_by('forum_comments.created_at', 'ASC');
+        return $this->db->get()->result_array();
+    }
+
+    /**
+     * Hapus komentar tertentu
+     */
+    public function delete_comment_admin($id)
+    {
+        return $this->db->delete('forum_comments', ['id' => $id]);
+    }
+
 
     /**
      * Ambil semua berita + nama author

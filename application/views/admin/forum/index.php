@@ -180,11 +180,11 @@
 
                                         <!-- Aksi -->
                                         <td class="py-4 text-right space-x-2">
-                                            <a href="<?= base_url('forum/view/' . $forum['id']) ?>" target="_blank"
+                                             <button onclick="openForumDetail(<?= $forum['id'] ?>)"
                                                class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-teal-500/10 text-teal-400 hover:bg-teal-500 hover:text-white border border-teal-500/20 transition-all"
-                                               title="Lihat Detail">
+                                               title="Lihat Detail & Moderasi Komentar">
                                                 <i class="bi bi-eye-fill text-sm"></i>
-                                            </a>
+                                             </button>
                                             <a href="<?= base_url('admin/forum_delete/' . $forum['id']) ?>"
                                                onclick="return confirm('Hapus topik forum ini? Semua komentar juga akan ikut terhapus.')"
                                                class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-brand-red/10 text-brand-red hover:bg-brand-red hover:text-white border border-brand-red/20 transition-all"
@@ -215,5 +215,144 @@
 
     </main>
 
+    <!-- DETAIL MODAL OVERLAY -->
+    <div id="forumDetailModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/65 backdrop-blur-sm p-4 transition-all duration-300">
+        <div class="bg-[#1D2A27] border border-[#4D6B67]/30 rounded-3xl w-full max-w-4xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden transform scale-95 transition-all duration-300">
+            
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between border-b border-[#4D6B67]/20 p-5">
+                <h3 class="font-display font-bold text-lg text-white">Detail & Moderasi Forum</h3>
+                <button onclick="closeForumDetail()" class="text-white/60 hover:text-white p-1 transition-colors">
+                    <i class="bi bi-x-lg text-xl"></i>
+                </button>
+            </div>
+            
+            <!-- Modal Body (Two-column layout) -->
+            <div class="flex-1 overflow-y-auto p-6 grid grid-cols-1 lg:grid-cols-5 gap-6">
+                <!-- Left panel: Post details (3 cols) -->
+                <div class="lg:col-span-3 space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div id="modalAuthorAvatar" class="w-10 h-10 rounded-full bg-brand-medium/30 flex items-center justify-center font-bold text-white border border-[#4D6B67]/20 text-sm">
+                            A
+                        </div>
+                        <div>
+                            <h4 id="modalAuthorName" class="font-bold text-white text-sm">Author</h4>
+                            <span id="modalPostDate" class="text-xs text-white/40">Date</span>
+                        </div>
+                    </div>
+                    <h2 id="modalPostTitle" class="font-display font-bold text-lg text-white pt-2">Post Title</h2>
+                    <p id="modalPostContent" class="text-sm text-white/80 leading-relaxed whitespace-pre-line"></p>
+                    <div id="modalMediaContainer" class="hidden border border-[#4D6B67]/10 rounded-xl overflow-hidden bg-black/20 mt-3">
+                        <!-- Image or Video injected here -->
+                    </div>
+                </div>
+                <!-- Right panel: Comments list (2 cols) -->
+                <div class="lg:col-span-2 border-t lg:border-t-0 lg:border-l border-[#4D6B67]/20 pt-6 lg:pt-0 lg:pl-6 flex flex-col">
+                    <h4 class="font-display font-bold text-sm text-white/90 border-b border-[#4D6B67]/20 pb-3 mb-3 flex items-center gap-2">
+                        <i class="bi bi-chat-left-text-fill text-teal-400"></i>
+                        <span>Komentar</span>
+                        <span id="modalCommentsCount" class="text-xs bg-brand-medium/30 px-2 py-0.5 rounded-full text-white ml-auto">0</span>
+                    </h4>
+                    <div id="modalCommentsList" class="flex-1 overflow-y-auto space-y-3 max-h-[350px] pr-1">
+                        <!-- Comments injected here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function openForumDetail(id) {
+        const modal = document.getElementById('forumDetailModal');
+        const modalDialog = modal.querySelector('div');
+        
+        // Show overlay
+        modal.classList.remove('hidden');
+        setTimeout(() => modalDialog.classList.remove('scale-95'), 50);
+
+        // Fetch detail
+        fetch("<?= base_url('admin/api_get_forum_details/') ?>" + id)
+            .then(res => res.json())
+            .then(data => {
+                if (data.status) {
+                    const f = data.forum;
+                    
+                    // Populate author & post
+                    document.getElementById('modalAuthorName').innerText = f.author_name || 'Unknown';
+                    document.getElementById('modalAuthorAvatar').innerText = (f.author_name || 'U').charAt(0).toUpperCase();
+                    
+                    const postDate = new Date(f.created_at);
+                    document.getElementById('modalPostDate').innerText = postDate.toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'});
+                    
+                    document.getElementById('modalPostTitle').innerText = f.title;
+                    document.getElementById('modalPostContent').innerText = f.content;
+
+                    // Media preview
+                    const mediaContainer = document.getElementById('modalMediaContainer');
+                    mediaContainer.innerHTML = '';
+                    if (f.media_url) {
+                        mediaContainer.classList.remove('hidden');
+                        const ext = f.media_url.split('.').pop().toLowerCase();
+                        if (['mp4', 'webm', 'ogg'].includes(ext)) {
+                            mediaContainer.innerHTML = `<video src="<?= base_url() ?>` + f.media_url + `" class="w-full max-h-64 object-contain" controls></video>`;
+                        } else {
+                            mediaContainer.innerHTML = `<img src="<?= base_url() ?>` + f.media_url + `" class="w-full max-h-64 object-contain">`;
+                        }
+                    } else {
+                        mediaContainer.classList.add('hidden');
+                    }
+
+                    // Populate comments
+                    const commentsList = document.getElementById('modalCommentsList');
+                    commentsList.innerHTML = '';
+                    document.getElementById('modalCommentsCount').innerText = data.comments.length;
+
+                    if (data.comments.length > 0) {
+                        data.comments.forEach(c => {
+                            const dateStr = new Date(c.created_at).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'});
+                            const html = `
+                                <div class="bg-[#15201E]/60 border border-[#4D6B67]/15 p-3.5 rounded-2xl relative space-y-1">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-6 h-6 rounded-full bg-[#4D6B67]/40 flex items-center justify-center text-[10px] font-bold text-white">
+                                                ${(c.author_name || 'U').charAt(0).toUpperCase()}
+                                            </div>
+                                            <div>
+                                                <span class="text-xs font-bold text-white/90">${c.author_name || 'Unknown'}</span>
+                                                <span class="text-[9px] text-white/40 block">${dateStr}</span>
+                                            </div>
+                                        </div>
+                                        <a href="<?= base_url('admin/forum_comment_delete/') ?>${c.id}/${f.id}" 
+                                           onclick="return confirm('Hapus komentar ini karena jorok/tidak pantas?')" 
+                                           class="text-red-400 hover:text-red-300 p-1 transition-colors" 
+                                           title="Hapus Komentar">
+                                            <i class="bi bi-trash-fill text-xs"></i>
+                                        </a>
+                                    </div>
+                                    <p class="text-xs text-white/70 leading-relaxed pt-1">${c.comment}</p>
+                                </div>
+                            `;
+                            commentsList.insertAdjacentHTML('beforeend', html);
+                        });
+                    } else {
+                        commentsList.innerHTML = `
+                            <div class="text-center py-10 text-white/30 text-xs flex flex-col items-center gap-2">
+                                <i class="bi bi-chat-left-dots text-3xl"></i>
+                                <span>Belum ada komentar.</span>
+                            </div>
+                        `;
+                    }
+                }
+            });
+    }
+
+    function closeForumDetail() {
+        const modal = document.getElementById('forumDetailModal');
+        const modalDialog = modal.querySelector('div');
+        
+        modalDialog.classList.add('scale-95');
+        setTimeout(() => modal.classList.add('hidden'), 200);
+    }
+    </script>
 </body>
 </html>
