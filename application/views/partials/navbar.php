@@ -2,7 +2,7 @@
     <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
 
         <div class="font-display font-bold text-lg text-white tracking-tight">
-            <a href="<?= base_url() ?>">HM Samhudi</a>
+            HM Samhudi
         </div>
 
         <!-- Desktop Menu -->
@@ -47,9 +47,24 @@
 
         <!-- Desktop Login -->
         <div class="hidden md:flex items-center">
+            <?php if ($this->session->userdata('logged_in')): ?>
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-full bg-white text-[#274d4f] flex items-center justify-center font-bold text-sm flex-shrink-0">
+                    <?= strtoupper(substr($this->session->userdata('full_name'), 0, 1)) ?>
+                </div>
+                <span class="font-display font-semibold text-sm text-white">
+                    <?= $this->session->userdata('full_name') ?>
+                </span>
+                <?php if (in_array($this->session->userdata('role'), ['admin', 'super_admin'])): ?>
+                <a href="<?= base_url('admin') ?>" class="ml-2 font-display font-semibold text-xs bg-white/15 text-white px-4 py-2 rounded-full hover:bg-white/25 transition-all duration-200">Dashboard</a>
+                <?php endif; ?>
+                <a href="<?= base_url('auth/logout') ?>" class="font-display font-semibold text-xs bg-white/15 text-white px-4 py-2 rounded-full hover:bg-white/25 transition-all duration-200">Keluar</a>
+            </div>
+            <?php else: ?>
             <a href="<?= base_url('auth/') ?>" class="font-display font-semibold text-sm bg-white text-[#274d4f] px-5 py-2.5 rounded-full shadow-sm hover:bg-gray-100 transition-all duration-300 transform hover:-translate-y-0.5">
                 Masuk
             </a>
+            <?php endif; ?>
         </div>
 
         <!-- Mobile Button -->
