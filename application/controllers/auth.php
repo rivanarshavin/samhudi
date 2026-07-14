@@ -115,14 +115,20 @@ class Auth extends CI_Controller
             'password'  => password_hash($this->input->post('password'), PASSWORD_DEFAULT),
             'role'      => 'member',
             'status'    => 'active',
-            'is_verified' => 0,
+            'is_verified' => 1, // Bypass OTP: langsung verified
         ]);
 
         $user = $this->User_model->get_by_id($user_id);
-        $this->_send_otp($user);
+        
+        // Bypass OTP: Langsung login
+        $this->session->set_userdata([
+            'user_id'    => $user->id,
+            'full_name'  => $user->full_name,
+            'role'       => $user->role,
+            'logged_in'  => TRUE,
+        ]);
 
-        $this->session->set_userdata('pending_user_id', $user_id);
-        redirect('auth/verify_otp');
+        redirect('home');
     }
 
     // ==========================================================

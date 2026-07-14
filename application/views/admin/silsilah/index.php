@@ -85,7 +85,7 @@
 
             <!-- Filters & Search -->
             <div class="bg-brand-dark/20 border border-brand-medium/20 rounded-2xl p-6 shadow-sm">
-                <form method="GET" action="<?= base_url('admin/silsilah') ?>" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <form method="GET" action="<?= base_url('admin/silsilah') ?>" class="grid grid-cols-1 md:grid-cols-5 gap-4">
                     
                     <!-- Search Input -->
                     <div class="relative md:col-span-2">
@@ -99,6 +99,16 @@
                             <option value="">Semua Jenis Kelamin</option>
                             <option value="L" <?= $gender == 'L' ? 'selected' : '' ?>>Laki-laki</option>
                             <option value="P" <?= $gender == 'P' ? 'selected' : '' ?>>Perempuan</option>
+                        </select>
+                    </div>
+
+                    <!-- Generasi Filter -->
+                    <div>
+                        <select name="generasi" class="w-full bg-[#1A2824] border border-[#4D6B67]/30 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-brand-medium transition-all">
+                            <option value="">Semua Generasi</option>
+                            <?php for ($i = 1; $i <= $max_generasi; $i++): ?>
+                                <option value="<?= $i ?>" <?= (string)$generasi === (string)$i ? 'selected' : '' ?>>Gen-<?= $i ?></option>
+                            <?php endfor; ?>
                         </select>
                     </div>
 
@@ -125,6 +135,7 @@
                             <tr class="border-b border-[#4D6B67]/20">
                                 <th class="pb-4 text-xs font-bold text-white/40 uppercase tracking-wider">Anggota</th>
                                 <th class="pb-4 text-xs font-bold text-white/40 uppercase tracking-wider">L/P</th>
+                                <th class="pb-4 text-xs font-bold text-white/40 uppercase tracking-wider">Generasi</th>
                                 <th class="pb-4 text-xs font-bold text-white/40 uppercase tracking-wider">Orang Tua</th>
                                 <th class="pb-4 text-xs font-bold text-white/40 uppercase tracking-wider">Kontak / TTL</th>
                                 <th class="pb-4 text-xs font-bold text-white/40 uppercase tracking-wider">Status</th>
@@ -155,6 +166,11 @@
                                             <span class="px-2 py-1 rounded text-xs font-bold <?= $member['gender'] == 'L' ? 'bg-blue-500/20 text-blue-300' : 'bg-pink-500/20 text-pink-300' ?>">
                                                 <?= $member['gender'] == 'L' ? 'L' : 'P' ?>
                                             </span>
+                                        </td>
+
+                                        <!-- Generasi -->
+                                        <td class="py-4 text-sm text-brand-light">
+                                            Gen-<?= $member['generasi'] ?? '-' ?>
                                         </td>
 
                                         <!-- Parents -->

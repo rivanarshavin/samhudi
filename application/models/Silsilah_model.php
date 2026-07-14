@@ -19,7 +19,7 @@ class Silsilah_model extends CI_Model
     /**
      * Get family members with filter and parent names
      */
-    public function get_all_members($search = '', $gender = '', $is_alive = '')
+    public function get_all_members($search = '', $gender = '', $is_alive = '', $generasi = '')
     {
         $this->db->select('fm.*, f.family_name, 
             fat.full_name as father_name, 
@@ -48,7 +48,63 @@ class Silsilah_model extends CI_Model
         }
 
         $this->db->order_by('fm.full_name', 'ASC');
-        return $this->db->get()->result_array();
+        $members = $this->db->get()->result_array();
+
+        // Ambil semua parent_id untuk hitung kedalaman (generasi)
+        $this->db->select('id, father_id, mother_id');
+        $all_raw = $this->db->get('family_members')->result_array();
+        $parent_map = [];
+        foreach ($all_raw as $raw) {
+            $parent_map[$raw['id']] = ['father_id' => $raw['father_id'], 'mother_id' => $raw['mother_id']];
+        }
+
+        $filtered_members = [];
+        foreach ($members as &$m) {
+            $depth = 0;
+            $curr_id = $m['id'];
+            while (isset($parent_map[$curr_id]) && ($parent_map[$curr_id]['father_id'] || $parent_map[$curr_id]['mother_id'])) {
+                $depth++;
+                $curr_id = $parent_map[$curr_id]['father_id'] ?: $parent_map[$curr_id]['mother_id'];
+            }
+            $m['generasi'] = $depth + 1;
+
+            if ($generasi !== '' && $m['generasi'] != $generasi) {
+                continue;
+            }
+            $filtered_members[] = $m;
+        }
+
+        return $filtered_members;
+    }
+
+    /**
+     * Get maximum generation dynamically
+     */
+    public function get_max_generation()
+    {
+        $this->db->select('id, father_id, mother_id');
+        $all_raw = $this->db->get('family_members')->result_array();
+        
+        if (empty($all_raw)) return 1;
+
+        $parent_map = [];
+        foreach ($all_raw as $raw) {
+            $parent_map[$raw['id']] = ['father_id' => $raw['father_id'], 'mother_id' => $raw['mother_id']];
+        }
+
+        $max_depth = 0;
+        foreach ($all_raw as $m) {
+            $depth = 0;
+            $curr_id = $m['id'];
+            while (isset($parent_map[$curr_id]) && ($parent_map[$curr_id]['father_id'] || $parent_map[$curr_id]['mother_id'])) {
+                $depth++;
+                $curr_id = $parent_map[$curr_id]['father_id'] ?: $parent_map[$curr_id]['mother_id'];
+            }
+            if ($depth > $max_depth) {
+                $max_depth = $depth;
+            }
+        }
+        return $max_depth + 1;
     }
 
     /**

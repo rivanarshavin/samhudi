@@ -123,14 +123,17 @@ class Admin extends CI_Controller
         $search = $this->input->get('search') ?? '';
         $gender = $this->input->get('gender') ?? '';
         $is_alive = $this->input->get('is_alive') ?? '';
+        $generasi = $this->input->get('generasi') ?? '';
 
         $data = [
             'admin_name' => $this->session->userdata('full_name'),
             'admin_role' => $this->session->userdata('role'),
-            'members'    => $this->Silsilah_model->get_all_members($search, $gender, $is_alive),
+            'members'    => $this->Silsilah_model->get_all_members($search, $gender, $is_alive, $generasi),
             'search'     => $search,
             'gender'     => $gender,
-            'is_alive'   => $is_alive
+            'is_alive'   => $is_alive,
+            'generasi'   => $generasi,
+            'max_generasi' => $this->Silsilah_model->get_max_generation()
         ];
 
         $this->load->view('admin/silsilah/index', $data);
@@ -480,6 +483,35 @@ class Admin extends CI_Controller
         $this->Admin_model->toggle_news_status($id);
         $this->session->set_flashdata('success', 'Status berita berhasil diubah.');
         redirect('admin/berita');
+    }
+
+    // --- MANAJEMEN SILSILAH LAMA ---
+    public function kelola_silsilah()
+    {
+        $this->load->model('Silsilah_model');
+        // Ambil semua data member untuk tabel
+        $data['members'] = $this->db->query("
+            SELECT fm.*, 
+                   f.full_name as ayah_name, 
+                   m.full_name as ibu_name
+            FROM family_members fm
+            LEFT JOIN family_members f ON fm.father_id = f.id
+            LEFT JOIN family_members m ON fm.mother_id = m.id
+            ORDER BY fm.id DESC
+        ")->result_array();
+
+        $this->load->view('templates/header', $data);
+        $this->load->view('partials/navbar');
+        $this->load->view('admin/kelola_silsilah', $data);
+        $this->load->view('templates/footer');
+    }
+
+    public function api_delete_member($id)
+    {
+        $this->load->model('Silsilah_model');
+        header('Content-Type: application/json; charset=utf-8');
+        $this->Silsilah_model->delete_member($id);
+        echo json_encode(['status' => true, 'message' => 'Anggota berhasil dihapus.']);
     }
 
 }
