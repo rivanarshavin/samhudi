@@ -212,6 +212,36 @@ class Admin_model extends CI_Model
     }
 
     /**
+     * Menambah jumlah views pada berita
+     */
+    public function increment_news_views($id)
+    {
+        $this->db->where('id', $id);
+        $this->db->set('views', 'views+1', FALSE);
+        $this->db->update('news');
+    }
+
+    /**
+     * Menambah jumlah likes pada berita
+     */
+    public function increment_news_likes($id)
+    {
+        $this->db->where('id', $id);
+        $this->db->set('likes', 'likes+1', FALSE);
+        $this->db->update('news');
+    }
+
+    /**
+     * Mengurangi jumlah likes pada berita
+     */
+    public function decrement_news_likes($id)
+    {
+        $this->db->where('id', $id);
+        $this->db->set('likes', 'IF(likes > 0, likes - 1, 0)', FALSE);
+        $this->db->update('news');
+    }
+
+    /**
      * Ambil berita lainnya selain berita yang sedang dibuka (untuk sidebar)
      */
     public function get_other_news($exclude_id, $limit = 4)
@@ -229,15 +259,23 @@ class Admin_model extends CI_Model
     /**
      * Ambil semua berita publish untuk halaman daftar
      */
-    public function get_all_published_news($limit = 20)
+    public function get_all_published_news($limit = 20, $offset = 0)
     {
         $this->db->select('news.*, users.full_name AS author_name');
         $this->db->from('news');
         $this->db->join('users', 'users.id = news.author_id', 'left');
         $this->db->where('news.status', 'publish');
         $this->db->order_by('news.created_at', 'DESC');
-        $this->db->limit($limit);
+        $this->db->limit($limit, $offset);
         return $this->db->get()->result_array();
+    }
+
+    /**
+     * Hitung total berita publish
+     */
+    public function count_published_news()
+    {
+        return $this->db->where('status', 'publish')->count_all_results('news');
     }
 }
 

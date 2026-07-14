@@ -399,11 +399,20 @@ class Admin extends CI_Controller
                     mkdir($config['upload_path'], 0777, true);
                 }
 
-                $this->load->library('upload', $config);
+                $this->load->library('upload');
+                $this->upload->initialize($config);
 
                 if ($this->upload->do_upload('thumbnail')) {
                     $upload_data = $this->upload->data();
                     $thumbnail   = 'assets/uploads/news/' . $upload_data['file_name'];
+                } else {
+                    $data = [
+                        'admin_name' => $this->session->userdata('full_name'),
+                        'admin_role' => $this->session->userdata('role'),
+                        'upload_error' => $this->upload->display_errors('', '')
+                    ];
+                    $this->load->view('admin/berita/add', $data);
+                    return;
                 }
             }
 
@@ -457,7 +466,8 @@ class Admin extends CI_Controller
                     mkdir($config['upload_path'], 0777, true);
                 }
 
-                $this->load->library('upload', $config);
+                $this->load->library('upload');
+                $this->upload->initialize($config);
 
                 if ($this->upload->do_upload('thumbnail')) {
                     if ($thumbnail && file_exists('./' . $thumbnail)) {
@@ -465,6 +475,15 @@ class Admin extends CI_Controller
                     }
                     $upload_data = $this->upload->data();
                     $thumbnail   = 'assets/uploads/news/' . $upload_data['file_name'];
+                } else {
+                    $data = [
+                        'admin_name' => $this->session->userdata('full_name'),
+                        'admin_role' => $this->session->userdata('role'),
+                        'news'       => $news,
+                        'upload_error' => $this->upload->display_errors('', '')
+                    ];
+                    $this->load->view('admin/berita/edit', $data);
+                    return;
                 }
             }
 

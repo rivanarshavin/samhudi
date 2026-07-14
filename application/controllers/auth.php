@@ -3,12 +3,19 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Auth extends CI_Controller
 {
+    // Daftar tipe captcha yang valid + nama session key masing-masing
+    private $captcha_map = [
+        'login'  => 'captcha_login_word',
+        'signup' => 'captcha_signup_word',
+        'forgot' => 'captcha_forgot_word',
+    ];
+
     public function __construct()
     {
         parent::__construct();
         $this->load->model('User_model');
         $this->load->library(['session', 'form_validation', 'email']);
-        $this->load->helper(['url', 'form', 'otp']);
+        $this->load->helper(['url', 'form', 'otp', 'captcha']);
     }
 
     // ==========================================================
@@ -19,9 +26,11 @@ class Auth extends CI_Controller
         $mode = $this->input->get('mode') === 'signup' ? 'signup' : 'login';
 
         $data = [
-            'mode'   => $mode,
-            'errors' => $this->session->flashdata('errors') ?: [],
-            'old'    => $this->session->flashdata('old') ?: [],
+            'mode'            => $mode,
+            'errors'          => $this->session->flashdata('errors') ?: [],
+            'old'             => $this->session->flashdata('old') ?: [],
+            'captcha_login'   => $this->_make_captcha('login', 'captcha-login-img'),
+            'captcha_signup'  => $this->_make_captcha('signup', 'captcha-signup-img'),
         ];
 
         $this->load->view('auth/login', $data);
@@ -34,9 +43,15 @@ class Auth extends CI_Controller
     {
         $this->form_validation->set_rules('identifier', 'Email', 'required|valid_email');
         $this->form_validation->set_rules('password', 'Password', 'required');
+        $this->form_validation->set_rules('captcha_code', 'Captcha', 'required|trim');
 
         if ($this->form_validation->run() === FALSE) {
-            $this->_fail_login(['Email dan password wajib diisi dengan benar.']);
+            $this->_fail_login(['Email, password, dan captcha wajib diisi dengan benar.']);
+            return;
+        }
+
+        if (!$this->_verify_captcha('login', $this->input->post('captcha_code', TRUE))) {
+            $this->_fail_login(['Kode captcha salah, coba lagi.']);
             return;
         }
 
@@ -98,9 +113,20 @@ class Auth extends CI_Controller
         $this->form_validation->set_rules('email', 'Email', 'required|valid_email|is_unique[users.email]');
         $this->form_validation->set_rules('password', 'Password', 'required|min_length[8]');
         $this->form_validation->set_rules('password_confirmation', 'Konfirmasi Password', 'required|matches[password]');
+        $this->form_validation->set_rules('captcha_code', 'Captcha', 'required|trim');
 
         if ($this->form_validation->run() === FALSE) {
             $this->session->set_flashdata('errors', [strip_tags($this->form_validation->error_string())]);
+            $this->session->set_flashdata('old', [
+                'full_name' => $this->input->post('full_name'),
+                'email'     => $this->input->post('email'),
+            ]);
+            redirect('auth?mode=signup');
+            return;
+        }
+
+        if (!$this->_verify_captcha('signup', $this->input->post('captcha_code', TRUE))) {
+            $this->session->set_flashdata('errors', ['Kode captcha salah, coba lagi.']);
             $this->session->set_flashdata('old', [
                 'full_name' => $this->input->post('full_name'),
                 'email'     => $this->input->post('email'),
@@ -210,6 +236,22 @@ class Auth extends CI_Controller
     public function forgot_password()
     {
         if ($this->input->method() === 'post') {
+
+            $this->form_validation->set_rules('email', 'Email', 'required|valid_email');
+            $this->form_validation->set_rules('captcha_code', 'Captcha', 'required|trim');
+
+            if ($this->form_validation->run() === FALSE) {
+                $this->session->set_flashdata('errors', ['Email dan captcha wajib diisi dengan benar.']);
+                redirect('auth/forgot_password');
+                return;
+            }
+
+            if (!$this->_verify_captcha('forgot', $this->input->post('captcha_code', TRUE))) {
+                $this->session->set_flashdata('errors', ['Kode captcha salah, coba lagi.']);
+                redirect('auth/forgot_password');
+                return;
+            }
+
             $email = $this->input->post('email', TRUE);
             $user = $this->User_model->get_by_email($email);
 
@@ -236,8 +278,9 @@ class Auth extends CI_Controller
         }
 
         $data = [
-            'message' => $this->session->flashdata('message'),
-            'errors'  => $this->session->flashdata('errors') ?: [],
+            'message'        => $this->session->flashdata('message'),
+            'errors'         => $this->session->flashdata('errors') ?: [],
+            'captcha_forgot' => $this->_make_captcha('forgot', 'captcha-forgot-img'),
         ];
         $this->load->view('auth/forgot_password', $data);
     }
@@ -290,5 +333,108 @@ class Auth extends CI_Controller
     {
         $this->session->sess_destroy();
         redirect('auth');
+    }
+
+    // ==========================================================
+    // CAPTCHA (bawaan CI3, GD, case-sensitive huruf+angka)
+    // ==========================================================
+
+    /**
+     * Config dasar captcha. Butuh ekstensi GD aktif & folder
+     * assets/captcha/ writable di webroot (chmod 755/775).
+     */
+    private function _captcha_vals($img_id)
+    {
+        return [
+            'img_path'    => FCPATH . 'assets/captcha/',
+            'img_url'     => base_url('assets/captcha/'),
+            'img_width'   => 160,
+            'img_height'  => 45,
+            'font_size'   => 18,
+            'word_length' => 6,
+            'expiration'  => 300, // detik, file lama otomatis dihapus tiap generate baru
+            'img_id'      => $img_id,
+            // pool campur huruf besar, kecil, angka -> case-sensitive
+            'pool'        => '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
+            'colors'      => [
+                'background' => [38, 53, 48],
+                'border'     => [212, 181, 113],
+                'text'       => [255, 255, 255],
+                'grid'       => [68, 94, 89],
+            ],
+        ];
+    }
+
+    /**
+     * Generate captcha baru, simpan kode ke session, return <img> tag HTML.
+     */
+    private function _make_captcha($type, $img_id)
+    {
+        if (!isset($this->captcha_map[$type])) {
+            return '';
+        }
+
+        $cap = create_captcha($this->_captcha_vals($img_id));
+
+        if ($cap === false) {
+            log_message('error', 'Gagal generate captcha. Cek GD aktif & folder assets/captcha/ writable.');
+            return '';
+        }
+
+        $this->session->set_userdata($this->captcha_map[$type], $cap['word']);
+
+        return $cap['image'];
+    }
+
+    /**
+     * Cek input user vs kode di session. Case-sensitive (strcmp).
+     * Sekali dicek langsung dihapus dari session (one-time use).
+     */
+    private function _verify_captcha($type, $input)
+    {
+        if (!isset($this->captcha_map[$type])) {
+            return false;
+        }
+
+        $session_key = $this->captcha_map[$type];
+        $expected    = $this->session->userdata($session_key);
+        $this->session->unset_userdata($session_key);
+
+        if ($expected === null || $input === null || $input === '') {
+            return false;
+        }
+
+        return strcmp(trim($input), $expected) === 0;
+    }
+
+    /**
+     * Endpoint AJAX buat tombol "Ganti Kode" di view.
+     * GET auth/captcha_refresh/login | signup | forgot
+     */
+    public function captcha_refresh($type = null)
+    {
+        if (!isset($this->captcha_map[$type])) {
+            show_404();
+            return;
+        }
+
+        $img_id = 'captcha-' . $type . '-img';
+        $cap = create_captcha($this->_captcha_vals($img_id));
+
+        if ($cap === false) {
+            $this->output
+                ->set_status_header(500)
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['error' => 'Gagal generate captcha']));
+            return;
+        }
+
+        $this->session->set_userdata($this->captcha_map[$type], $cap['word']);
+
+        preg_match('/src="([^"]+)"/', $cap['image'], $m);
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode(['image_url' => $m[1] ?? '']));
     }
 }

@@ -59,6 +59,7 @@ $route['auth/reset_password/(:any)'] = 'auth/reset_password/$1';
 $route['auth/logout']               = 'auth/logout';
 $route['admin']                     = 'admin/index';
 $route['berita']                    = 'home/berita';
+$route['berita/(:num)']             = 'home/berita';        // pagination offset
 $route['berita/(:any)']             = 'home/berita_detail/$1';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
