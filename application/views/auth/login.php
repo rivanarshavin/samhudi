@@ -158,7 +158,7 @@ $mode = isset($_GET['mode']) && $_GET['mode'] === 'signup' ? 'signup' : 'login';
 
     <!-- ============ RIGHT: FORM PANEL ============ -->
     <!-- FIX: overflow-y-auto + form-scroll biar konten ga kepotong kalau viewport pendek -->
-    <div class="form-scroll relative flex flex-col justify-center px-10 sm:px-14 md:px-16 lg:px-20 h-full bg-teal-800 overflow-y-auto py-12">
+    <div class="form-scroll relative flex flex-col px-10 sm:px-14 md:px-16 lg:px-20 h-full bg-teal-800 overflow-y-auto py-8">
 
       <!-- Back button -->
       <a href="<?= base_url() ?>"
@@ -170,7 +170,7 @@ $mode = isset($_GET['mode']) && $_GET['mode'] === 'signup' ? 'signup' : 'login';
       </a>
 
       <!-- FIX: max-w-sm -> max-w-md biar signup (4 field) ga kerasa sempit horizontal -->
-      <div class="w-full max-w-md mx-auto">
+      <div class="w-full max-w-md mx-auto my-auto py-6">
 
         <!-- Error flash -->
         <?php if (!empty($errors)): ?>
@@ -281,6 +281,16 @@ $mode = isset($_GET['mode']) && $_GET['mode'] === 'signup' ? 'signup' : 'login';
               <input id="signup-email" name="email" type="email" required
                      value="<?= htmlspecialchars($old['email'] ?? '') ?>"
                      placeholder="example@email.com"
+                     class="input-line">
+            </div>
+
+            <div>
+              <label for="signup-phone" class="block text-white/60 text-xs font-medium mb-2 tracking-wide uppercase">
+                Phone Number <span class="text-red-400">*</span>
+              </label>
+              <input id="signup-phone" name="phone" type="text" required
+                     value="<?= htmlspecialchars($old['phone'] ?? '') ?>"
+                     placeholder="0812xxxxxxxx"
                      class="input-line">
             </div>
 

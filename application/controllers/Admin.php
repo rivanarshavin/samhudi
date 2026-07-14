@@ -156,16 +156,34 @@ class Admin extends CI_Controller
     public function silsilah_approve($id)
     {
         $this->load->model('Silsilah_model');
-        $this->Silsilah_model->update_member($id, ['status' => 'approved']);
-        $this->session->set_flashdata('success', 'Anggota berhasil disetujui dan akan tampil di pohon keluarga.');
+        $member = $this->Silsilah_model->get_member_by_id($id);
+        if ($member) {
+            $this->Silsilah_model->update_member($id, ['status' => 'approved']);
+            // Activate linked user account if exists
+            if (!empty($member['user_id'])) {
+                $this->db->where('id', $member['user_id'])->update('users', ['status' => 'active']);
+            }
+            $this->session->set_flashdata('success', 'Anggota silsilah dan akun penggunanya berhasil disetujui.');
+        } else {
+            $this->session->set_flashdata('error', 'Anggota tidak ditemukan.');
+        }
         redirect('admin/silsilah');
     }
 
     public function silsilah_reject($id)
     {
         $this->load->model('Silsilah_model');
-        $this->Silsilah_model->update_member($id, ['status' => 'rejected']);
-        $this->session->set_flashdata('success', 'Penambahan anggota berhasil ditolak.');
+        $member = $this->Silsilah_model->get_member_by_id($id);
+        if ($member) {
+            $this->Silsilah_model->update_member($id, ['status' => 'rejected']);
+            // Delete linked user account to allow re-registration
+            if (!empty($member['user_id'])) {
+                $this->db->where('id', $member['user_id'])->delete('users');
+            }
+            $this->session->set_flashdata('success', 'Pendaftaran anggota ditolak.');
+        } else {
+            $this->session->set_flashdata('error', 'Anggota tidak ditemukan.');
+        }
         redirect('admin/silsilah');
     }
 
@@ -335,8 +353,12 @@ class Admin extends CI_Controller
             if ($member['photo'] && file_exists('./' . $member['photo'])) {
                 unlink('./' . $member['photo']);
             }
+            // Delete linked user account if exists
+            if (!empty($member['user_id'])) {
+                $this->db->where('id', $member['user_id'])->delete('users');
+            }
             $this->Silsilah_model->delete_member($id);
-            $this->session->set_flashdata('success', 'Anggota silsilah berhasil dihapus.');
+            $this->session->set_flashdata('success', 'Anggota silsilah dan akun penggunanya berhasil dihapus.');
         }
         redirect('admin/silsilah');
     }
@@ -559,8 +581,20 @@ class Admin extends CI_Controller
     {
         $this->load->model('Silsilah_model');
         header('Content-Type: application/json; charset=utf-8');
-        $this->Silsilah_model->delete_member($id);
-        echo json_encode(['status' => true, 'message' => 'Anggota berhasil dihapus.']);
+        
+        $member = $this->Silsilah_model->get_member_by_id($id);
+        if ($member) {
+            // Delete old photo
+            if ($member['photo'] && file_exists('./' . $member['photo'])) {
+                unlink('./' . $member['photo']);
+            }
+            // Delete user account if linked
+            if (!empty($member['user_id'])) {
+                $this->db->where('id', $member['user_id'])->delete('users');
+            }
+            $this->Silsilah_model->delete_member($id);
+        }
+        echo json_encode(['status' => true, 'message' => 'Anggota dan akun penggunanya berhasil dihapus.']);
     }
 
 }

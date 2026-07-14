@@ -80,6 +80,9 @@ class Familytree extends CI_Controller
         $role = $this->input->post('role'); // 'anak', 'pasangan', 'orangtua'
         $rel_id = $this->input->post('rel_id'); // ID dari anggota yang dipilih
         
+        $this->load->library('session');
+        $pending_user_id = $this->session->userdata('pending_user_id');
+
         $data = [
             'full_name' => $this->input->post('full_name'),
             'birth_date' => $this->input->post('birth_date'),
@@ -87,6 +90,18 @@ class Familytree extends CI_Controller
             'is_alive' => 1,
             'status' => 'pending'
         ];
+
+        if ($pending_user_id) {
+            $data['user_id'] = $pending_user_id;
+            
+            // Auto fill phone and email from the users record
+            $this->load->model('User_model');
+            $pending_user = $this->User_model->get_by_id($pending_user_id);
+            if ($pending_user) {
+                $data['phone'] = $pending_user->phone;
+                $data['email'] = $pending_user->email;
+            }
+        }
         
         if (empty($role) || empty($rel_id) || empty($data['full_name']) || empty($data['gender'])) {
             echo json_encode(['status' => false, 'message' => 'Data tidak lengkap.']);
