@@ -4,6 +4,8 @@
  * ------------------------------------------------------------------
  * Ganti YOUR_PHOTO.jpg di <img> dengan foto keluarga lo.
  * Backend: auth/login.php & auth/register.php
+ * Captcha: bawaan CI3 (GD, case-sensitive), di-generate oleh Auth::index()
+ *          lewat $captcha_login & $captcha_signup.
  * ------------------------------------------------------------------
  */
 session_start();
@@ -103,6 +105,25 @@ $mode = isset($_GET['mode']) && $_GET['mode'] === 'signup' ? 'signup' : 'login';
   .form-scroll::-webkit-scrollbar-track { background: transparent; }
   .form-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 999px; }
   .form-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+
+  /* Captcha box */
+  .captcha-wrap {
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.04);
+    border-radius: 8px;
+    padding: 6px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .captcha-wrap img { display: block; border-radius: 4px; }
+  .captcha-refresh-btn {
+    color: rgba(255,255,255,0.5);
+    font-size: 0.75rem;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color .2s;
+  }
+  .captcha-refresh-btn:hover { color: #fff; }
 </style>
 </head>
 <body class="h-screen overflow-hidden bg-teal-900 font-body">
@@ -187,6 +208,25 @@ $mode = isset($_GET['mode']) && $_GET['mode'] === 'signup' ? 'signup' : 'login';
                      class="input-line">
             </div>
 
+            <div>
+              <label class="block text-white/60 text-xs font-medium mb-2 tracking-wide uppercase">
+                Captcha <span class="text-red-400">*</span>
+              </label>
+              <div class="flex items-center gap-3 mb-3">
+                <div class="captcha-wrap">
+                  <?= $captcha_login ?? '' ?>
+                </div>
+                <button type="button" data-captcha-refresh="login" class="captcha-refresh-btn">
+                  Ganti Kode
+                </button>
+              </div>
+              <input id="login-captcha" name="captcha_code" type="text" required
+                     placeholder="Masukkan kode di atas"
+                     autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
+                     class="input-line">
+              <p class="text-white/35 text-xs mt-1.5">Huruf besar dan kecil dibedakan.</p>
+            </div>
+
           </div>
 
           <div class="flex items-center gap-2 mt-6">
@@ -263,6 +303,25 @@ $mode = isset($_GET['mode']) && $_GET['mode'] === 'signup' ? 'signup' : 'login';
               <p id="signup-password-error" class="hidden text-red-300 text-xs mt-1.5">Password tidak sama, cek lagi ya</p>
             </div>
 
+            <div>
+              <label class="block text-white/60 text-xs font-medium mb-2 tracking-wide uppercase">
+                Captcha <span class="text-red-400">*</span>
+              </label>
+              <div class="flex items-center gap-3 mb-3">
+                <div class="captcha-wrap">
+                  <?= $captcha_signup ?? '' ?>
+                </div>
+                <button type="button" data-captcha-refresh="signup" class="captcha-refresh-btn">
+                  Ganti Kode
+                </button>
+              </div>
+              <input id="signup-captcha" name="captcha_code" type="text" required
+                     placeholder="Masukkan kode di atas"
+                     autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
+                     class="input-line">
+              <p class="text-white/35 text-xs mt-1.5">Huruf besar dan kecil dibedakan.</p>
+            </div>
+
           </div>
 
           <div class="flex items-start gap-2 mt-5">
@@ -333,6 +392,27 @@ $mode = isset($_GET['mode']) && $_GET['mode'] === 'signup' ? 'signup' : 'login';
         e.preventDefault();
         pwConfirm.focus();
       }
+    });
+  })();
+
+  // Captcha refresh (login & signup) — AJAX ke Auth::captcha_refresh()
+  (function() {
+    var base = '<?= base_url('auth/captcha_refresh/') ?>';
+
+    document.querySelectorAll('[data-captcha-refresh]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var type = btn.getAttribute('data-captcha-refresh');
+        var img = document.getElementById('captcha-' + type + '-img');
+
+        fetch(base + type)
+          .then(function(res) { return res.json(); })
+          .then(function(data) {
+            if (data.image_url && img) {
+              img.src = data.image_url + '?t=' + Date.now();
+            }
+          })
+          .catch(function() { /* diamkan aja, jangan ganggu UX */ });
+      });
     });
   })();
 </script>

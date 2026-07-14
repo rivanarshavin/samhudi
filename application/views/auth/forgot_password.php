@@ -4,6 +4,8 @@
  * ------------------------------------------------------------------
  * Desain disamain sama halaman login & OTP (split layout: foto kiri, form kanan).
  * Backend: auth/forgot_password.php
+ * Captcha: bawaan CI3 (GD, case-sensitive), di-generate oleh Auth::forgot_password()
+ *          lewat $captcha_forgot.
  * ------------------------------------------------------------------
  */
 session_start();
@@ -92,6 +94,25 @@ unset($_SESSION['message'], $_SESSION['errors'], $_SESSION['old']);
     from { opacity: 0; transform: translateY(10px); }
     to   { opacity: 1; transform: translateY(0); }
   }
+
+  /* Captcha box */
+  .captcha-wrap {
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.04);
+    border-radius: 8px;
+    padding: 6px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .captcha-wrap img { display: block; border-radius: 4px; }
+  .captcha-refresh-btn {
+    color: rgba(255,255,255,0.5);
+    font-size: 0.75rem;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color .2s;
+  }
+  .captcha-refresh-btn:hover { color: #fff; }
 </style>
 </head>
 <body class="h-screen overflow-hidden bg-teal-900 font-body">
@@ -154,6 +175,25 @@ unset($_SESSION['message'], $_SESSION['errors'], $_SESSION['old']);
                    class="input-line">
           </div>
 
+          <div class="mt-8">
+            <label class="block text-white/60 text-xs font-medium mb-2 tracking-wide uppercase">
+              Captcha <span class="text-red-400">*</span>
+            </label>
+            <div class="flex items-center gap-3 mb-3">
+              <div class="captcha-wrap">
+                <?= $captcha_forgot ?? '' ?>
+              </div>
+              <button type="button" data-captcha-refresh="forgot" class="captcha-refresh-btn">
+                Ganti Kode
+              </button>
+            </div>
+            <input id="fp-captcha" name="captcha_code" type="text" required
+                   placeholder="Masukkan kode di atas"
+                   autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
+                   class="input-line">
+            <p class="text-white/35 text-xs mt-1.5">Huruf besar dan kecil dibedakan.</p>
+          </div>
+
           <div class="mt-10 space-y-4">
             <button type="submit"
                     class="w-full border border-white/70 text-white font-display font-semibold tracking-widest text-sm uppercase rounded-full py-3.5 hover:bg-white hover:text-teal-900 transition-all duration-300">
@@ -175,5 +215,27 @@ unset($_SESSION['message'], $_SESSION['errors'], $_SESSION['old']);
 
   </div>
 
+<script>
+  // Captcha refresh — AJAX ke Auth::captcha_refresh()
+  (function() {
+    var base = '<?= base_url('auth/captcha_refresh/') ?>';
+
+    document.querySelectorAll('[data-captcha-refresh]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var type = btn.getAttribute('data-captcha-refresh');
+        var img = document.getElementById('captcha-' + type + '-img');
+
+        fetch(base + type)
+          .then(function(res) { return res.json(); })
+          .then(function(data) {
+            if (data.image_url && img) {
+              img.src = data.image_url + '?t=' + Date.now();
+            }
+          })
+          .catch(function() { /* diamkan aja */ });
+      });
+    });
+  })();
+</script>
 </body>
 </html>
