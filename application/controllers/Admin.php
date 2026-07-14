@@ -109,7 +109,35 @@ class Admin extends CI_Controller
             redirect('admin#banner-section');
         }
 
+        // Handle sambutan text update
+        if ($this->input->method() === 'post' && $this->input->post('save_sambutan')) {
+            $pars_raw = $this->input->post('sambutan_pars', TRUE);
+            $pars = array_values(array_filter(array_map('trim', preg_split('/\n\s*\n/', $pars_raw))));
+            file_put_contents(FCPATH . 'assets/sambutan-config.json', json_encode([
+                'title' => $this->input->post('sambutan_title', TRUE),
+                'paragraphs' => $pars,
+                'closing' => $this->input->post('sambutan_closing', TRUE),
+                'sender' => $this->input->post('sambutan_sender', TRUE),
+            ]));
+            $this->session->set_flashdata('sambutan_success', 'Teks sambutan berhasil diperbarui.');
+            redirect('admin#sambutan-section');
+        }
+
+        // Handle intro text update
+        if ($this->input->method() === 'post' && $this->input->post('save_intro')) {
+            $intro_text = $this->input->post('intro_text', TRUE);
+            $intro_sender = $this->input->post('intro_sender', TRUE);
+            file_put_contents(FCPATH . 'assets/intro-config.json', json_encode([
+                'text' => $intro_text,
+                'sender' => $intro_sender
+            ]));
+            $this->session->set_flashdata('intro_success', 'Teks intro berhasil diperbarui.');
+            redirect('admin#intro-section');
+        }
+
         $banner_config = json_decode(file_get_contents($config_path), true);
+        $intro_config = json_decode(file_get_contents(FCPATH . 'assets/intro-config.json'), true);
+        $sambutan_config = json_decode(file_get_contents(FCPATH . 'assets/sambutan-config.json'), true);
 
         $data = [
             'admin_name'        => $this->session->userdata('full_name'),
@@ -121,6 +149,12 @@ class Admin extends CI_Controller
             'recent_activities' => $this->Admin_model->get_recent_activities(5),
             'selected_banner'   => $banner_config['file'] ?? 'background2.png',
             'carousel_items'    => json_decode(file_get_contents($carousel_config_path), true),
+            'intro_text'        => $intro_config['text'] ?? "Dengan rasa syukur dan bangga,\nkami persembahkan website ini\nsebagai ruang digital untuk\nmenyambung tali silaturahmi",
+            'intro_sender'      => $intro_config['sender'] ?? 'From (nama)',
+            'sambutan_title'    => $sambutan_config['title'] ?? "Assalamu'alaikum Warahmatullahi Wabarakatuh,",
+            'sambutan_pars'     => $sambutan_config['paragraphs'] ?? [],
+            'sambutan_closing'  => $sambutan_config['closing'] ?? "Wassalamu'alaikum Warahmatullahi Wabarakatuh.",
+            'sambutan_sender'   => $sambutan_config['sender'] ?? 'Keluarga Besar H.M. Samhudi',
         ];
 
         $this->load->view('admin/dashboard', $data);
