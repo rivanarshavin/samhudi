@@ -1,8 +1,9 @@
 <?php $is_home = !$this->uri->segment(1); ?>
-<nav class="<?= !$this->uri->segment(1) ? '' : 'bg-[#274d4f] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.3)]' ?> sticky top-0 z-50">
+<nav class="bg-[#274d4f] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.3)] sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between gap-x-16">
 
-        <div class="font-display font-bold text-lg text-white tracking-tight leading-none">
+        <div class="font-display font-bold text-lg tracking-tight leading-none flex items-center gap-2" style="color: #C8A84E;">
+            <img src="<?= base_url('assets/images/icon-beringin.png') ?>" alt="" style="height: 28px; width: auto; flex-shrink: 0;">
             HM Samhudi
         </div>
 
@@ -50,13 +51,13 @@
         <div class="hidden md:flex items-center">
             <?php if ($this->session->userdata('logged_in')): ?>
             <div id="desktop-user-menu" class="relative cursor-pointer select-none group">
-                <div class="flex items-center gap-4 <?= $is_home ? 'bg-[#274d4f] hover:bg-[#1d3a3c]' : 'bg-white hover:bg-gray-100' ?> px-5 py-2.5 rounded-full transition-all duration-200">
-                    <i class="bi bi-person-fill <?= $is_home ? 'text-white' : 'text-[#274d4f]' ?> text-base"></i>
-                    <span class="font-display font-semibold text-sm <?= $is_home ? 'text-white' : 'text-[#274d4f]' ?>">
+                <div class="flex items-center gap-4 bg-white hover:bg-gray-100 px-5 py-2.5 rounded-full transition-all duration-200">
+                    <i class="bi bi-person-fill text-[#274d4f] text-base"></i>
+                    <span class="font-display font-semibold text-sm text-[#274d4f]">
                         <?= $this->session->userdata('full_name') ?>
                     </span>
                 </div>
-                <div id="desktop-dropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg overflow-hidden" style="opacity:0;visibility:hidden;transform:translateY(8px);transition:all 0.2s ease;z-index:9999;">
+                <div id="desktop-dropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden" style="opacity:0;visibility:hidden;transform:translateY(8px);transition:all 0.2s ease;z-index:9999;">
                     <?php if (in_array($this->session->userdata('role'), ['admin', 'super_admin'])): ?>
                     <a href="<?= base_url('admin') ?>" class="flex items-center gap-3 px-5 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors font-display font-medium no-underline">
                         <i class="bi bi-speedometer2 text-teal-700"></i>
@@ -134,6 +135,13 @@
             <li class="px-6 pt-2">
                 <hr class="border-white/20 mb-3">
                 <a href="<?= base_url('auth/') ?>" class="block w-full text-center font-display font-semibold text-sm bg-white text-teal-900 px-5 py-2.5 rounded-full hover:bg-gray-100 transition-colors duration-200">Masuk</a>
+            </li>
+        <?php else: ?>
+            <li class="px-6 pt-2">
+                <hr class="border-white/20 mb-3">
+                <a href="<?= base_url('auth/logout') ?>" class="flex items-center justify-center gap-2 w-full font-display font-semibold text-sm bg-red-500/80 text-white px-5 py-2.5 rounded-full hover:bg-red-600 transition-colors duration-200">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
             </li>
         <?php endif; ?>
         </ul>

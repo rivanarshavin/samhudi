@@ -39,9 +39,54 @@ class Home extends CI_Controller {
     /**
      * Halaman daftar semua berita
      */
-    public function berita()
+    public function berita($page = 0)
     {
-        $data['news_list'] = $this->Admin_model->get_all_published_news(50);
+        $per_page    = 10;
+        $offset      = (int) $this->uri->segment(2, 0); // segment 2 = offset angka
+
+        $total       = $this->Admin_model->count_published_news();
+        $news_items  = $this->Admin_model->get_all_published_news($per_page, $offset);
+        $other_news  = $this->Admin_model->get_other_news(0, 5);
+
+        // Konfigurasi Pagination CI
+        $this->load->library('pagination');
+        $config = [
+            'base_url'             => base_url('berita'),
+            'total_rows'           => $total,
+            'per_page'             => $per_page,
+            'uri_segment'          => 2,
+            'use_page_numbers'     => FALSE,
+            'reuse_query_string'   => FALSE,
+            // Wrapper & tag
+            'full_tag_open'        => '<nav aria-label="Pagination berita"><ul class="pagination custom-pagination justify-content-center mt-4">',
+            'full_tag_close'       => '</ul></nav>',
+            'first_tag_open'       => '<li class="page-item">',
+            'first_tag_close'      => '</li>',
+            'last_tag_open'        => '<li class="page-item">',
+            'last_tag_close'       => '</li>',
+            'next_tag_open'        => '<li class="page-item">',
+            'next_tag_close'       => '</li>',
+            'prev_tag_open'        => '<li class="page-item">',
+            'prev_tag_close'       => '</li>',
+            'cur_tag_open'         => '<li class="page-item active"><a class="page-link" href="#">',
+            'cur_tag_close'        => '</a></li>',
+            'num_tag_open'         => '<li class="page-item">',
+            'num_tag_close'        => '</li>',
+            'attributes'           => ['class' => 'page-link'],
+            'first_link'           => '&laquo;',
+            'last_link'            => '&raquo;',
+            'next_link'            => '&rsaquo;',
+            'prev_link'            => '&lsaquo;',
+        ];
+        $this->pagination->initialize($config);
+
+        $data['news_items']       = $news_items;
+        $data['other_news']       = $other_news;
+        $data['pagination_links'] = $this->pagination->create_links();
+        $data['total_news']       = $total;
+        $data['current_offset']   = $offset;
+        $data['per_page']         = $per_page;
+
         $this->load->view('templates/header');
         $this->load->view('partials/navbar');
         $this->load->view('home/berita_list', $data);
@@ -64,6 +109,10 @@ class Home extends CI_Controller {
             return;
         }
 
+        // Increment view count
+        $this->Admin_model->increment_news_views($news['id']);
+        $news['views'] = ($news['views'] ?? 0) + 1;
+
         $other_news = $this->Admin_model->get_other_news($news['id'], 4);
 
         $data['news']       = $news;
@@ -74,4 +123,29 @@ class Home extends CI_Controller {
         $this->load->view('home/berita_detail', $data);
         $this->load->view('templates/footer');
     }
-}
+
+    /**
+     * API Endpoint untuk Like/Unlike berita (AJAX)
+     */
+    public function like_berita($id)
+    {
+        if ($this->input->method() !== 'post') {
+            show_404();
+            return;
+        }
+        
+        $action = $this->input->post('action'); // 'like' or 'unlike'
+        
+        if ($action === 'unlike') {
+            $this->Admin_model->decrement_news_likes($id);
+        } else {
+            $this->Admin_model->increment_news_likes($id);
+        }
+        
+        $news = $this->Admin_model->get_news_by_id($id);
+        
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode(['status' => 'success', 'likes' => $news['likes']]));
+    }
+}

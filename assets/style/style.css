@@ -261,18 +261,48 @@
 
 .overlap-text {
     font-family: Inter, sans-serif;
-    font-size: clamp(1rem, 2.8vw, 1.6rem);
+    font-size: clamp(0.8rem, 2.5vw, 1.4rem);
     font-weight: 300;
-    line-height: 1.5;
+    line-height: 1.4;
     color: #4b382f;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
 }
 
 .overlap-sender {
     font-family: Inter, sans-serif;
-    font-size: clamp(1rem, 2.8vw, 1.6rem);
+    font-size: clamp(0.8rem, 2.5vw, 1.4rem);
     font-weight: 300;
     color: #4b382f;
+}
+
+@media (max-width: 576px) {
+    .overlap-text {
+        font-size: 1.6rem;
+        line-height: 1.4;
+        margin-bottom: 14px;
+    }
+    .overlap-sender {
+        font-size: 1.6rem;
+    }
+    .overlap-box {
+        padding: 1rem 0.8rem;
+        margin-left: 0;
+        margin-right: 0;
+        max-width: 100%;
+    }
+    .overlap-img {
+        width: 100%;
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero-content {
+        padding-left: 0 !important;
+    }
+    .bg-hero-section {
+        background-position: 55% center !important;
+    }
 }
 
 /* Berita Section */

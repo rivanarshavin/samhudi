@@ -92,7 +92,11 @@
         
         <div class="form-group">
             <label>Nama Lengkap</label>
-            <input type="text" id="fullName" placeholder="Masukkan nama lengkap" oninput="checkForm3()">
+            <?php 
+                $signup_basic = $this->session->userdata('signup_basic_info');
+                $default_name = !empty($signup_basic) ? $signup_basic['full_name'] : (isset($pending_user) ? $pending_user->full_name : '');
+            ?>
+            <input type="text" id="fullName" placeholder="Masukkan nama lengkap" value="<?= htmlspecialchars($default_name) ?>" oninput="checkForm3()">
         </div>
         
         <div class="form-group">
@@ -203,9 +207,10 @@
 </div>
 
 <script>
+    const isSignupFlow = <?php echo $this->session->userdata('signup_basic_info') ? 'true' : 'false'; ?>;
     const searchApiUrl = "<?php echo site_url('familytree/api_search_members'); ?>";
-    const saveApiUrl = "<?php echo site_url('familytree/api_save_member'); ?>";
+    const saveApiUrl = isSignupFlow ? "<?php echo site_url('auth/api_save_member_temp'); ?>" : "<?php echo site_url('familytree/api_save_member'); ?>";
     const baseTreeUrl = "<?php echo site_url('familytree'); ?>";
-    const detailApiUrl = "<?php echo site_url('familytree/get_member_detail'); ?>";
+    const detailApiUrl = isSignupFlow ? "<?php echo site_url('auth/get_member_detail_temp'); ?>" : "<?php echo site_url('familytree/get_member_detail'); ?>";
 </script>
 <script src="<?php echo base_url('assets/js/wizard.js?v=' . time()); ?>"></script>

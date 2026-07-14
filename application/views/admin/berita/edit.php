@@ -93,14 +93,15 @@
             <!-- Form Card -->
             <div class="bg-gradient-to-b from-brand-dark/20 to-brand-dark/5 border border-brand-medium/20 rounded-2xl p-8 shadow-lg">
 
-                <!-- Validation Errors -->
-                <?php if (validation_errors()): ?>
+                <!-- Validation Errors / Upload Errors -->
+                <?php if (validation_errors() || isset($upload_error)): ?>
                     <div class="bg-red-500/10 border border-red-500/30 text-red-300 px-5 py-4 rounded-xl mb-6 text-sm space-y-1">
                         <div class="font-bold flex items-center gap-2 mb-2">
                             <i class="bi bi-exclamation-triangle-fill"></i>
                             <span>Terdapat kesalahan:</span>
                         </div>
-                        <?= validation_errors('<div class="ml-5">• ', '</div>') ?>
+                        <?php if (validation_errors()) echo validation_errors('<div class="ml-5 list-disc">• ', '</div>'); ?>
+                        <?php if (isset($upload_error)) echo '<div class="ml-5 list-disc">• ' . $upload_error . '</div>'; ?>
                     </div>
                 <?php endif; ?>
 
@@ -129,7 +130,7 @@
                             <div class="mb-3 relative inline-block">
                                 <img src="<?= base_url($news['thumbnail']) ?>" alt="Thumbnail saat ini"
                                      id="thumbnail-current"
-                                     class="w-48 h-32 object-cover rounded-xl border border-brand-medium/30">
+                                     class="w-48 h-auto max-h-48 object-contain rounded-xl border border-brand-medium/30 bg-black/20">
                                 <span class="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-0.5 rounded-md">Saat ini</span>
                             </div>
                         <?php endif; ?>
@@ -139,7 +140,7 @@
                              onclick="document.getElementById('thumbnail').click()">
                             <div id="thumbnail-preview-wrapper" class="hidden mb-3">
                                 <img id="thumbnail-preview" src="#" alt="Preview"
-                                     class="w-full max-h-40 object-cover rounded-lg mx-auto">
+                                     class="w-full h-auto max-h-64 object-contain rounded-lg mx-auto">
                             </div>
                             <div id="thumbnail-placeholder">
                                 <i class="bi bi-image text-2xl text-white/30"></i>

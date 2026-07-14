@@ -2,15 +2,6 @@
 $carousel_items = json_decode(file_get_contents(FCPATH . 'assets/carousel-config.json'), true);
 ?>
 <style>
-    html, body {
-        width: 100%;
-        max-width: 100%;
-        overflow-x: hidden;
-        position: relative;
-        margin: 0;
-        padding: 0;
-    }
-
     .carousel-section {
         width: 100% !important;
         max-width: 100vw !important;

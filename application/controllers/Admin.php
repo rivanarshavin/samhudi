@@ -77,19 +77,31 @@ class Admin extends CI_Controller
 
         if ($this->input->method() === 'post' && $this->input->post('upload_banner')) {
             if (!empty($_FILES['banner_file']['name'])) {
-                $config['upload_path'] = $images_path;
-                $config['allowed_types'] = 'jpg|jpeg|png|webp|gif';
-                $config['file_name'] = 'banner_' . time();
-                $this->load->library('upload', $config);
+                $allowed = ['jpg','jpeg','png','webp','gif'];
+                $ext = strtolower(pathinfo($_FILES['banner_file']['name'], PATHINFO_EXTENSION));
 
-                if ($this->upload->do_upload('banner_file')) {
-                    $data = $this->upload->data();
+                if (!in_array($ext, $allowed)) {
+                    $this->session->set_flashdata('banner_error', 'Format file tidak didukung. Gunakan jpg, jpeg, png, webp, atau gif.');
+                    redirect('admin#banner-section');
+                    return;
+                }
+
+                if ($_FILES['banner_file']['size'] > 5 * 1024 * 1024) {
+                    $this->session->set_flashdata('banner_error', 'Ukuran file maksimal 5MB.');
+                    redirect('admin#banner-section');
+                    return;
+                }
+
+                if (!is_dir($images_path)) mkdir($images_path, 0777, true);
+
+                $new_name = 'banner_' . time() . '.' . $ext;
+                if (move_uploaded_file($_FILES['banner_file']['tmp_name'], $images_path . $new_name)) {
                     $current = json_decode(file_get_contents($config_path), true);
-                    $current['file'] = $data['file_name'];
+                    $current['file'] = $new_name;
                     file_put_contents($config_path, json_encode($current));
                     $this->session->set_flashdata('banner_success', 'Banner berhasil diperbarui.');
                 } else {
-                    $this->session->set_flashdata('banner_error', strip_tags($this->upload->display_errors()));
+                    $this->session->set_flashdata('banner_error', 'Gagal upload file. Coba lagi.');
                 }
             } else {
                 $this->session->set_flashdata('banner_error', 'Pilih file gambar terlebih dahulu.');
@@ -97,7 +109,35 @@ class Admin extends CI_Controller
             redirect('admin#banner-section');
         }
 
+        // Handle sambutan text update
+        if ($this->input->method() === 'post' && $this->input->post('save_sambutan')) {
+            $pars_raw = $this->input->post('sambutan_pars', TRUE);
+            $pars = array_values(array_filter(array_map('trim', preg_split('/\n\s*\n/', $pars_raw))));
+            file_put_contents(FCPATH . 'assets/sambutan-config.json', json_encode([
+                'title' => $this->input->post('sambutan_title', TRUE),
+                'paragraphs' => $pars,
+                'closing' => $this->input->post('sambutan_closing', TRUE),
+                'sender' => $this->input->post('sambutan_sender', TRUE),
+            ]));
+            $this->session->set_flashdata('sambutan_success', 'Teks sambutan berhasil diperbarui.');
+            redirect('admin#sambutan-section');
+        }
+
+        // Handle intro text update
+        if ($this->input->method() === 'post' && $this->input->post('save_intro')) {
+            $intro_text = $this->input->post('intro_text', TRUE);
+            $intro_sender = $this->input->post('intro_sender', TRUE);
+            file_put_contents(FCPATH . 'assets/intro-config.json', json_encode([
+                'text' => $intro_text,
+                'sender' => $intro_sender
+            ]));
+            $this->session->set_flashdata('intro_success', 'Teks intro berhasil diperbarui.');
+            redirect('admin#intro-section');
+        }
+
         $banner_config = json_decode(file_get_contents($config_path), true);
+        $intro_config = json_decode(file_get_contents(FCPATH . 'assets/intro-config.json'), true);
+        $sambutan_config = json_decode(file_get_contents(FCPATH . 'assets/sambutan-config.json'), true);
 
         $data = [
             'admin_name'        => $this->session->userdata('full_name'),
@@ -109,6 +149,12 @@ class Admin extends CI_Controller
             'recent_activities' => $this->Admin_model->get_recent_activities(5),
             'selected_banner'   => $banner_config['file'] ?? 'background2.png',
             'carousel_items'    => json_decode(file_get_contents($carousel_config_path), true),
+            'intro_text'        => $intro_config['text'] ?? "Dengan rasa syukur dan bangga,\nkami persembahkan website ini\nsebagai ruang digital untuk\nmenyambung tali silaturahmi",
+            'intro_sender'      => $intro_config['sender'] ?? 'From (nama)',
+            'sambutan_title'    => $sambutan_config['title'] ?? "Assalamu'alaikum Warahmatullahi Wabarakatuh,",
+            'sambutan_pars'     => $sambutan_config['paragraphs'] ?? [],
+            'sambutan_closing'  => $sambutan_config['closing'] ?? "Wassalamu'alaikum Warahmatullahi Wabarakatuh.",
+            'sambutan_sender'   => $sambutan_config['sender'] ?? 'Keluarga Besar H.M. Samhudi',
         ];
 
         $this->load->view('admin/dashboard', $data);
@@ -144,16 +190,34 @@ class Admin extends CI_Controller
     public function silsilah_approve($id)
     {
         $this->load->model('Silsilah_model');
-        $this->Silsilah_model->update_member($id, ['status' => 'approved']);
-        $this->session->set_flashdata('success', 'Anggota berhasil disetujui dan akan tampil di pohon keluarga.');
+        $member = $this->Silsilah_model->get_member_by_id($id);
+        if ($member) {
+            $this->Silsilah_model->update_member($id, ['status' => 'approved']);
+            // Activate linked user account if exists
+            if (!empty($member['user_id'])) {
+                $this->db->where('id', $member['user_id'])->update('users', ['status' => 'active']);
+            }
+            $this->session->set_flashdata('success', 'Anggota silsilah dan akun penggunanya berhasil disetujui.');
+        } else {
+            $this->session->set_flashdata('error', 'Anggota tidak ditemukan.');
+        }
         redirect('admin/silsilah');
     }
 
     public function silsilah_reject($id)
     {
         $this->load->model('Silsilah_model');
-        $this->Silsilah_model->update_member($id, ['status' => 'rejected']);
-        $this->session->set_flashdata('success', 'Penambahan anggota berhasil ditolak.');
+        $member = $this->Silsilah_model->get_member_by_id($id);
+        if ($member) {
+            $this->Silsilah_model->update_member($id, ['status' => 'rejected']);
+            // Delete linked user account to allow re-registration
+            if (!empty($member['user_id'])) {
+                $this->db->where('id', $member['user_id'])->delete('users');
+            }
+            $this->session->set_flashdata('success', 'Pendaftaran anggota ditolak.');
+        } else {
+            $this->session->set_flashdata('error', 'Anggota tidak ditemukan.');
+        }
         redirect('admin/silsilah');
     }
 
@@ -323,8 +387,12 @@ class Admin extends CI_Controller
             if ($member['photo'] && file_exists('./' . $member['photo'])) {
                 unlink('./' . $member['photo']);
             }
+            // Delete linked user account if exists
+            if (!empty($member['user_id'])) {
+                $this->db->where('id', $member['user_id'])->delete('users');
+            }
             $this->Silsilah_model->delete_member($id);
-            $this->session->set_flashdata('success', 'Anggota silsilah berhasil dihapus.');
+            $this->session->set_flashdata('success', 'Anggota silsilah dan akun penggunanya berhasil dihapus.');
         }
         redirect('admin/silsilah');
     }
@@ -399,11 +467,20 @@ class Admin extends CI_Controller
                     mkdir($config['upload_path'], 0777, true);
                 }
 
-                $this->load->library('upload', $config);
+                $this->load->library('upload');
+                $this->upload->initialize($config);
 
                 if ($this->upload->do_upload('thumbnail')) {
                     $upload_data = $this->upload->data();
                     $thumbnail   = 'assets/uploads/news/' . $upload_data['file_name'];
+                } else {
+                    $data = [
+                        'admin_name' => $this->session->userdata('full_name'),
+                        'admin_role' => $this->session->userdata('role'),
+                        'upload_error' => $this->upload->display_errors('', '')
+                    ];
+                    $this->load->view('admin/berita/add', $data);
+                    return;
                 }
             }
 
@@ -457,7 +534,8 @@ class Admin extends CI_Controller
                     mkdir($config['upload_path'], 0777, true);
                 }
 
-                $this->load->library('upload', $config);
+                $this->load->library('upload');
+                $this->upload->initialize($config);
 
                 if ($this->upload->do_upload('thumbnail')) {
                     if ($thumbnail && file_exists('./' . $thumbnail)) {
@@ -465,6 +543,15 @@ class Admin extends CI_Controller
                     }
                     $upload_data = $this->upload->data();
                     $thumbnail   = 'assets/uploads/news/' . $upload_data['file_name'];
+                } else {
+                    $data = [
+                        'admin_name' => $this->session->userdata('full_name'),
+                        'admin_role' => $this->session->userdata('role'),
+                        'news'       => $news,
+                        'upload_error' => $this->upload->display_errors('', '')
+                    ];
+                    $this->load->view('admin/berita/edit', $data);
+                    return;
                 }
             }
 
@@ -528,8 +615,20 @@ class Admin extends CI_Controller
     {
         $this->load->model('Silsilah_model');
         header('Content-Type: application/json; charset=utf-8');
-        $this->Silsilah_model->delete_member($id);
-        echo json_encode(['status' => true, 'message' => 'Anggota berhasil dihapus.']);
+        
+        $member = $this->Silsilah_model->get_member_by_id($id);
+        if ($member) {
+            // Delete old photo
+            if ($member['photo'] && file_exists('./' . $member['photo'])) {
+                unlink('./' . $member['photo']);
+            }
+            // Delete user account if linked
+            if (!empty($member['user_id'])) {
+                $this->db->where('id', $member['user_id'])->delete('users');
+            }
+            $this->Silsilah_model->delete_member($id);
+        }
+        echo json_encode(['status' => true, 'message' => 'Anggota dan akun penggunanya berhasil dihapus.']);
     }
 
 }

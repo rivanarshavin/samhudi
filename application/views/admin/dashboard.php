@@ -67,12 +67,12 @@
         <?php $this->load->view('admin/header'); ?>
 
         <!-- Body / Dashboard Content -->
-        <div class="p-4 md:p-8 space-y-8">
+        <div class="p-4 md:p-8 space-y-6 md:space-y-8">
 
             <!-- Welcome Message Widget -->
-            <div class="relative overflow-hidden bg-gradient-to-r from-teal-900 to-teal-800 border border-teal-800 rounded-2xl p-6 md:p-8 flex items-center justify-between shadow-lg">
+            <div class="relative overflow-hidden bg-gradient-to-r from-teal-900 to-teal-800 border border-teal-800 rounded-2xl p-8 flex items-center justify-between shadow-lg">
                 <div class="space-y-2 z-10">
-                    <h2 class="font-display font-extrabold text-xl md:text-2xl text-white">Halo, <?= htmlspecialchars($admin_name) ?>!</h2>
+                    <h2 class="font-display font-extrabold text-2xl text-white">Halo, <?= htmlspecialchars($admin_name) ?>!</h2>
                     <p class="text-teal-300 text-sm max-w-xl">Halaman ini digunakan untuk mengelola data silsilah keluarga besar, persetujuan forum diskusi, publikasi berita terbaru, penginputan data yayasan, dan pengelolaan data wasiat.</p>
                 </div>
                 <i class="bi bi-shield-lock-fill text-8xl text-teal-700/20 absolute right-8 bottom-0"></i>
@@ -172,40 +172,6 @@
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td class="py-4 text-sm text-white/90 font-medium">Membuat Postingan Forum</td>
-                                    <td class="py-4 text-sm text-white/80">Auli</td>
-                                    <td class="py-4 text-sm text-white/60">1 Juni 2026</td>
-                                    <td class="py-4 text-sm">
-                                        <span class="text-white/80">Menunggu</span>
-                                    </td>
-                                    <td class="py-4 text-sm">
-                                        <a href="#" class="font-bold text-white hover:underline transition-all">Detail</a>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="py-4 text-sm text-white/90 font-medium">Menambahkan Data Family</td>
-                                    <td class="py-4 text-sm text-white/80">Alif</td>
-                                    <td class="py-4 text-sm text-white/60">15 Juni 2026</td>
-                                    <td class="py-4 text-sm">
-                                        <span class="text-white/80">Berhasil</span>
-                                    </td>
-                                    <td class="py-4 text-sm">
-                                        <a href="#" class="font-bold text-white hover:underline transition-all">Detail</a>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="py-4 text-sm text-white/90 font-medium">Membuat Postingan Forum</td>
-                                    <td class="py-4 text-sm text-white/80">Richa</td>
-                                    <td class="py-4 text-sm text-white/60">28 Mei 2026</td>
-                                    <td class="py-4 text-sm">
-                                        <span class="text-white/80">Berhasil</span>
-                                    </td>
-                                    <td class="py-4 text-sm">
-                                        <a href="#" class="font-bold text-white hover:underline transition-all">Detail</a>
-                                    </td>
-                                </tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
@@ -232,7 +198,7 @@
 
                 <?php if ($this->session->flashdata('banner_error')): ?>
                 <div class="bg-red-500/20 border border-red-500/40 text-red-200 px-5 py-3 rounded-lg text-sm mb-4">
-                    <?= $this->session->flashdata('error') ?>
+                    <?= $this->session->flashdata('banner_error') ?>
                 </div>
                 <?php endif; ?>
 
@@ -311,6 +277,87 @@
                         </button>
                         <button type="button" onclick="addCarouselCard()" class="border border-dashed border-teal-600 text-teal-400 hover:text-white font-display font-semibold px-6 py-2.5 rounded-full hover:bg-teal-800/50 transition-all text-sm">
                             <i class="bi bi-plus-lg mr-1"></i> Tambah
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Intro Text Settings -->
+            <div id="intro-section" class="bg-teal-900/60 border border-teal-800 rounded-2xl p-4 md:p-6 shadow-lg">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 rounded-lg bg-teal-800 flex items-center justify-center text-teal-300 border border-teal-700">
+                        <i class="bi bi-quote"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-display font-bold text-white">Teks Intro</h3>
+                        <p class="text-xs text-teal-400">Edit teks sambutan di halaman utama (bagian foto + card)</p>
+                    </div>
+                </div>
+
+                <?php if ($this->session->flashdata('intro_success')): ?>
+                <div class="bg-green-500/20 border border-green-500/40 text-green-200 px-5 py-3 rounded-lg text-sm mb-4">
+                    <?= $this->session->flashdata('intro_success') ?>
+                </div>
+                <?php endif; ?>
+
+                <form method="post" class="space-y-4">
+                    <input type="hidden" name="save_intro" value="1">
+                    <div>
+                        <label class="text-sm text-teal-400 font-semibold mb-1 block">Teks Intro</label>
+                        <textarea name="intro_text" rows="5" class="w-full bg-teal-800 border border-teal-700 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" placeholder="Tulis teks intro..."><?= htmlspecialchars($intro_text) ?></textarea>
+                    </div>
+                    <div>
+                        <label class="text-sm text-teal-400 font-semibold mb-1 block">Nama Pengirim</label>
+                        <input type="text" name="intro_sender" value="<?= htmlspecialchars($intro_sender) ?>" class="w-full bg-teal-800 border border-teal-700 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" placeholder="From (nama)">
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="bg-white text-teal-900 font-display font-semibold px-8 py-2.5 rounded-full hover:bg-gray-100 transition-all shadow-lg text-sm">
+                            <i class="bi bi-check-lg mr-1"></i> Simpan
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Sambutan Text Settings -->
+            <div id="sambutan-section" class="bg-teal-900/60 border border-teal-800 rounded-2xl p-4 md:p-6 shadow-lg">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 rounded-lg bg-teal-800 flex items-center justify-center text-teal-300 border border-teal-700">
+                        <i class="bi bi-envelope-paper"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-display font-bold text-white">Teks Sambutan</h3>
+                        <p class="text-xs text-teal-400">Edit teks sambutan di halaman utama</p>
+                    </div>
+                </div>
+
+                <?php if ($this->session->flashdata('sambutan_success')): ?>
+                <div class="bg-green-500/20 border border-green-500/40 text-green-200 px-5 py-3 rounded-lg text-sm mb-4">
+                    <?= $this->session->flashdata('sambutan_success') ?>
+                </div>
+                <?php endif; ?>
+
+                <form method="post" class="space-y-4">
+                    <input type="hidden" name="save_sambutan" value="1">
+                    <div>
+                        <label class="text-sm text-teal-400 font-semibold mb-1 block">Judul</label>
+                        <input type="text" name="sambutan_title" value="<?= htmlspecialchars($sambutan_title) ?>" class="w-full bg-teal-800 border border-teal-700 rounded-lg px-4 py-3 text-white text-sm">
+                    </div>
+                    <div>
+                        <label class="text-sm text-teal-400 font-semibold mb-1 block">Paragraf (masing-masing di baris terpisah)</label>
+                        <?php $par_text = implode("\n\n", is_array($sambutan_pars) ? $sambutan_pars : []); ?>
+                        <textarea name="sambutan_pars" rows="8" class="w-full bg-teal-800 border border-teal-700 rounded-lg px-4 py-3 text-white text-sm"><?= htmlspecialchars($par_text) ?></textarea>
+                    </div>
+                    <div>
+                        <label class="text-sm text-teal-400 font-semibold mb-1 block">Penutup</label>
+                        <input type="text" name="sambutan_closing" value="<?= htmlspecialchars($sambutan_closing) ?>" class="w-full bg-teal-800 border border-teal-700 rounded-lg px-4 py-3 text-white text-sm">
+                    </div>
+                    <div>
+                        <label class="text-sm text-teal-400 font-semibold mb-1 block">Pengirim</label>
+                        <input type="text" name="sambutan_sender" value="<?= htmlspecialchars($sambutan_sender) ?>" class="w-full bg-teal-800 border border-teal-700 rounded-lg px-4 py-3 text-white text-sm">
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="bg-white text-teal-900 font-display font-semibold px-8 py-2.5 rounded-full hover:bg-gray-100 transition-all shadow-lg text-sm">
+                            <i class="bi bi-check-lg mr-1"></i> Simpan Sambutan
                         </button>
                     </div>
                 </form>

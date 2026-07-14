@@ -1,7 +1,7 @@
 <style>
 /* ======= Detail Berita ======= */
 .detail-berita-wrap {
-    background: #f5f6f8;
+    background: #fff;
     min-height: 100vh;
     padding: 0 0 80px;
 }
@@ -30,19 +30,7 @@
 
 /* Hero Section */
 .detail-hero {
-    background: linear-gradient(135deg, #1B3835 0%, #2E564F 60%, #3D6C63 100%);
-    padding: 60px 0 40px;
-    position: relative;
-    overflow: hidden;
-}
-.detail-hero::before {
-    content: '';
-    position: absolute;
-    top: -80px; right: -80px;
-    width: 400px; height: 400px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.04);
-    pointer-events: none;
+    padding: 40px 0 20px;
 }
 
 /* Judul & Meta */
@@ -50,7 +38,7 @@
     font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 2.1rem;
     font-weight: 800;
-    color: #fff;
+    color: #1a2e2b;
     line-height: 1.3;
     margin-bottom: 18px;
 }
@@ -65,65 +53,67 @@
     align-items: center;
     gap: 7px;
     font-size: 0.85rem;
-    color: rgba(255,255,255,0.75);
+    color: #666;
     font-family: 'Inter', sans-serif;
 }
 .detail-meta-item i { font-size: 0.9rem; }
 .detail-meta-divider {
     width: 1px;
     height: 16px;
-    background: rgba(255,255,255,0.25);
+    background: #e0e0e0;
+}
+.btn-like {
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+.btn-like:hover {
+    transform: scale(1.05);
 }
 
 /* Thumbnail kanan */
 .detail-thumbnail-wrap {
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
     height: 100%;
     min-height: 260px;
-    max-height: 360px;
-    position: relative;
+    max-height: 400px;
+    display: flex;
+    justify-content: flex-end;
 }
 .detail-thumbnail-wrap img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    max-width: 100%;
+    height: auto;
+    max-height: 400px;
+    object-fit: contain;
     display: block;
 }
 .detail-thumbnail-wrap .no-img {
     width: 100%;
     height: 100%;
     min-height: 260px;
-    background: rgba(255,255,255,0.08);
+    background: #f8f9fa;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-direction: column;
     gap: 10px;
-    color: rgba(255,255,255,0.4);
+    color: #aaa;
     font-size: 3rem;
 }
 
 /* Body Content Area */
 .detail-body {
-    padding: 50px 0;
+    padding: 30px 0 50px;
 }
 
-/* Konten berita */
+/* Konten berita (Tidak pakai card lagi) */
 .detail-content-card {
-    background: #fff;
-    border-radius: 16px;
-    padding: 36px 40px;
-    box-shadow: 0 2px 20px rgba(0,0,0,0.06);
-    border: 1px solid rgba(0,0,0,0.05);
+    padding: 10px 0;
 }
 .detail-content-card p,
 .detail-content-card .content-text {
     font-family: 'Inter', sans-serif;
-    font-size: 1rem;
+    font-size: 1.05rem;
     line-height: 1.85;
-    color: #444;
+    color: #333;
     white-space: pre-wrap;
     word-break: break-word;
 }
@@ -169,38 +159,40 @@
     border-radius: 2px;
 }
 
-.other-news-card {
+/* ======= Sidebar Berita Lainnya (SATU card abu, item TANPA card) ======= */
+.sidebar-berita-box {
+    background: #eef0ef; /* abu */
+    border-radius: 18px;
+    padding: 18px;
+}
+.sidebar-berita-item {
     display: flex;
     gap: 14px;
-    background: #fff;
-    border-radius: 14px;
-    padding: 14px;
-    margin-bottom: 14px;
-    border: 1px solid rgba(0,0,0,0.06);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
     text-decoration: none;
     color: inherit;
 }
-.other-news-card:hover {
-    transform: translateX(4px);
-    box-shadow: 0 6px 24px rgba(0,0,0,0.1);
-    color: inherit;
-    text-decoration: none;
+.sidebar-berita-item:first-child {
+    padding-top: 2px;
 }
-.other-news-card .thumb {
-    width: 76px;
-    height: 64px;
+.sidebar-berita-item:last-child {
+    border-bottom: none;
+    padding-bottom: 2px;
+}
+.sidebar-berita-item .thumb {
+    width: 72px;
+    height: 60px;
     border-radius: 10px;
     overflow: hidden;
     flex-shrink: 0;
 }
-.other-news-card .thumb img {
+.sidebar-berita-item .thumb img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
-.other-news-card .thumb .no-img {
+.sidebar-berita-item .thumb .no-img {
     width: 100%;
     height: 100%;
     background: linear-gradient(135deg, #2E564F, #3D6C63);
@@ -208,10 +200,10 @@
     align-items: center;
     justify-content: center;
     color: rgba(255,255,255,0.6);
-    font-size: 1.4rem;
+    font-size: 1.3rem;
 }
-.other-news-card .info { flex: 1; min-width: 0; }
-.other-news-card .info .on-title {
+.sidebar-berita-item .info { flex: 1; min-width: 0; }
+.sidebar-berita-item .info .on-title {
     font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 0.85rem;
     font-weight: 700;
@@ -223,9 +215,9 @@
     overflow: hidden;
     margin-bottom: 5px;
 }
-.other-news-card .info .on-date {
+.sidebar-berita-item .info .on-date {
     font-size: 0.73rem;
-    color: #aaa;
+    color: #999;
     display: flex;
     align-items: center;
     gap: 5px;
@@ -243,7 +235,7 @@
     font-weight: 700;
     text-decoration: none;
     letter-spacing: 0.04em;
-    margin-top: 6px;
+    margin-top: 14px;
     transition: opacity 0.2s ease;
 }
 .lihat-semua-btn:hover { opacity: 0.88; color: #fff; text-decoration: none; }
@@ -292,6 +284,16 @@ if (!function_exists('fmt_date_detail')) {
                             <i class="bi bi-person-fill"></i>
                             <span>Oleh <?= htmlspecialchars($news['author_name'] ?? 'Admin') ?></span>
                         </div>
+                        <div class="detail-meta-divider"></div>
+                        <div class="detail-meta-item" title="Dilihat">
+                            <i class="bi bi-eye-fill"></i>
+                            <span><?= number_format($news['views'] ?? 0) ?> Kali Dilihat</span>
+                        </div>
+                        <div class="detail-meta-divider"></div>
+                        <div class="detail-meta-item btn-like" onclick="likeBerita(<?= $news['id'] ?>)" title="Sukai / Batal Sukai">
+                            <i id="like-icon" class="bi bi-heart-fill" style="color: #ccc;"></i>
+                            <span id="like-count"><?= number_format($news['likes'] ?? 0) ?> Suka</span>
+                        </div>
                     </div>
                 </div>
                 <!-- Kanan: Foto Thumbnail -->
@@ -327,6 +329,12 @@ if (!function_exists('fmt_date_detail')) {
                         <?php else: ?>
                             <p style="color:#bbb; font-style: italic;">Konten berita belum tersedia.</p>
                         <?php endif; ?>
+                        
+                        <div class="mt-5 pt-4 border-top">
+                            <button onclick="shareBerita()" class="btn btn-outline-success" style="border-radius: 12px; font-weight: 600; font-family: 'Plus Jakarta Sans', sans-serif;">
+                                <i class="bi bi-share-fill me-2"></i> Bagikan Berita
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -339,34 +347,36 @@ if (!function_exists('fmt_date_detail')) {
                         </div>
 
                         <?php if (!empty($other_news)): ?>
-                            <?php foreach ($other_news as $on): ?>
-                            <a href="<?= base_url('berita/' . $on['slug']) ?>" class="other-news-card">
-                                <div class="thumb">
-                                    <?php if (!empty($on['thumbnail']) && file_exists('./' . $on['thumbnail'])): ?>
-                                        <img src="<?= base_url($on['thumbnail']) ?>" alt="<?= htmlspecialchars($on['title']) ?>">
-                                    <?php else: ?>
-                                        <div class="no-img"><i class="bi bi-image"></i></div>
-                                    <?php endif; ?>
-                                </div>
-                                <div class="info">
-                                    <div class="on-title"><?= htmlspecialchars($on['title']) ?></div>
-                                    <div class="on-date">
-                                        <i class="bi bi-calendar3"></i>
-                                        <?php
-                                            $months_s = [1=>'Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
-                                            $ts = strtotime($on['created_at']);
-                                            echo date('j', $ts) . ' ' . $months_s[(int)date('n', $ts)] . ' ' . date('Y', $ts);
-                                        ?>
+                            <div class="sidebar-berita-box">
+                                <?php foreach ($other_news as $on): ?>
+                                <a href="<?= base_url('berita/' . $on['slug']) ?>" class="sidebar-berita-item">
+                                    <div class="thumb">
+                                        <?php if (!empty($on['thumbnail']) && file_exists('./' . $on['thumbnail'])): ?>
+                                            <img src="<?= base_url($on['thumbnail']) ?>" alt="<?= htmlspecialchars($on['title']) ?>">
+                                        <?php else: ?>
+                                            <div class="no-img"><i class="bi bi-image"></i></div>
+                                        <?php endif; ?>
                                     </div>
-                                </div>
-                            </a>
-                            <?php endforeach; ?>
+                                    <div class="info">
+                                        <div class="on-title"><?= htmlspecialchars($on['title']) ?></div>
+                                        <div class="on-date">
+                                            <i class="bi bi-calendar3"></i>
+                                            <?php
+                                                $months_s = [1=>'Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
+                                                $ts = strtotime($on['created_at']);
+                                                echo date('j', $ts) . ' ' . $months_s[(int)date('n', $ts)] . ' ' . date('Y', $ts);
+                                            ?>
+                                        </div>
+                                    </div>
+                                </a>
+                                <?php endforeach; ?>
 
-                            <a href="<?= base_url('berita') ?>" class="lihat-semua-btn">
-                                <i class="bi bi-grid-3x3-gap-fill"></i> Lihat Semua Berita
-                            </a>
+                                <a href="<?= base_url('berita') ?>" class="lihat-semua-btn">
+                                    <i class="bi bi-grid-3x3-gap-fill"></i> Lihat Semua Berita
+                                </a>
+                            </div>
                         <?php else: ?>
-                            <div style="text-align:center; color:#bbb; padding: 30px 0; font-size: 0.85rem;">
+                            <div class="sidebar-berita-box" style="text-align:center; color:#aaa; padding: 30px 0; font-size: 0.85rem;">
                                 <i class="bi bi-newspaper" style="font-size: 2rem; display:block; margin-bottom:10px;"></i>
                                 Belum ada berita lain.
                             </div>
@@ -379,3 +389,58 @@ if (!function_exists('fmt_date_detail')) {
     </section>
 
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if(localStorage.getItem('liked_news_<?= $news['id'] ?>')) {
+        document.getElementById('like-icon').style.color = '#dc3545'; // Merah
+    }
+});
+
+function likeBerita(id) {
+    const isLiked = localStorage.getItem('liked_news_' + id);
+    const action = isLiked ? 'unlike' : 'like';
+    
+    let formData = new FormData();
+    formData.append('action', action);
+
+    fetch('<?= base_url('home/like_berita/') ?>' + id, {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.status === 'success') {
+            document.getElementById('like-count').innerText = data.likes + ' Suka';
+            
+            if (action === 'like') {
+                localStorage.setItem('liked_news_' + id, 'true');
+                document.getElementById('like-icon').style.color = '#dc3545'; // Merah
+            } else {
+                localStorage.removeItem('liked_news_' + id);
+                document.getElementById('like-icon').style.color = '#ccc'; // Abu-abu
+            }
+        }
+    })
+    .catch(err => console.error(err));
+}
+
+function shareBerita() {
+    if (navigator.share) {
+        navigator.share({
+            title: '<?= addslashes($news['title']) ?>',
+            text: 'Baca berita menarik ini di Website Samhudi',
+            url: window.location.href
+        }).catch(console.error);
+    } else {
+        var dummy = document.createElement('input'),
+            text = window.location.href;
+        document.body.appendChild(dummy);
+        dummy.value = text;
+        dummy.select();
+        document.execCommand('copy');
+        document.body.removeChild(dummy);
+        alert('Link berita berhasil disalin ke clipboard!');
+    }
+}
+</script>

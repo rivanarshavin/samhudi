@@ -297,5 +297,9 @@ function goToFinalStep() {
 }
 
 function finishWizard() {
-    window.location.href = baseTreeUrl;
+    if (typeof isSignupFlow !== 'undefined' && isSignupFlow) {
+        window.location.href = baseTreeUrl.replace('/familytree', '/auth/trigger_otp');
+    } else {
+        window.location.href = baseTreeUrl;
+    }
 }
