@@ -1,5 +1,5 @@
 <nav class="<?= !$this->uri->segment(1) ? '' : 'bg-[#274d4f] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.3)]' ?> sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between gap-x-16">
 
         <div class="font-display font-bold text-lg text-white tracking-tight">
             HM Samhudi
@@ -48,17 +48,30 @@
         <!-- Desktop Login -->
         <div class="hidden md:flex items-center">
             <?php if ($this->session->userdata('logged_in')): ?>
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-full bg-white text-[#274d4f] flex items-center justify-center font-bold text-sm flex-shrink-0">
-                    <?= strtoupper(substr($this->session->userdata('full_name'), 0, 1)) ?>
+            <div id="desktop-user-menu" class="relative cursor-pointer select-none group">
+                <div class="flex items-center gap-4 bg-[#274d4f] hover:bg-[#1d3a3c] px-5 py-2.5 rounded-full transition-all duration-200">
+                    <i class="bi bi-person-fill text-white text-base"></i>
+                    <span class="font-display font-semibold text-sm text-white">
+                        <?= $this->session->userdata('full_name') ?>
+                    </span>
                 </div>
-                <span class="font-display font-semibold text-sm text-white">
-                    <?= $this->session->userdata('full_name') ?>
-                </span>
-                <?php if (in_array($this->session->userdata('role'), ['admin', 'super_admin'])): ?>
-                <a href="<?= base_url('admin') ?>" class="ml-2 font-display font-semibold text-xs bg-white/15 text-white px-4 py-2 rounded-full hover:bg-white/25 transition-all duration-200">Dashboard</a>
-                <?php endif; ?>
-                <a href="<?= base_url('auth/logout') ?>" class="font-display font-semibold text-xs bg-white/15 text-white px-4 py-2 rounded-full hover:bg-white/25 transition-all duration-200">Keluar</a>
+                <div id="desktop-dropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg overflow-hidden" style="opacity:0;visibility:hidden;transform:translateY(8px);transition:all 0.2s ease;z-index:9999;">
+                    <?php if (in_array($this->session->userdata('role'), ['admin', 'super_admin'])): ?>
+                    <a href="<?= base_url('admin') ?>" class="flex items-center gap-3 px-5 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors font-display font-medium no-underline">
+                        <i class="bi bi-speedometer2 text-teal-700"></i>
+                        Dashboard
+                    </a>
+                    <?php endif; ?>
+                    <a href="<?= base_url('#') ?>" class="flex items-center gap-3 px-5 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors font-display font-medium no-underline">
+                        <i class="bi bi-pencil-square text-teal-700"></i>
+                        Edit Profil
+                    </a>
+                    <hr class="border-gray-200 m-0">
+                    <a href="<?= base_url('auth/logout') ?>" class="flex items-center gap-3 px-5 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors font-display font-medium no-underline">
+                        <i class="bi bi-box-arrow-right"></i>
+                        Logout
+                    </a>
+                </div>
             </div>
             <?php else: ?>
             <a href="<?= base_url('auth/') ?>" class="font-display font-semibold text-sm bg-white text-[#274d4f] px-5 py-2.5 rounded-full shadow-sm hover:bg-gray-100 transition-all duration-300 transform hover:-translate-y-0.5">
@@ -86,11 +99,11 @@
 
         <?php if ($this->session->userdata('logged_in')): ?>
         <div class="px-6 pt-4 pb-2">
-            <div class="flex items-center gap-3 bg-white/15 rounded-md px-4 py-3">
-                <div class="w-10 h-10 rounded-full bg-white text-teal-900 flex items-center justify-center font-bold text-base flex-shrink-0">
+            <div class="flex items-center gap-3 bg-white/15 rounded-xl px-4 py-3">
+                <div class="w-11 h-11 rounded-full bg-white text-teal-900 flex items-center justify-center font-bold text-base flex-shrink-0">
                     <?= strtoupper(substr($this->session->userdata('full_name'), 0, 1)) ?>
                 </div>
-                <span class="font-display font-semibold text-sm text-white truncate">
+                <span class="font-display font-semibold text-xl text-white truncate">
                     <?= $this->session->userdata('full_name') ?>
                 </span>
             </div>
@@ -125,6 +138,14 @@
         </ul>
     </div>
 </nav>
+
+<style>
+#desktop-user-menu:hover #desktop-dropdown {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: translateY(0) !important;
+}
+</style>
 
 <script>
 const menuBtn = document.getElementById('menu-btn');
@@ -165,4 +186,5 @@ mobileLinks.forEach(link => {
         link.style.color = 'white';
     }
 });
+
 </script>
