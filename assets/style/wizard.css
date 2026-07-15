@@ -130,16 +130,19 @@
 }
 
 .role-cards {
-  display: flex;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
   width: 100%;
-  justify-content: center;
+  max-width: 400px;
+  margin: 0 auto;
 }
 
 .role-card {
   cursor: pointer;
-  flex: 1;
-  max-width: 140px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .role-card input {
@@ -149,13 +152,16 @@
 .role-card-content {
   border: 2px solid var(--line);
   border-radius: 12px;
-  padding: 24px 16px;
+  padding: 20px 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   text-align: center;
   transition: all 0.2s;
   background: white;
+  height: 100%;
+  flex: 1;
 }
 
 .role-card:hover .role-card-content {
@@ -483,9 +489,9 @@ button:disabled {
 
 /* Lines */
 .mini-line-v {
-  width: 1px;
+  width: 2px;
   height: 25px;
-  background-color: #cbd9cf;
+  background-color: var(--forest-deep);
 }
 
 .mini-bottom-row {
@@ -504,8 +510,8 @@ button:disabled {
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  height: 1px;
-  background-color: #cbd9cf;
+  height: 2px;
+  background-color: var(--forest-deep);
   width: calc(100% - 80px); /* Approx */
   z-index: 1;
 }
@@ -522,7 +528,41 @@ button:disabled {
   position: absolute;
   top: -25px;
   left: 50%;
-  width: 1px;
+  width: 2px;
   height: 25px;
-  background-color: #cbd9cf;
+  background-color: var(--forest-deep);
+}
+
+/* Selected Tags Container */
+.selected-members-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.selected-tag {
+  background: var(--cream);
+  border: 1px solid var(--gold);
+  color: var(--forest-deep);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.selected-tag .remove-tag {
+  cursor: pointer;
+  color: #b3543f;
+  font-size: 15px;
+  transition: 0.2s;
+}
+.selected-tag .remove-tag:hover {
+  color: #903c2b;
+  transform: scale(1.1);
 }

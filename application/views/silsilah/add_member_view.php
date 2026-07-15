@@ -70,6 +70,7 @@
             <i class="bi bi-search"></i>
             <input type="text" id="searchMember" placeholder="Cari nama.." onkeyup="searchMember(this.value)">
         </div>
+        <div class="selected-members-container" id="selectedMembers"></div>
         <div class="member-list" id="memberList">
             <!-- List goes here -->
         </div>

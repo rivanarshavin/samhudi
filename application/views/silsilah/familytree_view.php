@@ -19,7 +19,7 @@
                 <input type="text" placeholder="Cari anggota...">
             </div>
             <?php if ($this->session->userdata('logged_in')): ?>
-                <a href="<?php echo site_url('familytree/add'); ?>" class="btn-tambah-anggota" style="text-decoration:none;">+ Tambah Anggota</a>
+            <a href="<?php echo site_url('familytree/add'); ?>" class="btn-tambah-anggota" style="text-decoration:none;">+ Tambah Anggota</a>
             <?php endif; ?>
         </div>
     </div>

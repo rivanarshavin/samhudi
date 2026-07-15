@@ -30,6 +30,29 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error(err);
         });
 
+    // Fitur Pencarian (Client-side)
+    const searchInput = document.querySelector('.silsilah-search-box input');
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            const term = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.member-card');
+            
+            cards.forEach(card => {
+                // Ambil semua nama (individu & pasangan) dalam card tersebut
+                const names = Array.from(card.querySelectorAll('.profile-name')).map(n => n.textContent.toLowerCase());
+                const matches = names.some(name => name.includes(term));
+                
+                card.style.display = matches ? 'block' : 'none';
+            });
+            
+            // Sembunyikan baris generasi jika semua card di dalamnya tersembunyi
+            document.querySelectorAll('.generation-row').forEach(row => {
+                const visibleCards = row.querySelectorAll('.member-card[style="display: block;"], .member-card:not([style*="display: none"])');
+                row.style.display = visibleCards.length === 0 ? 'none' : 'flex';
+            });
+        });
+    }
+
     function renderGenerations(generations) {
         treeContainer.innerHTML = '';
         

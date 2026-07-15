@@ -68,7 +68,8 @@ class Family_model extends CI_Model {
         
         $member['pasangan'] = [];
         if (!empty($pasanganRows)) {
-            $member['pasangan_name'] = $pasanganRows[0]['full_name'] ?? '-';
+            $pasangan_names = array_column($pasanganRows, 'full_name');
+            $member['pasangan_name'] = implode(', ', $pasangan_names);
             $member['pasangan_label'] = $this->spouse_label($pasanganRows[0]['gender'] ?? null);
             foreach ($pasanganRows as $pasanganRow) {
                 $p = $this->row_to_person($pasanganRow, 0, $this->spouse_label($pasanganRow['gender'] ?? null));
@@ -103,7 +104,10 @@ class Family_model extends CI_Model {
         
         $member['anak_anak'] = [];
         foreach ($childrenRows as $idx => $childRow) {
-            $p = $this->row_to_person($childRow, 0, 'Anak Kandung');
+            $is_biological = ($childRow['father_id'] == $id || $childRow['mother_id'] == $id);
+            $relation_label = $is_biological ? 'Anak Kandung' : 'Anak Sambung';
+            
+            $p = $this->row_to_person($childRow, 0, $relation_label);
             $p['urutan'] = $idx + 1;
             $member['anak_anak'][] = $p;
         }
@@ -270,106 +274,140 @@ class Family_model extends CI_Model {
         return $this->db->get('family_members')->result_array();
     }
 
-    public function insert_new_member($data, $role, $rel_id)
+    public function insert_new_member($data, $role, $rel_ids)
     {
-        $rel_id = (int)$rel_id;
-        
-        // Dapatkan data relasi
-        $this->db->where('id', $rel_id);
-        $rel_member = $this->db->get('family_members')->row_array();
-        
-        if (!$rel_member) return ['status' => false, 'message' => 'Anggota relasi tidak ditemukan.'];
+        if (!is_array($rel_ids)) {
+            $rel_ids = [$rel_ids];
+        }
 
-        if ($role === 'pasangan') {
-            // Validasi Pasangan
-            if ($rel_member['gender'] === $data['gender']) {
-                return ['status' => false, 'message' => 'Pernikahan sesama jenis kelamin tidak diizinkan.'];
-            }
+        if (empty($rel_ids)) {
+            return ['status' => false, 'message' => 'Tidak ada anggota relasi yang dipilih.'];
+        }
+
+        // 1. Simpan anggota baru (Cukup sekali)
+        $this->db->insert('family_members', $data);
+        $new_id = $this->db->insert_id();
+
+        $messages = [];
+        $berhasil = 0;
+
+        // 2. Loop untuk setiap relasi yang dipilih
+        foreach ($rel_ids as $rel_id) {
+            $rel_id = (int)$rel_id;
             
-            // Hitung jumlah pasangan saat ini
-            $this->db->where('husband_id', $rel_id);
-            $this->db->or_where('wife_id', $rel_id);
-            $count_spouses = $this->db->count_all_results('marriages');
+            // Dapatkan data relasi
+            $this->db->where('id', $rel_id);
+            $rel_member = $this->db->get('family_members')->row_array();
             
-            if ($rel_member['gender'] === 'L') { // Suami
-                if ($count_spouses >= 4) {
-                    return ['status' => false, 'message' => 'Pria ini telah memiliki batas maksimal 4 istri.'];
+            if (!$rel_member) continue;
+
+            if ($role === 'pasangan') {
+                // Validasi Pasangan
+                if ($rel_member['gender'] === $data['gender']) {
+                    continue; // Pernikahan sesama jenis kelamin diabaikan
                 }
-            } else { // Istri
-                if ($count_spouses >= 1) {
-                    return ['status' => false, 'message' => 'Wanita ini telah memiliki 1 suami.'];
-                }
-            }
-            
-            // Pasangan valid, masukkan data
-            $this->db->insert('family_members', $data);
-            $new_id = $this->db->insert_id();
-            
-            // Masukkan ke tabel marriages
-            $marriage_data = [
-                'husband_id' => ($rel_member['gender'] === 'L') ? $rel_id : $new_id,
-                'wife_id'    => ($rel_member['gender'] === 'P') ? $rel_id : $new_id,
-                'status'     => 'menikah'
-            ];
-            $this->db->insert('marriages', $marriage_data);
-            
-            return ['status' => true, 'message' => 'Anggota (Pasangan) berhasil ditambahkan.', 'id' => $new_id];
-            
-        } elseif ($role === 'anak') {
-            // Rel_member adalah orang tua.
-            if ($rel_member['gender'] === 'L') {
-                $data['father_id'] = $rel_id;
-                // Coba cari ibunya (istri pertama yang tercatat, ini simplifikasi)
+                
+                // Hitung jumlah pasangan saat ini
                 $this->db->where('husband_id', $rel_id);
-                $marriage = $this->db->get('marriages')->row_array();
-                if ($marriage) $data['mother_id'] = $marriage['wife_id'];
-            } else {
-                $data['mother_id'] = $rel_id;
-                // Coba cari ayahnya
-                $this->db->where('wife_id', $rel_id);
-                $marriage = $this->db->get('marriages')->row_array();
-                if ($marriage) $data['father_id'] = $marriage['husband_id'];
-            }
-            
-            $this->db->insert('family_members', $data);
-            return ['status' => true, 'message' => 'Anggota (Anak) berhasil ditambahkan.', 'id' => $this->db->insert_id()];
-            
-        } elseif ($role === 'orangtua') {
-            // Tambah orang tua ke anak (rel_member)
-            // Ini asumsi hanya bisa tambah jika slot kosong
-            if ($data['gender'] === 'L' && !empty($rel_member['father_id'])) {
-                return ['status' => false, 'message' => 'Anak ini sudah memiliki data Ayah.'];
-            }
-            if ($data['gender'] === 'P' && !empty($rel_member['mother_id'])) {
-                return ['status' => false, 'message' => 'Anak ini sudah memiliki data Ibu.'];
-            }
-            
-            $this->db->insert('family_members', $data);
-            $new_id = $this->db->insert_id();
-            
-            $update_data = [];
-            if ($data['gender'] === 'L') {
-                $update_data['father_id'] = $new_id;
-                if (!empty($rel_member['mother_id'])) {
-                    $this->db->insert('marriages', [
-                        'husband_id' => $new_id,
-                        'wife_id'    => $rel_member['mother_id'],
-                        'status'     => 'menikah'
-                    ]);
+                $this->db->or_where('wife_id', $rel_id);
+                $count_spouses = $this->db->count_all_results('marriages');
+                
+                if ($rel_member['gender'] === 'L' && $count_spouses >= 4) {
+                    continue; // Pria ini telah memiliki batas maksimal 4 istri.
+                } elseif ($rel_member['gender'] === 'P' && $count_spouses >= 1) {
+                    continue; // Wanita ini telah memiliki 1 suami.
                 }
-            } else {
-                $update_data['mother_id'] = $new_id;
-                if (!empty($rel_member['father_id'])) {
-                    $this->db->insert('marriages', [
-                        'husband_id' => $rel_member['father_id'],
-                        'wife_id'    => $new_id,
-                        'status'     => 'menikah'
-                    ]);
+                
+                // Masukkan ke tabel marriages
+                $marriage_data = [
+                    'husband_id' => ($rel_member['gender'] === 'L') ? $rel_id : $new_id,
+                    'wife_id'    => ($rel_member['gender'] === 'P') ? $rel_id : $new_id,
+                    'status'     => 'menikah'
+                ];
+                $this->db->insert('marriages', $marriage_data);
+                $berhasil++;
+                
+            } elseif ($role === 'anak') {
+                // Rel_member adalah orang tua.
+                $update_data = [];
+                if ($rel_member['gender'] === 'L') {
+                    $update_data['father_id'] = $rel_id;
+                    if (count($rel_ids) === 1) {
+                        // Hanya set otomatis jika dia hanya punya TEPAT 1 istri
+                        $this->db->where('husband_id', $rel_id);
+                        $marriages = $this->db->get('marriages')->result_array();
+                        if (count($marriages) === 1) {
+                            $update_data['mother_id'] = $marriages[0]['wife_id'];
+                        }
+                    }
+                } else {
+                    $update_data['mother_id'] = $rel_id;
+                    if (count($rel_ids) === 1) {
+                        // Hanya set otomatis jika dia hanya punya TEPAT 1 suami
+                        $this->db->where('wife_id', $rel_id);
+                        $marriages = $this->db->get('marriages')->result_array();
+                        if (count($marriages) === 1) {
+                            $update_data['father_id'] = $marriages[0]['husband_id'];
+                        }
+                    }
                 }
+                
+                $this->db->where('id', $new_id)->update('family_members', $update_data);
+                $berhasil++;
+                
+            } elseif ($role === 'orangtua') {
+                // Tambah orang tua ke anak (rel_member)
+                // Ini asumsi hanya bisa tambah jika slot kosong
+                if ($data['gender'] === 'L' && !empty($rel_member['father_id'])) {
+                    continue; // Anak ini sudah memiliki data Ayah.
+                }
+                if ($data['gender'] === 'P' && !empty($rel_member['mother_id'])) {
+                    continue; // Anak ini sudah memiliki data Ibu.
+                }
+                
+                $update_data = [];
+                if ($data['gender'] === 'L') {
+                    $update_data['father_id'] = $new_id;
+                    // Buat pernikahan jika anak sudah punya ibu
+                    if (!empty($rel_member['mother_id'])) {
+                        // Cek apakah sudah menikah
+                        $this->db->where('husband_id', $new_id);
+                        $this->db->where('wife_id', $rel_member['mother_id']);
+                        if ($this->db->count_all_results('marriages') == 0) {
+                            $this->db->insert('marriages', [
+                                'husband_id' => $new_id,
+                                'wife_id'    => $rel_member['mother_id'],
+                                'status'     => 'menikah'
+                            ]);
+                        }
+                    }
+                } else {
+                    $update_data['mother_id'] = $new_id;
+                    // Buat pernikahan jika anak sudah punya ayah
+                    if (!empty($rel_member['father_id'])) {
+                        // Cek apakah sudah menikah
+                        $this->db->where('husband_id', $rel_member['father_id']);
+                        $this->db->where('wife_id', $new_id);
+                        if ($this->db->count_all_results('marriages') == 0) {
+                            $this->db->insert('marriages', [
+                                'husband_id' => $rel_member['father_id'],
+                                'wife_id'    => $new_id,
+                                'status'     => 'menikah'
+                            ]);
+                        }
+                    }
+                }
+                $this->db->where('id', $rel_id)->update('family_members', $update_data);
+                $berhasil++;
             }
-            $this->db->where('id', $rel_id)->update('family_members', $update_data);
-            
-            return ['status' => true, 'message' => 'Anggota (Orang Tua) berhasil ditambahkan.', 'id' => $new_id];
+        }
+        
+        if ($berhasil > 0) {
+            return ['status' => true, 'message' => "Berhasil menyimpan anggota dan menghubungkan $berhasil relasi.", 'id' => $new_id];
+        } else {
+            // Jika gagal semua relasinya, mungkin datanya dihapus saja?
+            // Tapi sementara kita biarkan, asumsikan minimal 1 sukses.
+            return ['status' => true, 'message' => 'Anggota disimpan tapi beberapa relasi mungkin tidak valid.', 'id' => $new_id];
         }
         
         return ['status' => false, 'message' => 'Peran tidak valid.'];

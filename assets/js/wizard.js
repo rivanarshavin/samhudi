@@ -1,6 +1,6 @@
 let currentStep = 0;
 let selectedRole = '';
-let selectedRelId = '';
+let selectedRelIds = []; // Array of {id, name, gender}
 let selectedRelGender = '';
 let newMemberId = null;
 
@@ -87,6 +87,7 @@ function searchMember(term) {
                 }
                 
                 data.forEach(item => {
+                    const isSelected = selectedRelIds.some(r => r.id == item.id);
                     const html = `
                         <label class="member-item">
                             <img src="https://placehold.co/40x40/CBD9CF/4A6055?text=${item.full_name.charAt(0)}" alt="">
@@ -94,7 +95,7 @@ function searchMember(term) {
                                 <strong style="font-size:14px; display:block; color:#4A6055;">${item.full_name}</strong>
                                 <span style="font-size:11px; color:#5a5c50;">${item.gender === 'L' ? 'Laki-laki' : 'Perempuan'}</span>
                             </div>
-                            <input type="radio" name="rel_id" value="${item.id}" data-gender="${item.gender}" onchange="selectRelation(this)">
+                            <input type="checkbox" name="rel_id_search" value="${item.id}" data-gender="${item.gender}" data-name="${item.full_name}" onchange="selectRelation(this)" ${isSelected ? 'checked' : ''}>
                         </label>
                     `;
                     listEl.insertAdjacentHTML('beforeend', html);
@@ -106,10 +107,77 @@ function searchMember(term) {
     }, 500);
 }
 
-function selectRelation(radio) {
-    selectedRelId = radio.value;
-    selectedRelGender = radio.getAttribute('data-gender');
-    document.getElementById('btnNext2').disabled = false;
+function selectRelation(input) {
+    const id = input.value;
+    const gender = input.getAttribute('data-gender');
+    const name = input.getAttribute('data-name');
+    
+    // Jika peran sebagai 'anak', maksimal pilih 2 (satu Ayah, satu Ibu)
+    if (selectedRole === 'anak') {
+        if (input.checked) {
+            const sameGenderExists = selectedRelIds.some(r => r.gender === gender);
+            if (sameGenderExists) {
+                alert('Anda hanya bisa memilih satu ' + (gender === 'L' ? 'Ayah' : 'Ibu') + '!');
+                input.checked = false;
+                return;
+            }
+            if (selectedRelIds.length >= 2) {
+                alert('Maksimal hanya bisa memilih 2 orang tua!');
+                input.checked = false;
+                return;
+            }
+            if (!selectedRelIds.some(r => r.id == id)) {
+                selectedRelIds.push({id, name, gender});
+            }
+        } else {
+            selectedRelIds = selectedRelIds.filter(r => r.id != id);
+        }
+    } else {
+        if (input.checked) {
+            // Tambahkan jika belum ada
+            if (!selectedRelIds.some(r => r.id == id)) {
+                selectedRelIds.push({id, name, gender});
+            }
+        } else {
+            // Hapus jika di-uncheck
+            selectedRelIds = selectedRelIds.filter(r => r.id != id);
+        }
+    }
+    
+    updateSelectedTags();
+}
+
+function updateSelectedTags() {
+    const container = document.getElementById('selectedMembers');
+    container.innerHTML = '';
+    
+    selectedRelIds.forEach(rel => {
+        const tag = document.createElement('div');
+        tag.className = 'selected-tag';
+        tag.innerHTML = `
+            ${rel.name}
+            <i class="bi bi-x-circle-fill remove-tag" onclick="removeRelation('${rel.id}')"></i>
+        `;
+        container.appendChild(tag);
+    });
+    
+    if (selectedRelIds.length > 0) {
+        selectedRelGender = selectedRelIds[0].gender; // Pakai gender orang pertama untuk acuan
+        document.getElementById('btnNext2').disabled = false;
+    } else {
+        selectedRelGender = '';
+        document.getElementById('btnNext2').disabled = true;
+    }
+    
+    // Sinkronisasi dengan checkbox di list pencarian (jika terlihat)
+    document.querySelectorAll('input[name="rel_id_search"]').forEach(input => {
+        input.checked = selectedRelIds.some(r => r.id == input.value);
+    });
+}
+
+function removeRelation(id) {
+    selectedRelIds = selectedRelIds.filter(r => r.id != id);
+    updateSelectedTags();
 }
 
 // Gender Lock Logic
@@ -179,7 +247,12 @@ function submitForm() {
     
     const formData = new FormData();
     formData.append('role', selectedRole);
-    formData.append('rel_id', selectedRelId);
+    
+    // Append rel_id array
+    selectedRelIds.forEach(rel => {
+        formData.append('rel_id[]', rel.id);
+    });
+    
     formData.append('full_name', name);
     formData.append('birth_date', dob);
     formData.append('gender', gender);
