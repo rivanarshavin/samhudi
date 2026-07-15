@@ -591,6 +591,10 @@ class Auth extends CI_Controller
             $config['max_size']      = 2048; // 2MB
             $config['file_name']     = time() . '_' . $_FILES['photo']['name'];
             
+            if (!is_dir($config['upload_path'])) {
+                mkdir($config['upload_path'], 0777, true);
+            }
+            
             $this->load->library('upload', $config);
             $this->upload->initialize($config);
             

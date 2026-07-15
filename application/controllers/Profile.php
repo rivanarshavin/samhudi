@@ -63,7 +63,7 @@ class Profile extends CI_Controller {
             'location' => $location,
         ];
 
-        $upload_path = './assets/uploads/profiles/';
+        $upload_path = FCPATH . 'assets/uploads/profiles/';
         if (!is_dir($upload_path)) {
             mkdir($upload_path, 0777, true);
         }

@@ -133,11 +133,16 @@ class Familytree extends CI_Controller
             $config['max_size']      = 2048; // 2MB
             $config['file_name']     = time() . '_' . $_FILES['photo']['name'];
             
-            $this->load->library('upload', $config);
+            if (!is_dir($config['upload_path'])) {
+                mkdir($config['upload_path'], 0777, true);
+            }
+            
+            $this->load->library('upload');
+            $this->upload->initialize($config);
             
             if ($this->upload->do_upload('photo')) {
                 $uploadData = $this->upload->data();
-                $data['photo'] = $uploadData['file_name'];
+                $data['photo'] = 'assets/uploads/' . $uploadData['file_name'];
             }
         }
         

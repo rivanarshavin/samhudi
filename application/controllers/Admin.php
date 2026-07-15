@@ -245,7 +245,7 @@ class Admin extends CI_Controller
 
             // Handle photo upload
             if (!empty($_FILES['photo']['name'])) {
-                $config['upload_path']   = './assets/uploads/family/';
+                $config['upload_path']   = FCPATH . 'assets/uploads/family/';
                 $config['allowed_types'] = 'gif|jpg|jpeg|png|webp';
                 $config['max_size']      = 2048; // 2MB
                 $config['file_name']     = 'member_' . time();
@@ -332,7 +332,7 @@ class Admin extends CI_Controller
 
             // Handle photo upload
             if (!empty($_FILES['photo']['name'])) {
-                $config['upload_path']   = './assets/uploads/family/';
+                $config['upload_path']   = FCPATH . 'assets/uploads/family/';
                 $config['allowed_types'] = 'gif|jpg|jpeg|png|webp';
                 $config['max_size']      = 2048; // 2MB
                 $config['file_name']     = 'member_' . time();
@@ -482,7 +482,7 @@ class Admin extends CI_Controller
 
             // Handle thumbnail upload
             if (!empty($_FILES['thumbnail']['name'])) {
-                $config['upload_path']   = './assets/uploads/news/';
+                $config['upload_path']   = FCPATH . 'assets/uploads/news/';
                 $config['allowed_types'] = 'gif|jpg|jpeg|png|webp';
                 $config['max_size']      = 2048;
                 $config['file_name']     = 'news_' . time();
@@ -549,7 +549,7 @@ class Admin extends CI_Controller
 
             // Handle thumbnail upload
             if (!empty($_FILES['thumbnail']['name'])) {
-                $config['upload_path']   = './assets/uploads/news/';
+                $config['upload_path']   = FCPATH . 'assets/uploads/news/';
                 $config['allowed_types'] = 'gif|jpg|jpeg|png|webp';
                 $config['max_size']      = 2048;
                 $config['file_name']     = 'news_' . time();
@@ -629,7 +629,7 @@ class Admin extends CI_Controller
     {
         if ($this->input->method() == 'post') {
             if (!empty($_FILES['banner_file']['name'])) {
-                $config['upload_path']   = './assets/uploads/banners/';
+                $config['upload_path']   = FCPATH . 'assets/uploads/banners/';
                 $config['allowed_types'] = 'gif|jpg|jpeg|png|webp';
                 $config['max_size']      = 5120; // 5MB
                 $config['file_name']     = 'pbanner_' . time();

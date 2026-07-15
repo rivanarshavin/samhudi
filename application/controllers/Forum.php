@@ -63,7 +63,7 @@ class Forum extends CI_Controller {
 
         // Process media upload
         if (!empty($_FILES['media']['name'])) {
-            $upload_path = './assets/uploads/forum/';
+            $upload_path = FCPATH . 'assets/uploads/forum/';
             if (!is_dir($upload_path)) {
                 mkdir($upload_path, 0777, true);
             }
@@ -207,7 +207,7 @@ class Forum extends CI_Controller {
             'location' => $location
         ];
 
-        $upload_path = './assets/uploads/profiles/';
+        $upload_path = FCPATH . 'assets/uploads/profiles/';
         if (!is_dir($upload_path)) {
             mkdir($upload_path, 0777, true);
         }
