@@ -8,6 +8,8 @@ class Familytree extends CI_Controller
     {
         parent::__construct();
         $this->load->model('Family_model');
+        $this->load->library('session');
+        $this->load->helper('url');
     }
 
     public function index()
@@ -55,6 +57,12 @@ class Familytree extends CI_Controller
     
     public function add()
     {
+        if (!$this->session->userdata('logged_in')) {
+            $this->session->set_flashdata('errors', ['Anda harus login terlebih dahulu untuk menambah anggota silsilah.']);
+            redirect('auth');
+            return;
+        }
+
         $this->load->view('templates/header');
         $this->load->view('partials/navbar');
         $this->load->view('silsilah/add_member_view');
@@ -64,6 +72,11 @@ class Familytree extends CI_Controller
     public function api_search_members()
     {
         header('Content-Type: application/json; charset=utf-8');
+        if (!$this->session->userdata('logged_in')) {
+            echo json_encode([]);
+            return;
+        }
+
         $term = $this->input->get('term');
         if (empty($term)) {
             echo json_encode([]);
@@ -76,6 +89,11 @@ class Familytree extends CI_Controller
     public function api_save_member()
     {
         header('Content-Type: application/json; charset=utf-8');
+        
+        if (!$this->session->userdata('logged_in')) {
+            echo json_encode(['status' => false, 'message' => 'Sesi berakhir, silakan login kembali.']);
+            return;
+        }
         
         $role = $this->input->post('role'); // 'anak', 'pasangan', 'orangtua'
         $rel_id = $this->input->post('rel_id'); // ID dari anggota yang dipilih

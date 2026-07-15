@@ -9,8 +9,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 $config['protocol']    = 'smtp';
 $config['smtp_host']   = 'smtp.gmail.com'; // ganti sesuai provider
 $config['smtp_port']   = 465;
-$config['smtp_user']   = 'alifmuzakki1110@gmail.com';
-$config['smtp_pass']   = 'pznrlhknfywbvnby';
+$config['smtp_user']   = 'apgchannel11@gmail.com';
+$config['smtp_pass']   = 'xplmgybiyapsnvzm';
 $config['smtp_crypto'] = 'ssl';
 $config['smtp_timeout'] = 30;
 

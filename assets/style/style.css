@@ -261,38 +261,82 @@
 
 .overlap-text {
     font-family: Inter, sans-serif;
-    font-size: clamp(0.8rem, 2.5vw, 1.4rem);
+    font-size: clamp(0.9rem, 2.2vw, 1.3rem);
     font-weight: 300;
-    line-height: 1.4;
+    line-height: 1.5;
     color: #4b382f;
     margin-bottom: 20px;
 }
 
 .overlap-sender {
     font-family: Inter, sans-serif;
-    font-size: clamp(0.8rem, 2.5vw, 1.4rem);
-    font-weight: 300;
+    font-size: clamp(0.9rem, 2.2vw, 1.3rem);
+    font-weight: 500;
     color: #4b382f;
 }
 
-@media (max-width: 576px) {
-    .overlap-text {
-        font-size: 1.6rem;
-        line-height: 1.4;
-        margin-bottom: 14px;
-    }
-    .overlap-sender {
-        font-size: 1.6rem;
-    }
-    .overlap-box {
-        padding: 1rem 0.8rem;
-        margin-left: 0;
-        margin-right: 0;
-        max-width: 100%;
+/* Responsive Media Queries (Mobile & Tablet) */
+@media (max-width: 991px) {
+    .overlap-section {
+        min-height: auto;
+        padding: 50px 0;
     }
     .overlap-img {
         width: 100%;
-        max-width: 100%;
+        max-width: 340px;
+        margin: 0 auto;
+        display: block;
+    }
+    .overlap-box {
+        margin: -35px auto 0 auto;
+        width: 92%;
+        max-width: 440px;
+        box-shadow: 0 12px 28px rgba(0,0,0,.15);
+    }
+    .overlap-text {
+        font-size: 1.05rem;
+        line-height: 1.5;
+        text-align: center;
+    }
+    .overlap-sender {
+        font-size: 1.05rem;
+        display: block;
+        text-align: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .section-padding {
+        padding: 40px 0;
+    }
+    .col-foto-sambutan {
+        margin-bottom: 25px;
+        justify-content: center !important;
+    }
+    .foto-sambutan {
+        max-width: 180px;
+    }
+    .sambutan-title {
+        font-size: 1.65rem !important;
+        text-align: center;
+        line-height: 1.35;
+        margin-bottom: 15px;
+    }
+    .sambutan-text {
+        font-size: 1.05rem !important;
+        line-height: 1.6;
+        text-align: left; /* Matikan justify di mobile agar kata tidak berantakan renggang */
+        margin-bottom: 1.25rem;
+    }
+    .sambutan-closing {
+        font-size: 1.5rem !important;
+        text-align: center;
+        margin-top: 20px;
+    }
+    .sambutan-sender {
+        font-size: 1.4rem !important;
+        text-align: center;
+        margin-top: 10px;
     }
 }
 
