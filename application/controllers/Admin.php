@@ -784,4 +784,86 @@ class Admin extends CI_Controller
         redirect('admin/pengguna');
     }
 
+    // ================= KELOLA LOWONGAN =================
+
+    public function lowongan()
+    {
+        $this->load->model('Linkedin_model');
+
+        $all_jobs = $this->Linkedin_model->get_all_jobs();
+
+        // Attach applicants to each job
+        $jobs = [];
+        foreach ($all_jobs as $job) {
+            $job_arr               = (array) $job;
+            $job_arr['applicants'] = $this->Linkedin_model->get_applications_by_job($job->id);
+            $jobs[]                = $job_arr;
+        }
+
+        $data = [
+            'admin_name' => $this->session->userdata('full_name'),
+            'admin_role' => $this->session->userdata('role'),
+            'jobs'       => $jobs,
+            'active_menu'=> 'lowongan',
+        ];
+
+        $this->load->view('admin/lowongan', $data);
+    }
+
+    public function lowongan_approve($id)
+    {
+        $this->load->model('Linkedin_model');
+        $this->Linkedin_model->update_job_status($id, 'approved');
+        $this->session->set_flashdata('success', 'Lowongan berhasil disetujui.');
+        redirect('admin/lowongan');
+    }
+
+    public function lowongan_reject($id)
+    {
+        $this->load->model('Linkedin_model');
+        $this->Linkedin_model->update_job_status($id, 'rejected');
+        $this->session->set_flashdata('success', 'Lowongan berhasil ditolak.');
+        redirect('admin/lowongan');
+    }
+
+    public function lowongan_delete($id)
+    {
+        $this->load->model('Linkedin_model');
+        $this->Linkedin_model->delete_job($id);
+        $this->session->set_flashdata('success', 'Lowongan berhasil dihapus.');
+        redirect('admin/lowongan');
+    }
+
+    public function lowongan_add()
+    {
+        $this->load->model('Linkedin_model');
+        $this->load->library('form_validation');
+
+        $this->form_validation->set_rules('company_name', 'Nama Perusahaan', 'required');
+        $this->form_validation->set_rules('job_title', 'Posisi / Jenis Pekerjaan', 'required');
+
+        if ($this->form_validation->run() == FALSE) {
+            $this->session->set_flashdata('error', 'Nama perusahaan dan posisi wajib diisi.');
+            redirect('admin/lowongan');
+            return;
+        }
+
+        $data = [
+            'user_id'        => $this->session->userdata('user_id'),
+            'publisher_name' => $this->session->userdata('full_name'),
+            'company_name'   => $this->input->post('company_name'),
+            'job_title'      => $this->input->post('job_title'),
+            'salary'         => $this->input->post('salary'),
+            'job_type'       => $this->input->post('job_type'),
+            'working_hours'  => $this->input->post('working_hours'),
+            'location'       => $this->input->post('location'),
+            'description'    => $this->input->post('description'),
+            'status'         => 'approved',
+        ];
+
+        $this->Linkedin_model->create_job($data);
+        $this->session->set_flashdata('success', 'Lowongan berhasil ditambahkan dan langsung aktif.');
+        redirect('admin/lowongan');
+    }
+
 }

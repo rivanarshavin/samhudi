@@ -78,6 +78,13 @@ $current_page = isset($active_menu) ? $active_menu : ($this->uri->segment(2) ? $
             <span>Kelola Pengguna</span>
         </a>
 
+        <!-- Kelola Lowongan -->
+        <a href="<?= base_url('admin/lowongan') ?>" 
+           class="flex items-center gap-3.5 px-4 py-3 rounded-lg text-sm font-medium transition-all <?= ($current_page == 'lowongan') ? 'bg-gradient-to-r from-brand-medium to-brand-dark/20 text-white border-l-4 border-white shadow-md' : 'text-white/80 hover:text-white hover:bg-brand-medium/20' ?>">
+            <i class="bi bi-briefcase text-lg"></i>
+            <span>Kelola Lowongan</span>
+        </a>
+
         <!-- Pengaturan -->
         <a href="#" 
            class="flex items-center gap-3.5 px-4 py-3 rounded-lg text-sm font-medium transition-all <?= ($current_page == 'pengaturan') ? 'bg-gradient-to-r from-brand-medium to-brand-dark/20 text-white border-l-4 border-white shadow-md' : 'text-white/80 hover:text-white hover:bg-brand-medium/20' ?>">

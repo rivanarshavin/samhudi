@@ -73,18 +73,15 @@ if (!function_exists('time_elapsed_string')) {
     /* Modals */
     .modal-overlay {
         position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999;
-        display: flex; items-center; justify-content: center;
-        opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        display: none; align-items: center; justify-content: center;
         padding: 20px;
     }
-    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal-overlay.open { display: flex; }
     .modal-content {
         background: #1E2E2B; border: 1px solid #374D49; border-radius: 20px;
         width: 100%; max-width: 600px; margin: auto; padding: 24px;
-        transform: scale(0.95); transition: transform 0.3s;
         max-height: 90vh; overflow-y: auto;
     }
-    .modal-overlay.open .modal-content { transform: scale(1); }
 
     /* Forms */
     .form-input {
@@ -243,6 +240,30 @@ if (!function_exists('time_elapsed_string')) {
                         </button>
                     </div>
 
+                    <!-- Search Filter -->
+                    <form method="GET" action="<?= base_url('linkedin') ?>" class="mb-5 flex flex-wrap gap-3 items-end">
+                        <div class="flex-1 min-w-[160px]">
+                            <label class="form-label">Cari Pekerjaan</label>
+                            <input type="text" name="search" class="form-input" style="margin-bottom:0" placeholder="Posisi, perusahaan..." value="<?= htmlspecialchars($filters['search'] ?? '') ?>">
+                        </div>
+                        <div class="flex-1 min-w-[130px]">
+                            <label class="form-label">Lokasi</label>
+                            <input type="text" name="location" class="form-input" style="margin-bottom:0" placeholder="Jakarta, Bandung..." value="<?= htmlspecialchars($filters['location'] ?? '') ?>">
+                        </div>
+                        <div class="flex-1 min-w-[130px]">
+                            <label class="form-label">Tipe Kerja</label>
+                            <select name="type" class="form-input" style="margin-bottom:0">
+                                <option value="">Semua Tipe</option>
+                                <option value="Full-time" <?= ($filters['type'] ?? '') === 'Full-time' ? 'selected' : '' ?>>Full-time</option>
+                                <option value="Part-time" <?= ($filters['type'] ?? '') === 'Part-time' ? 'selected' : '' ?>>Part-time</option>
+                                <option value="Freelance" <?= ($filters['type'] ?? '') === 'Freelance' ? 'selected' : '' ?>>Freelance</option>
+                                <option value="Remote" <?= ($filters['type'] ?? '') === 'Remote' ? 'selected' : '' ?>>Remote</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn-primary" style="padding: 10px 20px;">Filter</button>
+                        <a href="<?= base_url('linkedin') ?>" class="btn-primary" style="padding:10px 14px; background: rgba(55,77,73,0.6); border:1px solid #374D49;"><i class="bi bi-arrow-clockwise"></i></a>
+                    </form>
+
                     <div class="flex gap-6 items-start relative">
                         <!-- List Panel -->
                         <div class="job-list-container">
@@ -279,7 +300,9 @@ if (!function_exists('time_elapsed_string')) {
                                 
                                 <div id="jobDetailContent" class="hidden">
                                     <h2 id="jdTitle" class="text-2xl font-bold text-white mb-1"></h2>
-                                    <p id="jdCompany" class="text-lg text-[#E49438] font-bold mb-6"></p>
+                                    <p id="jdCompany" class="text-lg text-[#E49438] font-bold mb-3"></p>
+
+                                    <div id="applyActionArea" class="mb-6"></div>
 
                                     <div class="space-y-4 mb-6">
                                         <div class="flex items-start gap-3">
@@ -437,6 +460,44 @@ if (!function_exists('time_elapsed_string')) {
     </div>
 </div>
 
+<!-- Modal Lamar Pekerjaan -->
+<div class="modal-overlay" id="applyJobModal" onclick="closeModalOutside(event, 'applyJobModal')">
+    <div class="modal-content custom-scrollbar" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center mb-6 border-b border-[#374D49] pb-4">
+            <h3 class="font-bold text-lg text-white flex items-center gap-2">
+                <i class="bi bi-send text-[#377C80]"></i> Lamar Pekerjaan
+            </h3>
+            <button onclick="closeModal('applyJobModal')" class="text-[#B1CDCE]/60 hover:text-white transition-colors">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <?= form_open_multipart('linkedin/apply_job') ?>
+
+            <input type="hidden" name="job_id" id="applyJobId">
+
+            <label class="form-label">Posisi / Pekerjaan</label>
+            <input type="text" id="applyJobTitle" class="form-input" readonly>
+
+            <label class="form-label">Perusahaan</label>
+            <input type="text" id="applyJobCompany" class="form-input" readonly>
+
+            <label class="form-label">Upload CV <span class="text-red-500">*</span></label>
+            <p class="text-[10px] text-[#B1CDCE]/60 mb-2">Format: PDF, DOC, DOCX, JPG, PNG. Maks 2MB.</p>
+            <input type="file" name="cv" class="form-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required style="padding:8px 14px;">
+
+            <label class="form-label" style="margin-top:4px;">Keterangan / Motivasi <span class="text-[#B1CDCE]/50 font-normal">(opsional)</span></label>
+            <textarea name="keterangan" class="form-input" rows="4" placeholder="Ceritakan singkat mengapa Anda tertarik dengan posisi ini..."></textarea>
+
+            <div class="flex justify-end mt-4">
+                <button type="button" onclick="closeModal('applyJobModal')" class="px-4 py-2 text-sm text-[#B1CDCE] hover:text-white mr-2">Batal</button>
+                <button type="submit" class="btn-primary py-2 px-6"><i class="bi bi-send"></i> Kirim Lamaran</button>
+            </div>
+
+        <?= form_close() ?>
+    </div>
+</div>
+
 <script>
     // Tabs
     function switchTab(tab, btn) {
@@ -456,7 +517,9 @@ if (!function_exists('time_elapsed_string')) {
         document.body.style.overflow = '';
     }
     function closeModalOutside(e, id) {
-        closeModal(id);
+        if (e.target.id === id) {
+            closeModal(id);
+        }
     }
     document.addEventListener('keydown', e => { 
         if (e.key === 'Escape') {
@@ -501,7 +564,15 @@ if (!function_exists('time_elapsed_string')) {
                     document.getElementById('jdHours').textContent = data.working_hours || '-';
                     document.getElementById('jdDescription').textContent = data.description || 'Tidak ada deskripsi.';
                     document.getElementById('jdPublisher').textContent = data.publisher_name;
-                    
+
+                    // Apply action area
+                    const actionArea = document.getElementById('applyActionArea');
+                    if (res.has_applied) {
+                        actionArea.innerHTML = `<div style="display:inline-flex;align-items:center;gap:8px;background:rgba(55,124,128,0.15);border:1px solid rgba(55,124,128,0.4);color:#7ecdd1;padding:10px 18px;border-radius:50px;font-weight:bold;font-size:0.85rem;"><i class="bi bi-check-circle-fill"></i> Sudah Melamar</div>`;
+                    } else {
+                        actionArea.innerHTML = `<button onclick="openApplyModal(${data.id}, '${escapeAttr(data.job_title)}', '${escapeAttr(data.company_name)}')" class="btn-primary w-full" style="justify-content:center;"><i class="bi bi-send"></i> Lamar Pekerjaan</button>`;
+                    }
+
                     content.classList.remove('hidden');
                 } else {
                     loader.textContent = 'Gagal memuat detail pekerjaan.';
@@ -520,5 +591,16 @@ if (!function_exists('time_elapsed_string')) {
             document.querySelector('.job-list-container').style.display = 'block';
         }
         document.querySelectorAll('.job-item').forEach(item => item.classList.remove('active'));
+    }
+
+    function openApplyModal(jobId, jobTitle, companyName) {
+        document.getElementById('applyJobId').value = jobId;
+        document.getElementById('applyJobTitle').value = jobTitle;
+        document.getElementById('applyJobCompany').value = companyName;
+        openModal('applyJobModal');
+    }
+
+    function escapeAttr(str) {
+        return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
     }
 </script>
