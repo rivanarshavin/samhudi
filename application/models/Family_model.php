@@ -251,6 +251,7 @@ class Family_model extends CI_Model {
             'foto'           => $this->resolve_foto($row['photo'], $row['full_name']),
             'gender'         => $row['gender'] ?? null,
             'hubungan'       => $hubunganOverride ?? $this->relation_label($depth),
+            'is_alive'       => isset($row['is_alive']) ? (int) $row['is_alive'] : 1,
             'email'          => $row['email'] ?? null,
             'telepon'        => $row['phone'] ?? null,
             'tanggal_lahir'  => $this->format_tanggal($row['birth_date'] ?? null),
