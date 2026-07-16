@@ -88,8 +88,8 @@ function searchMember(term) {
                         <label class="member-item">
                             <img src="https://placehold.co/40x40/CBD9CF/4A6055?text=${item.full_name.charAt(0)}" alt="">
                             <div style="flex:1">
-                                <strong style="font-size:14px; display:block; color:#4A6055;">${item.full_name}</strong>
-                                <span style="font-size:11px; color:#5a5c50;">${item.gender === 'L' ? 'Laki-laki' : 'Perempuan'}</span>
+                                <strong style="font-size:14px; display:block; color:var(--ink);">${item.full_name}</strong>
+                                <span style="font-size:11px; color:var(--ink-soft);">${item.gender === 'L' ? 'Laki-laki' : 'Perempuan'}</span>
                             </div>
                             <input type="checkbox" name="rel_id_search" value="${item.id}" data-gender="${item.gender}" data-name="${item.full_name}" onchange="selectRelation(this)" ${isSelected ? 'checked' : ''}>
                         </label>
@@ -99,8 +99,8 @@ function searchMember(term) {
 
                 // Tambahkan opsi "Tambah Baru" di akhir list
                 const addHtml = `
-                    <div class="member-item" style="border: 2px dashed #4A6055; cursor: pointer; justify-content: center; background: #f8faf9;" onclick="promptNewRelative('${term}')">
-                        <div style="text-align: center; color: #4A6055;">
+                    <div class="member-item" style="border: 2px dashed var(--forest-deep); cursor: pointer; justify-content: center; background: var(--input-bg);" onclick="promptNewRelative('${term}')">
+                        <div style="text-align: center; color: var(--forest-deep);">
                             <i class="bi bi-plus-circle-fill"></i> Tambah "<strong>${term}</strong>"
                         </div>
                     </div>
@@ -232,17 +232,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     .then(res => {
                         resEl.innerHTML = '';
                         if (res.length === 0) {
-                            resEl.innerHTML = '<div style="padding:10px; color:#6a7b73; font-size:13px; text-align:center;">Tidak ditemukan</div>';
+                            resEl.innerHTML = '<div style="padding:10px; color:var(--ink-soft); font-size:13px; text-align:center;">Tidak ditemukan</div>';
                         } else {
                             res.forEach(item => {
                                 const div = document.createElement('div');
-                                div.style.cssText = 'padding:10px; cursor:pointer; border-bottom:1px solid #eee; display:flex; flex-direction:column;';
+                                div.style.cssText = 'padding:10px; cursor:pointer; border-bottom:1px solid var(--line); display:flex; flex-direction:column; background:var(--input-bg);';
                                 div.innerHTML = `
-                                    <span style="font-weight:600; font-size:14px;">${item.full_name}</span>
-                                    <span style="font-size:11px; color:#6a7b73;">${item.gender === 'L' ? 'Laki-laki' : 'Perempuan'}</span>
+                                    <span style="font-weight:600; font-size:14px; color:var(--ink);">${item.full_name}</span>
+                                    <span style="font-size:11px; color:var(--ink-soft);">${item.gender === 'L' ? 'Laki-laki' : 'Perempuan'}</span>
                                 `;
-                                div.onmouseover = () => div.style.background = '#f8faf9';
-                                div.onmouseout = () => div.style.background = 'white';
+                                div.onmouseover = () => div.style.background = 'var(--cream)';
+                                div.onmouseout = () => div.style.background = 'var(--input-bg)';
                                 div.onclick = () => selectParent(item.id, item.full_name);
                                 resEl.appendChild(div);
                             });
@@ -414,6 +414,11 @@ function submitForm() {
     formData.append('full_name', name);
     formData.append('birth_date', dob);
     formData.append('gender', gender);
+    
+    const gen = document.getElementById('generasi');
+    if (gen && gen.value) {
+        formData.append('generasi', gen.value);
+    }
     
     const photoInput = document.getElementById('photoInput');
     if (photoInput.files.length > 0) {

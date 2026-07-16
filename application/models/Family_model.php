@@ -60,7 +60,7 @@ class Family_model extends CI_Model {
             $curr = $this->db->get_where('family_members', ['id' => $pid])->row_array();
             if (!$curr) break;
         }
-        $member['generasi'] = $depth + 1;
+        $member['generasi'] = isset($memberRow['generasi']) ? $memberRow['generasi'] : ($depth + 1);
         $member['generasi_label'] = 'Generasi ' . $member['generasi'];
         
         // Data Orang Tua
@@ -254,6 +254,7 @@ class Family_model extends CI_Model {
             'nama'           => $row['full_name'],
             'foto'           => $this->resolve_foto($row['photo'], $row['full_name']),
             'gender'         => $row['gender'] ?? null,
+            'generasi'       => isset($row['generasi']) ? $row['generasi'] : null,
             'hubungan'       => $hubunganOverride ?? $this->relation_label($depth),
             'is_alive'       => isset($row['is_alive']) ? (int) $row['is_alive'] : 1,
             'email'          => $row['email'] ?? null,
