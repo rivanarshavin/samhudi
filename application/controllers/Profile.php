@@ -57,10 +57,16 @@ class Profile extends CI_Controller {
 
         $bio      = $this->input->post('bio');
         $location = $this->input->post('location');
+        $open_to_work = $this->input->post('open_to_work') ? 1 : 0;
+        $work_role = $this->input->post('work_role');
+        $is_fresh_graduate = $this->input->post('is_fresh_graduate') ? 1 : 0;
 
         $update_data = [
             'bio'      => $bio,
             'location' => $location,
+            'open_to_work' => $open_to_work,
+            'work_role' => $work_role,
+            'is_fresh_graduate' => $is_fresh_graduate,
         ];
 
         $upload_path = FCPATH . 'assets/uploads/profiles/';

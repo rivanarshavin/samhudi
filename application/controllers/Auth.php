@@ -155,7 +155,7 @@ class Auth extends CI_Controller
         // Save registration details in session (database write happens ONLY after OTP verification)
         $this->session->set_userdata('signup_basic_info', $signup_data);
 
-        redirect('auth/register_wizard');
+        redirect('auth/trigger_otp');
     }
 
     // ==========================================================
