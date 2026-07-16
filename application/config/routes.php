@@ -70,5 +70,19 @@ $route['berita/(:num)']             = 'home/berita';        // pagination offset
 $route['berita/(:any)']             = 'home/berita_detail/$1';
 $route['profile']                   = 'Profile/index';
 $route['profile/update']            = 'Profile/update';
+
+// Linkedin Routes
+$route['linkedin']                  = 'linkedin/index';
+$route['linkedin/create_job']       = 'linkedin/create_job';
+$route['linkedin/get_job/(:num)']   = 'linkedin/get_job_detail/$1';
+$route['linkedin/apply_job']        = 'linkedin/apply_job';
+
+// Admin Lowongan Routes
+$route['admin/lowongan']                    = 'admin/lowongan';
+$route['admin/lowongan_approve/(:num)']     = 'admin/lowongan_approve/$1';
+$route['admin/lowongan_reject/(:num)']      = 'admin/lowongan_reject/$1';
+$route['admin/lowongan_delete/(:num)']      = 'admin/lowongan_delete/$1';
+$route['admin/lowongan_add']                = 'admin/lowongan_add';
+
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;

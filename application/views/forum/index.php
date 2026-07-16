@@ -93,6 +93,11 @@
                             </a>
                         </li>
                         <li>
+                            <a href="<?= base_url('linkedin') ?>" class="nav-sidebar-link flex items-center gap-4 py-2.5 px-4 rounded-xl transition-all text-[#B1CDCE] hover:text-white hover:bg-[#374D49]/40">
+                                <i class="bi bi-linkedin text-[#0077b5] text-xl bg-white rounded flex items-center justify-center h-5 w-5 leading-none"></i> LinkedIn Alumni
+                            </a>
+                        </li>
+                        <li>
                             <a href="<?= base_url('profile') ?>" class="nav-sidebar-link flex items-center gap-4 py-2.5 px-4 rounded-xl transition-all text-[#B1CDCE] hover:text-white hover:bg-[#374D49]/40">
                                 <div class="w-6 h-6 rounded-full overflow-hidden bg-teal-800 flex-shrink-0">
                                     <img src="<?= !empty($user->avatar) ? base_url($user->avatar) : base_url('assets/images/photo.png') ?>" alt="Avatar" class="w-full h-full object-cover">
