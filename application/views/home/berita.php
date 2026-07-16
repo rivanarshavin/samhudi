@@ -1,4 +1,3 @@
-<?php if (!empty($news_items)): ?>
 <section class="py-5 berita-section">
     <div class="container">
 
@@ -11,6 +10,7 @@
             </p>
         </div>
 
+        <?php if (!empty($news_items)): ?>
         <div class="row g-3">
             <?php
             $main_news = $news_items[0];
@@ -55,6 +55,6 @@
             <?php endif; ?>
 
         </div>
+        <?php endif; ?>
     </div>
 </section>
-<?php endif; ?>
