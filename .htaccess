@@ -2,7 +2,7 @@ Options +FollowSymLinks -Indexes
 DirectoryIndex index.php
 
 RewriteEngine On
-RewriteBase /
+RewriteBase /web_kel_samhudi/
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.php/$1 [L]

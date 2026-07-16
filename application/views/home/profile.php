@@ -316,7 +316,7 @@ if (!function_exists('time_elapsed_string')) {
                         </li>
                         <li>
                             <a href="<?= base_url('linkedin') ?>" class="nav-sidebar-link flex items-center gap-4 py-2.5 px-4 rounded-xl transition-all text-[#B1CDCE] hover:text-white hover:bg-[#374D49]/40">
-                                <i class="bi bi-linkedin text-[#0077b5] text-xl bg-white rounded flex items-center justify-center h-5 w-5 leading-none"></i> LinkedIn Alumni
+                                <span style="width:20px;height:20px;background:linear-gradient(135deg,#0077b5,#00a0dc);border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:white;font-style:italic;letter-spacing:-1px;flex-shrink:0;">in</span> linkedin
                             </a>
                         </li>
                         <li>
@@ -567,30 +567,6 @@ if (!function_exists('time_elapsed_string')) {
 
             <label class="pf-label">Lokasi</label>
             <input type="text" name="location" class="pf-input" value="<?= htmlspecialchars($user->location ?? '') ?>">
-
-            <hr class="border-[#374D49] my-4">
-            <h4 class="text-sm font-bold text-[#E49438] mb-3">Pengaturan Karir</h4>
-            
-            <label class="flex items-center gap-2 cursor-pointer mb-3">
-                <input type="checkbox" name="open_to_work" value="1" <?= (isset($user->open_to_work) && $user->open_to_work == 1) ? 'checked' : '' ?> class="w-4 h-4 accent-[#377C80]">
-                <span class="text-sm font-bold text-white">Open to Work (Mencari Pekerjaan)</span>
-            </label>
-
-            <div class="grid grid-cols-2 gap-4 mb-2">
-                <div>
-                    <label class="pf-label">Peran yang dicari</label>
-                    <input type="text" name="work_role" class="pf-input !mb-0" value="<?= htmlspecialchars($user->work_role ?? '') ?>" placeholder="Contoh: Software Engineer">
-                </div>
-                <div>
-                    <label class="pf-label">Status Pengalaman</label>
-                    <label class="flex items-center gap-2 cursor-pointer mt-2 bg-[rgba(13,19,20,0.8)] border border-[#374D49] rounded-xl px-3 py-2">
-                        <input type="checkbox" name="is_fresh_graduate" value="1" <?= (isset($user->is_fresh_graduate) && $user->is_fresh_graduate == 1) ? 'checked' : '' ?> class="w-4 h-4 accent-[#377C80]">
-                        <span class="text-xs text-white">Fresh Graduate</span>
-                    </label>
-                </div>
-            </div>
-            
-            <hr class="border-[#374D49] my-4">
 
             <!-- Selectable Banners -->
             <label class="pf-label">Pilih Banner</label>

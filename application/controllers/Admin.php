@@ -960,4 +960,95 @@ class Admin extends CI_Controller
         redirect('admin/lowongan');
     }
 
+    // ================= KELOLA PEKERJA (OPEN TO WORK) =================
+
+    public function pekerja()
+    {
+        $search = $this->input->get('search') ?? '';
+
+        $data = [
+            'admin_name' => $this->session->userdata('full_name'),
+            'admin_role' => $this->session->userdata('role'),
+            'pekerja'    => $this->Admin_model->get_all_pekerja_admin($search),
+            'search'     => $search,
+        ];
+
+        $this->load->view('admin/pekerja/index', $data);
+    }
+
+    public function pekerja_edit($id)
+    {
+        $pekerja = $this->Admin_model->get_pekerja_by_id($id);
+        if (!$pekerja) {
+            show_404();
+        }
+
+        $this->load->library('form_validation');
+        $this->form_validation->set_rules('desired_job', 'Pekerjaan Diharapkan', 'required|trim');
+
+        if ($this->form_validation->run() == FALSE) {
+            $data = [
+                'admin_name' => $this->session->userdata('full_name'),
+                'admin_role' => $this->session->userdata('role'),
+                'pekerja'    => $pekerja,
+            ];
+            $this->load->view('admin/pekerja/edit', $data);
+        } else {
+            // Handle CV upload
+            $cv_path = $pekerja['cv_path'];
+            if (!empty($_FILES['cv_file']['name'])) {
+                $upload_dir = FCPATH . 'assets/uploads/cv/';
+                if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
+
+                $config['upload_path']   = $upload_dir;
+                $config['allowed_types'] = 'pdf|jpg|jpeg|png|doc|docx';
+                $config['max_size']      = 2048; // 2MB
+                $config['encrypt_name']  = TRUE;
+
+                $this->load->library('upload', $config);
+                $this->upload->initialize($config);
+
+                if ($this->upload->do_upload('cv_file')) {
+                    if (!empty($cv_path) && file_exists(FCPATH . $cv_path)) {
+                        unlink(FCPATH . $cv_path);
+                    }
+                    $upload_data = $this->upload->data();
+                    $cv_path = 'assets/uploads/cv/' . $upload_data['file_name'];
+                } else {
+                    $this->session->set_flashdata('error', 'Gagal upload CV: ' . $this->upload->display_errors('', ''));
+                    redirect('admin/pekerja_edit/' . $id);
+                    return;
+                }
+            }
+
+            $update_data = [
+                'birth_date'   => $this->input->post('birth_date') ?: NULL,
+                'work_history' => $this->input->post('work_history'),
+                'desired_job'  => $this->input->post('desired_job'),
+                'about'        => $this->input->post('about'),
+                'cv_path'      => $cv_path,
+            ];
+
+            $this->Admin_model->update_pekerja($id, $update_data);
+            $this->session->set_flashdata('success', 'Profil pekerja berhasil diperbarui.');
+            redirect('admin/pekerja');
+        }
+    }
+
+    public function pekerja_delete($id)
+    {
+        $pekerja = $this->Admin_model->get_pekerja_by_id($id);
+        if ($pekerja) {
+            // Hapus file CV jika ada
+            if (!empty($pekerja['cv_path']) && file_exists(FCPATH . $pekerja['cv_path'])) {
+                unlink(FCPATH . $pekerja['cv_path']);
+            }
+            $this->Admin_model->delete_pekerja($id);
+            $this->session->set_flashdata('success', 'Profil pekerja berhasil dihapus.');
+        } else {
+            $this->session->set_flashdata('error', 'Profil pekerja tidak ditemukan.');
+        }
+        redirect('admin/pekerja');
+    }
+
 }

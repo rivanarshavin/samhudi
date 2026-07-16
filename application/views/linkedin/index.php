@@ -3,6 +3,7 @@
  * @var object $user
  * @var array $jobs
  * @var array $workers
+ * @var object|null $my_open_to_work
  */
 if (!function_exists('time_elapsed_string')) {
     function time_elapsed_string($datetime, $full = false) {
@@ -111,6 +112,38 @@ if (!function_exists('time_elapsed_string')) {
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(228, 148, 56, 0.4);
     }
+
+    .btn-teal {
+        background: var(--color-light-teal);
+        color: white;
+        padding: 10px 24px;
+        border-radius: 50px;
+        font-weight: bold;
+        transition: all 0.2s;
+        display: inline-flex; align-items: center; gap: 8px;
+        border: none; cursor: pointer;
+    }
+    .btn-teal:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(55, 124, 128, 0.4);
+        background: #4a9da1;
+    }
+
+    .btn-edit-otw {
+        background: rgba(228,148,56,0.15);
+        border: 1px solid rgba(228,148,56,0.5);
+        color: #E49438;
+        padding: 10px 24px;
+        border-radius: 50px;
+        font-weight: bold;
+        transition: all 0.2s;
+        display: inline-flex; align-items: center; gap: 8px;
+        cursor: pointer;
+    }
+    .btn-edit-otw:hover {
+        background: rgba(228,148,56,0.25);
+        transform: translateY(-2px);
+    }
     
     /* Job list & detail panel layout */
     .job-list-container {
@@ -154,14 +187,35 @@ if (!function_exists('time_elapsed_string')) {
         align-items: center;
         gap: 16px;
         transition: all 0.2s;
+        cursor: pointer;
     }
     .worker-card:hover {
         transform: translateY(-2px);
         border-color: var(--color-light-teal);
+        background: rgba(55, 124, 128, 0.08);
     }
     .worker-avatar {
         width: 64px; height: 64px; border-radius: 50%; object-fit: cover;
         border: 2px solid var(--color-light-teal);
+    }
+
+    /* OTW Avatar in modal */
+    .otw-profile-avatar {
+        width: 72px; height: 72px; border-radius: 50%; object-fit: cover;
+        border: 3px solid var(--color-light-teal);
+        box-shadow: 0 4px 12px rgba(55,124,128,0.3);
+    }
+
+    /* LinkedIn Brand Icon Custom */
+    .ln-brand-icon {
+        width: 20px; height: 20px;
+        background: linear-gradient(135deg, #0077b5, #00a0dc);
+        border-radius: 4px;
+        display: inline-flex; align-items: center; justify-content: center;
+        font-size: 11px; font-weight: 900; color: white;
+        font-style: italic;
+        letter-spacing: -1px;
+        flex-shrink: 0;
     }
 </style>
 
@@ -206,7 +260,7 @@ if (!function_exists('time_elapsed_string')) {
                         </li>
                         <li>
                             <a href="<?= base_url('linkedin') ?>" class="nav-sidebar-link flex items-center gap-4 py-2.5 px-4 rounded-xl transition-all bg-[#374D49] text-white shadow-sm">
-                                <i class="bi bi-linkedin text-[#0077b5] text-xl bg-white rounded flex items-center justify-center h-5 w-5 leading-none"></i> LinkedIn Alumni
+                                <span class="ln-brand-icon">in</span> linkedin
                             </a>
                         </li>
                         <li>
@@ -226,8 +280,8 @@ if (!function_exists('time_elapsed_string')) {
                 <!-- Header / Tabs -->
                 <div class="flex items-center justify-between border-b border-[#374D49] mb-6">
                     <div class="flex">
-                        <button class="tab-btn active" onclick="switchTab('lowongan', this)">Lowongan Pekerjaan</button>
-                        <button class="tab-btn" onclick="switchTab('pekerja', this)">Mencari Pekerjaan</button>
+                        <button class="tab-btn active" id="tab-btn-lowongan" onclick="switchTab('lowongan', this)">Lowongan Pekerjaan</button>
+                        <button class="tab-btn" id="tab-btn-pekerja" onclick="switchTab('pekerja', this)">Pekerja</button>
                     </div>
                 </div>
 
@@ -361,18 +415,56 @@ if (!function_exists('time_elapsed_string')) {
 
                 <!-- TAB: Pekerja -->
                 <div id="tab-pekerja" class="tab-content hidden">
-                    <h2 class="text-xl font-bold text-white mb-6">Mencari Pekerjaan (Open to Work)</h2>
-                    
+
+                    <!-- Header Pekerja + Button OTW -->
+                    <div class="flex flex-wrap justify-between items-center mb-5 gap-3">
+                        <h2 class="text-xl font-bold text-white">Pekerja</h2>
+                        <?php if ($my_open_to_work): ?>
+                            <button onclick="openOTWModal(true)" class="btn-edit-otw" id="btn-otw">
+                                <i class="bi bi-pencil-square"></i> Edit Open to Work
+                            </button>
+                        <?php else: ?>
+                            <button onclick="openOTWModal(false)" class="btn-teal" id="btn-otw">
+                                <i class="bi bi-person-check"></i> Open to Work
+                            </button>
+                        <?php endif; ?>
+                    </div>
+
+                    <!-- Search Filter Pekerja -->
+                    <form method="GET" action="<?= base_url('linkedin') ?>" class="mb-5 flex flex-wrap gap-3 items-end" id="worker-search-form">
+                        <input type="hidden" name="tab" value="pekerja">
+                        <div class="flex-1 min-w-[180px]">
+                            <label class="form-label">Cari Nama Pekerja</label>
+                            <input type="text" name="worker_search" class="form-input" style="margin-bottom:0" placeholder="Cari nama..." value="<?= htmlspecialchars($filters['worker_search'] ?? '') ?>">
+                        </div>
+                        <div class="flex-1 min-w-[180px]">
+                            <label class="form-label">Jenis Pekerjaan</label>
+                            <input type="text" name="worker_job" class="form-input" style="margin-bottom:0" placeholder="Contoh: Software Engineer..." value="<?= htmlspecialchars($filters['worker_job'] ?? '') ?>">
+                        </div>
+                        <button type="submit" class="btn-primary" style="padding: 10px 20px;"><i class="bi bi-search"></i> Cari</button>
+                        <a href="<?= base_url('linkedin?tab=pekerja') ?>" class="btn-primary" style="padding:10px 14px; background: rgba(55,77,73,0.6); border:1px solid #374D49;"><i class="bi bi-arrow-clockwise"></i></a>
+                    </form>
+
                     <?php if(!empty($workers)): ?>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <?php foreach($workers as $worker): ?>
-                                <div class="worker-card">
+                                <div class="worker-card" onclick="openWorkerDetailModal(<?= htmlspecialchars(json_encode([
+                                    'full_name'    => $worker->full_name,
+                                    'avatar'       => !empty($worker->avatar) ? base_url($worker->avatar) : base_url('assets/images/photo.png'),
+                                    'work_role'    => $worker->work_role ?? '',
+                                    'desired_job'  => $worker->desired_job ?? '',
+                                    'birth_date'   => $worker->birth_date ?? '',
+                                    'work_history' => $worker->work_history ?? '',
+                                    'about'        => $worker->about ?? '',
+                                    'is_fresh_graduate' => $worker->is_fresh_graduate ?? 0,
+                                    'cv_path'      => $worker->cv_path ?? '',
+                                ]), ENT_QUOTES) ?>)">
                                     <img src="<?= !empty($worker->avatar) ? base_url($worker->avatar) : base_url('assets/images/photo.png') ?>" alt="Avatar" class="worker-avatar">
                                     <div class="flex-1 min-w-0">
                                         <h3 class="text-base font-bold text-white truncate"><?= htmlspecialchars($worker->full_name) ?></h3>
-                                        <p class="text-sm text-[#E49438] font-semibold mb-2 truncate"><?= htmlspecialchars($worker->work_role ?? 'Tidak ada role spesifik') ?></p>
+                                        <p class="text-sm text-[#E49438] font-semibold mb-2 truncate"><?= htmlspecialchars($worker->desired_job ?: ($worker->work_role ?? 'Tidak ada role spesifik')) ?></p>
                                         
-                                        <div class="flex gap-2">
+                                        <div class="flex gap-2 flex-wrap">
                                             <span class="px-2 py-1 bg-[#377C80]/20 text-[#7ecdd1] text-[10px] font-bold rounded">
                                                 Open to Work
                                             </span>
@@ -380,13 +472,14 @@ if (!function_exists('time_elapsed_string')) {
                                                 <span class="px-2 py-1 bg-green-900/40 text-green-400 text-[10px] font-bold rounded border border-green-700/50">
                                                     Fresh Graduate
                                                 </span>
-                                            <?php else: ?>
+                                            <?php elseif(!empty($worker->work_history)): ?>
                                                 <span class="px-2 py-1 bg-blue-900/40 text-blue-400 text-[10px] font-bold rounded border border-blue-700/50">
                                                     Berpengalaman
                                                 </span>
                                             <?php endif; ?>
                                         </div>
                                     </div>
+                                    <i class="bi bi-chevron-right text-[#B1CDCE]/40"></i>
                                 </div>
                             <?php endforeach; ?>
                         </div>
@@ -394,8 +487,12 @@ if (!function_exists('time_elapsed_string')) {
                         <div class="text-center py-12 bg-[#1E2E2B] rounded-xl border border-[#374D49]">
                             <i class="bi bi-people text-4xl text-[#B1CDCE]/30 mb-3 block"></i>
                             <p class="text-[#B1CDCE]/50">Belum ada anggota keluarga yang sedang mencari pekerjaan.</p>
+                            <?php if (!$my_open_to_work): ?>
+                            <p class="text-[#B1CDCE]/40 text-sm mt-2">Klik tombol <strong class="text-[#377C80]">Open to Work</strong> di atas untuk mendaftarkan diri.</p>
+                            <?php endif; ?>
                         </div>
                     <?php endif; ?>
+
                 </div>
 
             </div>
@@ -489,7 +586,7 @@ if (!function_exists('time_elapsed_string')) {
                 <input type="file" name="cv" id="cvInput" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required class="hidden">
                 <div id="dropzonePrompt" class="flex flex-col items-center gap-2 text-[#B1CDCE]">
                     <i class="bi bi-cloud-arrow-up text-3xl text-[#377C80] group-hover:scale-110 transition-transform"></i>
-                    <span class="text-xs font-semibold">Tarik & lepas file CV di sini, atau <span class="text-[#E49438] underline">pilih file</span></span>
+                    <span class="text-xs font-semibold">Tarik &amp; lepas file CV di sini, atau <span class="text-[#E49438] underline">pilih file</span></span>
                 </div>
                 <div id="dropzonePreview" class="hidden flex flex-col items-center gap-2 w-full">
                     <div id="previewIconContainer" class="text-4xl text-[#E49438]">
@@ -497,7 +594,7 @@ if (!function_exists('time_elapsed_string')) {
                     </div>
                     <span id="previewFileName" class="text-xs font-bold text-white truncate max-w-[250px]">filename.pdf</span>
                     <span id="previewFileSize" class="text-[10px] text-[#B1CDCE]/70">1.2 MB</span>
-                    <button type="button" onclick="resetDropzone(event)" class="text-[10px] text-red-400 hover:text-red-300 underline mt-1">Hapus & Ganti File</button>
+                    <button type="button" onclick="resetDropzone(event)" class="text-[10px] text-red-400 hover:text-red-300 underline mt-1">Hapus &amp; Ganti File</button>
                 </div>
             </div>
 
@@ -513,8 +610,143 @@ if (!function_exists('time_elapsed_string')) {
     </div>
 </div>
 
+<!-- Modal Open to Work -->
+<div class="modal-overlay" id="otwModal" onclick="closeModalOutside(event, 'otwModal')">
+    <div class="modal-content custom-scrollbar" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center mb-6 border-b border-[#374D49] pb-4">
+            <h3 class="font-bold text-lg text-white flex items-center gap-2" id="otwModalTitle">
+                <i class="bi bi-person-check text-[#377C80]"></i> Open to Work
+            </h3>
+            <button onclick="closeModal('otwModal')" class="text-[#B1CDCE]/60 hover:text-white transition-colors">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <?= form_open_multipart('linkedin/save_open_to_work') ?>
+
+            <!-- Foto Profil (preview) -->
+            <div class="flex items-center gap-4 mb-5 p-4 bg-black/20 rounded-xl border border-[#374D49]">
+                <img src="<?= !empty($user->avatar) ? base_url($user->avatar) : base_url('assets/images/photo.png') ?>" 
+                     alt="Foto Profil" class="otw-profile-avatar">
+                <div>
+                    <div class="text-xs text-[#B1CDCE] mb-1 font-bold uppercase tracking-wider">Foto Profil</div>
+                    <div class="text-base font-bold text-white"><?= htmlspecialchars($user->full_name) ?></div>
+                    <div class="text-xs text-[#B1CDCE]/60 mt-1">Foto diambil dari profil Anda</div>
+                </div>
+            </div>
+
+            <label class="form-label">Nama Lengkap</label>
+            <input type="text" class="form-input" value="<?= htmlspecialchars($user->full_name) ?>" readonly>
+
+            <label class="form-label">Tanggal Lahir</label>
+            <input type="date" name="birth_date" id="otw_birth_date" class="form-input"
+                   value="<?= htmlspecialchars($my_open_to_work->birth_date ?? '') ?>">
+
+            <label class="form-label">Riwayat Pekerjaan</label>
+            <textarea name="work_history" id="otw_work_history" class="form-input" rows="3" 
+                      placeholder="Contoh: Staff IT di PT. XYZ (2020-2023), Freelance Designer (2018-2020)..."><?= htmlspecialchars($my_open_to_work->work_history ?? '') ?></textarea>
+
+            <label class="form-label">Jenis Pekerjaan yang Diharapkan</label>
+            <input type="text" name="desired_job" id="otw_desired_job" class="form-input" 
+                   placeholder="Contoh: Software Engineer, Graphic Designer..."
+                   value="<?= htmlspecialchars($my_open_to_work->desired_job ?? '') ?>">
+
+            <label class="form-label">Upload CV <span class="text-[#B1CDCE]/50 font-normal">(opsional)</span></label>
+            <p class="text-[10px] text-[#B1CDCE]/60 mb-2">Format: PDF, DOC, DOCX, JPG, PNG. Maks 2MB.</p>
+            
+            <div id="otwDropzone" class="border-2 border-dashed border-[#374D49] hover:border-[#377C80] rounded-xl p-6 text-center cursor-pointer transition-all bg-black/25 flex flex-col items-center justify-center gap-2 mb-4 group">
+                <input type="file" name="cv_file" id="otwCvInput" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="hidden">
+                <div id="otwDropzonePrompt" class="flex flex-col items-center gap-2 text-[#B1CDCE]">
+                    <i class="bi bi-cloud-arrow-up text-3xl text-[#377C80] group-hover:scale-110 transition-transform"></i>
+                    <span class="text-xs font-semibold">Tarik &amp; lepas file CV di sini, atau <span class="text-[#E49438] underline">pilih file</span></span>
+                </div>
+                <div id="otwDropzonePreview" class="hidden flex flex-col items-center gap-2 w-full">
+                    <div id="otwPreviewIconContainer" class="text-4xl text-[#E49438]">
+                        <i class="bi bi-file-earmark-pdf"></i>
+                    </div>
+                    <span id="otwPreviewFileName" class="text-xs font-bold text-white truncate max-w-[250px]">filename.pdf</span>
+                    <span id="otwPreviewFileSize" class="text-[10px] text-[#B1CDCE]/70">1.2 MB</span>
+                    <button type="button" onclick="resetOtwDropzone(event)" class="text-[10px] text-red-400 hover:text-red-300 underline mt-1">Hapus &amp; Ganti File</button>
+                </div>
+            </div>
+
+            <label class="form-label">Tentang Saya</label>
+            <textarea name="about" id="otw_about" class="form-input" rows="3" 
+                      placeholder="Ceritakan tentang diri Anda, keahlian, dan tujuan karir..."><?= htmlspecialchars($my_open_to_work->about ?? '') ?></textarea>
+
+            <div class="flex justify-between items-center mt-4">
+                <div>
+                    <?php if ($my_open_to_work): ?>
+                        <a href="<?= base_url('linkedin/delete_open_to_work') ?>" class="px-4 py-2 text-sm text-red-400 hover:text-red-300 font-bold" onclick="return confirm('Yakin ingin menghapus profil Open to Work Anda?');"><i class="bi bi-trash"></i> Hapus Profil</a>
+                    <?php endif; ?>
+                </div>
+                <div class="flex gap-2">
+                    <button type="button" onclick="closeModal('otwModal')" class="px-4 py-2 text-sm text-[#B1CDCE] hover:text-white">Batal</button>
+                    <button type="submit" class="btn-teal py-2 px-6"><i class="bi bi-check-lg"></i> Simpan</button>
+                </div>
+            </div>
+
+        <?= form_close() ?>
+    </div>
+</div>
+
+<!-- Modal Detail Pekerja -->
+<div class="modal-overlay" id="workerDetailModal" onclick="closeModalOutside(event, 'workerDetailModal')">
+    <div class="modal-content custom-scrollbar" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center mb-6 border-b border-[#374D49] pb-4">
+            <h3 class="font-bold text-lg text-white flex items-center gap-2">
+                <i class="bi bi-person-circle text-[#377C80]"></i> Detail Pekerja
+            </h3>
+            <button onclick="closeModal('workerDetailModal')" class="text-[#B1CDCE]/60 hover:text-white transition-colors">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <!-- Worker Info Header -->
+        <div class="flex items-center gap-4 mb-5">
+            <img id="wdAvatar" src="" alt="Avatar" class="otw-profile-avatar">
+            <div>
+                <h4 id="wdName" class="text-lg font-bold text-white"></h4>
+                <p id="wdDesiredJob" class="text-sm text-[#E49438] font-semibold"></p>
+                <div id="wdBadges" class="flex gap-2 mt-1"></div>
+            </div>
+        </div>
+
+        <hr class="border-[#374D49] mb-4">
+
+        <div class="space-y-4">
+            <div id="wdBirthRow" class="hidden">
+                <div class="text-xs text-[#B1CDCE] font-bold uppercase tracking-wider mb-1"><i class="bi bi-calendar3 mr-1"></i>Tanggal Lahir</div>
+                <div id="wdBirth" class="text-sm text-white"></div>
+            </div>
+            <div id="wdWorkHistoryRow" class="hidden">
+                <div class="text-xs text-[#B1CDCE] font-bold uppercase tracking-wider mb-1"><i class="bi bi-briefcase mr-1"></i>Riwayat Pekerjaan</div>
+                <div id="wdWorkHistory" class="text-sm text-white leading-relaxed whitespace-pre-wrap"></div>
+            </div>
+            <div id="wdAboutRow" class="hidden">
+                <div class="text-xs text-[#B1CDCE] font-bold uppercase tracking-wider mb-1"><i class="bi bi-info-circle mr-1"></i>Tentang</div>
+                <div id="wdAbout" class="text-sm text-white leading-relaxed"></div>
+            </div>
+            <div id="wdCvRow" class="hidden pt-2">
+                <div class="text-xs text-[#B1CDCE] font-bold uppercase tracking-wider mb-2"><i class="bi bi-file-earmark-text mr-1"></i>Curriculum Vitae</div>
+
+                <div id="wdCvPreview" class="hidden mb-3 rounded-lg overflow-hidden border border-[#374D49] bg-black/20"></div>
+
+                <div id="wdCvNoPreview" class="hidden mb-3 flex items-center gap-3 p-3 rounded-lg border border-[#374D49] bg-black/20">
+                    <i id="wdCvNoPreviewIcon" class="text-3xl text-[#E49438]"></i>
+                    <span class="text-xs text-[#B1CDCE]">Pratinjau tidak tersedia untuk tipe file ini.</span>
+                </div>
+
+                <a id="wdCvLink" href="#" download class="inline-flex items-center gap-2 bg-[#377C80]/20 hover:bg-[#377C80]/40 border border-[#377C80]/50 text-[#7ecdd1] hover:text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all">
+                    <i class="bi bi-download"></i> Unduh CV
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-    // Tabs
+    // ======================== Tab switching ========================
     function switchTab(tab, btn) {
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -522,7 +754,15 @@ if (!function_exists('time_elapsed_string')) {
         btn.classList.add('active');
     }
 
-    // Modal
+    // Auto-switch to pekerja tab if URL has tab=pekerja
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('tab') === 'pekerja' || urlParams.has('worker_search') || urlParams.has('worker_job')) {
+            switchTab('pekerja', document.getElementById('tab-btn-pekerja'));
+        }
+    });
+
+    // ======================== Modal ========================
     function openModal(id) {
         document.getElementById(id).classList.add('open');
         document.body.style.overflow = 'hidden';
@@ -545,9 +785,104 @@ if (!function_exists('time_elapsed_string')) {
         }
     });
 
-    // Job Detail
+    // ======================== Open to Work Modal ========================
+    function openOTWModal(isEdit) {
+        const title = document.getElementById('otwModalTitle');
+        if (isEdit) {
+            title.innerHTML = '<i class="bi bi-pencil-square text-[#377C80]"></i> Edit Open to Work';
+        } else {
+            title.innerHTML = '<i class="bi bi-person-check text-[#377C80]"></i> Open to Work';
+        }
+        openModal('otwModal');
+    }
+
+    // ======================== Worker Detail Modal ========================
+    function openWorkerDetailModal(data) {
+        document.getElementById('wdAvatar').src = data.avatar;
+        document.getElementById('wdName').textContent = data.full_name;
+        document.getElementById('wdDesiredJob').textContent = data.desired_job || data.work_role || 'Tidak ada role spesifik';
+
+        // Badges
+        let badges = '<span class="px-2 py-1 bg-[#377C80]/20 text-[#7ecdd1] text-[10px] font-bold rounded">Open to Work</span>';
+        if (parseInt(data.is_fresh_graduate)) {
+            badges += '<span class="px-2 py-1 bg-green-900/40 text-green-400 text-[10px] font-bold rounded border border-green-700/50">Fresh Graduate</span>';
+        } else if (data.work_history && data.work_history.trim() !== '') {
+            badges += '<span class="px-2 py-1 bg-blue-900/40 text-blue-400 text-[10px] font-bold rounded border border-blue-700/50">Berpengalaman</span>';
+        }
+        document.getElementById('wdBadges').innerHTML = badges;
+
+        // Tanggal lahir
+        if (data.birth_date) {
+            document.getElementById('wdBirth').textContent = formatDate(data.birth_date);
+            document.getElementById('wdBirthRow').classList.remove('hidden');
+        } else {
+            document.getElementById('wdBirthRow').classList.add('hidden');
+        }
+
+        // Riwayat pekerjaan
+        if (data.work_history) {
+            document.getElementById('wdWorkHistory').textContent = data.work_history;
+            document.getElementById('wdWorkHistoryRow').classList.remove('hidden');
+        } else {
+            document.getElementById('wdWorkHistoryRow').classList.add('hidden');
+        }
+
+        // Tentang
+        if (data.about) {
+            document.getElementById('wdAbout').textContent = data.about;
+            document.getElementById('wdAboutRow').classList.remove('hidden');
+        } else {
+            document.getElementById('wdAboutRow').classList.add('hidden');
+        }
+
+        // CV
+        if (data.cv_path) {
+            const cvUrl = '<?= base_url() ?>' + data.cv_path;
+            const ext = data.cv_path.split('.').pop().toLowerCase();
+
+            const wdCvLink = document.getElementById('wdCvLink');
+            wdCvLink.href = cvUrl;
+            wdCvLink.setAttribute('download', '');
+
+            const previewBox = document.getElementById('wdCvPreview');
+            const noPreviewBox = document.getElementById('wdCvNoPreview');
+
+            if (ext === 'pdf') {
+                previewBox.innerHTML = `<iframe src="${cvUrl}" class="w-full" style="height:400px;border:0;"></iframe>`;
+                previewBox.classList.remove('hidden');
+                noPreviewBox.classList.add('hidden');
+            } else if (['jpg','jpeg','png'].includes(ext)) {
+                previewBox.innerHTML = `<img src="${cvUrl}" class="w-full object-contain max-h-[400px]">`;
+                previewBox.classList.remove('hidden');
+                noPreviewBox.classList.add('hidden');
+            } else {
+                previewBox.classList.add('hidden');
+                previewBox.innerHTML = '';
+                const icon = (ext === 'doc' || ext === 'docx') ? 'bi-file-earmark-word-fill text-blue-400' : 'bi-file-earmark';
+                document.getElementById('wdCvNoPreviewIcon').className = 'text-3xl ' + icon;
+                noPreviewBox.classList.remove('hidden');
+            }
+
+            document.getElementById('wdCvRow').classList.remove('hidden');
+        } else {
+            document.getElementById('wdCvRow').classList.add('hidden');
+            document.getElementById('wdCvPreview').classList.add('hidden');
+            document.getElementById('wdCvNoPreview').classList.add('hidden');
+        }
+
+        openModal('workerDetailModal');
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '-';
+        const d = new Date(dateStr);
+        if (isNaN(d)) return dateStr;
+        const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
+        return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+    }
+
+    // ======================== Job Detail ========================
     function loadJobDetail(id, el) {
-        // Highlight active item
         document.querySelectorAll('.job-item').forEach(item => item.classList.remove('active'));
         el.classList.add('active');
 
@@ -555,7 +890,6 @@ if (!function_exists('time_elapsed_string')) {
         const loader = document.getElementById('jobDetailLoader');
         const content = document.getElementById('jobDetailContent');
 
-        // Layout adjustment for mobile vs desktop
         if (window.innerWidth < 1024) {
             document.querySelector('.job-list-container').style.display = 'none';
             panel.style.width = '100%';
@@ -580,7 +914,6 @@ if (!function_exists('time_elapsed_string')) {
                     document.getElementById('jdDescription').textContent = data.description || 'Tidak ada deskripsi.';
                     document.getElementById('jdPublisher').textContent = data.publisher_name;
 
-                    // Apply action area
                     const actionArea = document.getElementById('applyActionArea');
                     if (res.is_owner) {
                         actionArea.innerHTML = `<div style="display:inline-flex;align-items:center;gap:8px;background:rgba(228,148,56,0.15);border:1px solid rgba(228,148,56,0.4);color:#E49438;padding:10px 18px;border-radius:50px;font-weight:bold;font-size:0.85rem;"><i class="bi bi-person-fill"></i> Lowongan Anda</div>`;
@@ -694,5 +1027,70 @@ if (!function_exists('time_elapsed_string')) {
         const sizes = ['Bytes', 'KB', 'MB', 'GB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
         return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+    }
+
+    // --- OTW Drag & Drop logic ---
+    const otwDropzone = document.getElementById('otwDropzone');
+    const otwCvInput = document.getElementById('otwCvInput');
+    const otwDropzonePrompt = document.getElementById('otwDropzonePrompt');
+    const otwDropzonePreview = document.getElementById('otwDropzonePreview');
+    const otwPreviewFileName = document.getElementById('otwPreviewFileName');
+    const otwPreviewFileSize = document.getElementById('otwPreviewFileSize');
+    const otwPreviewIconContainer = document.getElementById('otwPreviewIconContainer');
+
+    if (otwDropzone) {
+        otwDropzone.addEventListener('click', () => {
+            otwCvInput.click();
+        });
+
+        otwCvInput.addEventListener('change', (e) => {
+            handleOtwFiles(e.target.files);
+        });
+
+        otwDropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            otwDropzone.classList.add('border-[#377C80]', 'bg-[#377C80]/10');
+        });
+
+        otwDropzone.addEventListener('dragleave', () => {
+            otwDropzone.classList.remove('border-[#377C80]', 'bg-[#377C80]/10');
+        });
+
+        otwDropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            otwDropzone.classList.remove('border-[#377C80]', 'bg-[#377C80]/10');
+            if (e.dataTransfer.files.length) {
+                otwCvInput.files = e.dataTransfer.files;
+                handleOtwFiles(e.dataTransfer.files);
+            }
+        });
+    }
+
+    function handleOtwFiles(files) {
+        if (files.length === 0) return;
+        const file = files[0];
+        
+        otwPreviewFileName.textContent = file.name;
+        otwPreviewFileSize.textContent = formatBytes(file.size);
+        
+        let icon = '<i class="bi bi-file-earmark"></i>';
+        if (file.type.includes('pdf')) {
+            icon = '<i class="bi bi-file-earmark-pdf-fill text-red-400"></i>';
+        } else if (file.type.includes('word') || file.name.endsWith('.doc') || file.name.endsWith('.docx')) {
+            icon = '<i class="bi bi-file-earmark-word-fill text-blue-400"></i>';
+        } else if (file.type.includes('image')) {
+            icon = '<i class="bi bi-file-earmark-image-fill text-green-400"></i>';
+        }
+        otwPreviewIconContainer.innerHTML = icon;
+        
+        otwDropzonePrompt.classList.add('hidden');
+        otwDropzonePreview.classList.remove('hidden');
+    }
+
+    function resetOtwDropzone(e) {
+        if (e) e.stopPropagation();
+        otwCvInput.value = '';
+        otwDropzonePrompt.classList.remove('hidden');
+        otwDropzonePreview.classList.add('hidden');
     }
 </script>

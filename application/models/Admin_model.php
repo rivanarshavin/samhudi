@@ -383,5 +383,48 @@ class Admin_model extends CI_Model
     {
         return (bool) $this->db->get_where('news_likes', ['news_id' => $news_id, 'user_id' => $user_id])->row();
     }
+
+    // =================== KELOLA PEKERJA ===================
+
+    public function get_all_pekerja_admin($search = '')
+    {
+        $this->db->select('op.*, u.full_name, u.avatar, u.email');
+        $this->db->from('open_to_work_profiles op');
+        $this->db->join('users u', 'u.id = op.user_id', 'left');
+        if (!empty($search)) {
+            $this->db->group_start();
+            $this->db->like('u.full_name', $search);
+            $this->db->or_like('op.desired_job', $search);
+            $this->db->group_end();
+        }
+        $this->db->order_by('op.created_at', 'DESC');
+        return $this->db->get()->result_array();
+    }
+
+    public function get_pekerja_by_id($id)
+    {
+        $this->db->select('op.*, u.full_name');
+        $this->db->from('open_to_work_profiles op');
+        $this->db->join('users u', 'u.id = op.user_id', 'left');
+        $this->db->where('op.id', $id);
+        return $this->db->get()->row_array();
+    }
+
+    public function update_pekerja($id, $data)
+    {
+        return $this->db->update('open_to_work_profiles', $data, ['id' => $id]);
+    }
+
+    public function delete_pekerja($id)
+    {
+        $pekerja = $this->get_pekerja_by_id($id);
+        if ($pekerja) {
+            // Update tabel user agar tidak lagi open_to_work
+            $this->db->update('users', ['open_to_work' => 0], ['id' => $pekerja['user_id']]);
+            // Delete record dari tabel open_to_work_profiles
+            return $this->db->delete('open_to_work_profiles', ['id' => $id]);
+        }
+        return false;
+    }
 }
 
