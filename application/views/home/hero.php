@@ -16,7 +16,7 @@ $banner = $banner_config['file'] ?? 'background2.png';
         <h1 class="hero-title" style="font-family: 'Poppins', sans-serif; font-weight: 400; font-size: clamp(2.5rem, 6vw, 4.8rem); margin-top: -0.3rem;">
             H.M Samhudi
         </h1>
-        <div style="margin: 0.8rem auto 0.5rem; max-width: 380px; width: 100%;">
+        <div style="margin: 0.6rem auto 0.5rem; max-width: 380px; width: 100%;">
             <img src="<?= base_url('assets/images/ornamen-bawah.png') ?>" alt="" style="width: 100%; height: auto; display: block;">
         </div>
         <p class="hero-subtitle" style="font-family: 'Poppins', sans-serif; font-weight: 400; font-style: italic; font-size: clamp(1.2rem, 2.6vw, 1.6rem); color: #C8A84E; opacity: 1; margin-top: 0.4rem;">

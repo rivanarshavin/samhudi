@@ -1,5 +1,5 @@
 <?php $is_home = !$this->uri->segment(1); ?>
-<nav class="bg-[#274d4f] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.3)] sticky top-0 z-50">
+<nav class="bg-[#274d4f] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.3)]">
     <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between gap-x-16">
 
         <div class="font-display font-bold text-lg tracking-tight leading-none flex items-center gap-2" style="color: #C8A84E;">

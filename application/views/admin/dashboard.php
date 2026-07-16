@@ -363,6 +363,71 @@
                 </form>
             </div>
 
+            <!-- Lokasi Pemakaman Settings -->
+            <div id="makam-section" class="bg-teal-900/60 border border-teal-800 rounded-2xl p-4 md:p-6 shadow-lg">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 rounded-lg bg-teal-800 flex items-center justify-center text-teal-300 border border-teal-700">
+                        <i class="bi bi-geo-alt-fill"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-display font-bold text-white">Lokasi Pemakaman</h3>
+                        <p class="text-xs text-teal-400">Edit alamat, link maps, dan foto pemakaman</p>
+                    </div>
+                </div>
+
+                <?php if ($this->session->flashdata('makam_success')): ?>
+                <div class="bg-green-500/20 border border-green-500/40 text-green-200 px-5 py-3 rounded-lg text-sm mb-4">
+                    <?= $this->session->flashdata('makam_success') ?>
+                </div>
+                <?php endif; ?>
+
+                <form method="post" enctype="multipart/form-data" class="space-y-4">
+                    <input type="hidden" name="save_makam" value="1">
+                    <div>
+                        <label class="text-sm text-teal-400 font-semibold mb-1 block">Alamat</label>
+                        <textarea name="makam_address" rows="3" class="w-full bg-teal-800 border border-teal-700 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" placeholder="Alamat pemakaman..."><?= htmlspecialchars($makam_address) ?></textarea>
+                    </div>
+                    <div>
+                        <label class="text-sm text-teal-400 font-semibold mb-1 block">Link Embed (buat peta)</label>
+                        <input type="text" name="makam_maps_url" value="<?= htmlspecialchars($makam_maps_url) ?>" class="w-full bg-teal-800 border border-teal-700 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" placeholder="https://www.google.com/maps/embed?pb=...">
+                    </div>
+                    <div>
+                        <label class="text-sm text-teal-400 font-semibold mb-1 block">Link Google Maps (buat tombol Lihat Detail & Rute)</label>
+                        <input type="text" name="makam_maps_link" value="<?= htmlspecialchars($makam_maps_link) ?>" class="w-full bg-teal-800 border border-teal-700 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" placeholder="https://www.google.com/maps/search/?api=1&query=...">
+                    </div>
+                    <div>
+                        <label class="text-sm text-teal-400 font-semibold mb-1 block">Foto Pemakaman</label>
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3" id="makam-photo-grid">
+                            <?php foreach ($makam_photos as $i => $photo): ?>
+                            <div class="bg-teal-800/40 border border-teal-700 rounded-xl p-3 space-y-2 relative">
+                                <button type="button" onclick="deleteMakamPhoto(<?= $i ?>)" class="absolute top-1 right-1 w-6 h-6 bg-red-500/80 hover:bg-red-500 text-white rounded-full flex items-center justify-center text-sm leading-none z-10">&times;</button>
+                                <div class="relative group cursor-pointer" onclick="previewCarousel(this)">
+                                    <img src="<?= base_url($photo) ?>" class="w-full h-24 object-cover rounded-lg border border-teal-700">
+                                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all rounded-lg flex items-center justify-center">
+                                        <i class="bi bi-arrows-fullscreen text-white text-xl opacity-0 group-hover:opacity-100 transition-all"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <div class="mt-3">
+                            <label class="text-sm text-teal-400 font-semibold mb-1 block">Tambah Foto Baru</label>
+                            <div class="drop-zone border-2 border-dashed border-teal-700 rounded-xl p-4 text-center cursor-pointer hover:border-teal-500 transition-all" onclick="document.getElementById('makam-photo-new').click()" ondragover="event.preventDefault();this.classList.add('border-teal-400','bg-teal-800/50')" ondragleave="this.classList.remove('border-teal-400','bg-teal-800/50')" ondrop="handleMakamDrop(event)">
+                                <i class="bi bi-cloud-arrow-up text-2xl text-teal-400"></i>
+                                <p class="text-sm text-teal-300 mt-1">Klik atau drag & drop foto</p>
+                                <input id="makam-photo-new" type="file" name="makam_photo_new[]" accept="image/*" multiple class="hidden" onchange="handleMakamFiles(this)">
+                            </div>
+                            <div id="makam-new-previews" class="row g-2 mt-2"></div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="bg-white text-teal-900 font-display font-semibold px-8 py-2.5 rounded-full hover:bg-gray-100 transition-all shadow-lg text-sm">
+                            <i class="bi bi-check-lg mr-1"></i> Simpan
+                        </button>
+                    </div>
+                </form>
+            </div>
+
         </div>
 
     </main>
@@ -510,6 +575,69 @@ function previewCarouselInput(input, idx) {
         reader.readAsDataURL(input.files[0]);
     }
 }
+
+var makamNewFiles = [];
+
+function deleteMakamPhoto(idx) {
+    if (!confirm('Hapus foto ini?')) return;
+    window.location.href = '<?= base_url('admin') ?>?delete_makam_photo=' + idx + '#makam-section';
+}
+
+function renderMakamPreviews() {
+    var container = document.getElementById('makam-new-previews');
+    container.innerHTML = '';
+    makamNewFiles.forEach(function(file, idx) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var col = document.createElement('div');
+            col.className = 'inline-block mr-2 mb-2 align-top';
+            col.style.cssText = 'width:calc(20% - 0.5rem);min-width:100px;';
+            col.innerHTML = '<div style="position:relative;border-radius:8px;overflow:hidden;">' +
+                '<img src="' + e.target.result + '" style="width:100%;height:80px;object-fit:cover;border-radius:8px;border:1px solid rgba(77,107,103,.3);display:block;">' +
+                '<button type="button" onclick="removeMakamNewFile(' + idx + ')" style="position:absolute;top:2px;right:2px;width:20px;height:20px;background:rgba(225,67,67,.85);color:#fff;border:none;border-radius:50%;font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;">&times;</button>' +
+                '</div>';
+            container.appendChild(col);
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+function handleMakamFiles(input) {
+    if (input.files && input.files.length > 0) {
+        for (var i = 0; i < input.files.length; i++) {
+            makamNewFiles.push(input.files[i]);
+        }
+        input.value = '';
+        renderMakamPreviews();
+    }
+}
+
+function handleMakamDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var zone = e.target.closest('.drop-zone');
+    zone.classList.remove('border-teal-400', 'bg-teal-800/50');
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        for (var i = 0; i < e.dataTransfer.files.length; i++) {
+            makamNewFiles.push(e.dataTransfer.files[i]);
+        }
+        renderMakamPreviews();
+    }
+}
+
+function removeMakamNewFile(idx) {
+    makamNewFiles.splice(idx, 1);
+    renderMakamPreviews();
+}
+
+// Before form submit, populate file input with makamNewFiles
+document.querySelector('form input[name="save_makam"]').closest('form').addEventListener('submit', function(e) {
+    if (makamNewFiles.length > 0) {
+        var dt = new DataTransfer();
+        makamNewFiles.forEach(function(f) { dt.items.add(f); });
+        document.getElementById('makam-photo-new').files = dt.files;
+    }
+});
 
 function deleteCarousel(index) {
     if (confirm('Hapus item ini?')) {

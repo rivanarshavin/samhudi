@@ -155,9 +155,62 @@ class Admin extends CI_Controller
             redirect('admin#intro-section');
         }
 
+        // Handle makam (lokasi pemakaman)
+        $makam_config_path = FCPATH . 'assets/makam-config.json';
+
+        // Handle single photo delete
+        if ($this->input->get('delete_makam_photo') !== null) {
+            $idx = (int) $this->input->get('delete_makam_photo');
+            $makam = json_decode(file_get_contents($makam_config_path), true);
+            if (isset($makam['photos'][$idx])) {
+                $old = $makam['photos'][$idx];
+                if ($old && strpos($old, 'assets/uploads/makam/') === 0 && file_exists('./' . $old)) {
+                    unlink('./' . $old);
+                }
+                array_splice($makam['photos'], $idx, 1);
+                file_put_contents($makam_config_path, json_encode($makam));
+            }
+            redirect('admin#makam-section');
+        }
+
+        if ($this->input->method() === 'post' && $this->input->post('save_makam')) {
+            $makam = json_decode(file_get_contents($makam_config_path), true);
+            $makam['address'] = $this->input->post('makam_address', TRUE);
+            $makam['maps_embed_url'] = $this->input->post('makam_maps_url', TRUE);
+            $makam['maps_link'] = $this->input->post('makam_maps_link', TRUE);
+
+            $upload_path = FCPATH . 'assets/uploads/makam/';
+            if (!is_dir($upload_path)) mkdir($upload_path, 0777, true);
+            $allowed = ['jpg','jpeg','png','webp','gif'];
+
+            if (isset($_FILES['makam_photo_new']) && is_array($_FILES['makam_photo_new']['name'])) {
+                $files = $_FILES['makam_photo_new'];
+                $names = array_filter($files['name']);
+                if (!empty($names)) {
+                    $base = time();
+                    $idx = 0;
+                    foreach ($names as $i => $name) {
+                        if ($files['error'][$i] !== 0) continue;
+                        $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+                        if (!in_array($ext, $allowed)) continue;
+                        $new_name = 'makam_' . $base . '_' . $idx . '_' . uniqid() . '.' . $ext;
+                        if (move_uploaded_file($files['tmp_name'][$i], $upload_path . $new_name)) {
+                            $makam['photos'][] = 'assets/uploads/makam/' . $new_name;
+                            $idx++;
+                        }
+                    }
+                }
+            }
+
+            file_put_contents($makam_config_path, json_encode($makam));
+            $this->session->set_flashdata('makam_success', 'Data lokasi pemakaman berhasil diperbarui.');
+            redirect('admin#makam-section');
+        }
+
         $banner_config = json_decode(file_get_contents($config_path), true);
         $intro_config = json_decode(file_get_contents(FCPATH . 'assets/intro-config.json'), true);
         $sambutan_config = json_decode(file_get_contents(FCPATH . 'assets/sambutan-config.json'), true);
+        $makam_config = json_decode(file_get_contents($makam_config_path), true);
 
         $data = [
             'admin_name'        => $this->session->userdata('full_name'),
@@ -175,6 +228,10 @@ class Admin extends CI_Controller
             'sambutan_pars'     => $sambutan_config['paragraphs'] ?? [],
             'sambutan_closing'  => $sambutan_config['closing'] ?? "Wassalamu'alaikum Warahmatullahi Wabarakatuh.",
             'sambutan_sender'   => $sambutan_config['sender'] ?? 'Keluarga Besar H.M. Samhudi',
+            'makam_address'     => $makam_config['address'] ?? '',
+            'makam_maps_url'    => $makam_config['maps_embed_url'] ?? '',
+            'makam_maps_link'   => $makam_config['maps_link'] ?? '',
+            'makam_photos'      => $makam_config['photos'] ?? [],
         ];
 
         $this->load->view('admin/dashboard', $data);
@@ -819,6 +876,88 @@ class Admin extends CI_Controller
 
         $this->session->set_flashdata('success', 'User berhasil dihapus.');
         redirect('admin/pengguna');
+    }
+
+    // ================= KELOLA LOWONGAN =================
+
+    public function lowongan()
+    {
+        $this->load->model('Linkedin_model');
+
+        $all_jobs = $this->Linkedin_model->get_all_jobs();
+
+        // Attach applicants to each job
+        $jobs = [];
+        foreach ($all_jobs as $job) {
+            $job_arr               = (array) $job;
+            $job_arr['applicants'] = $this->Linkedin_model->get_applications_by_job($job->id);
+            $jobs[]                = $job_arr;
+        }
+
+        $data = [
+            'admin_name' => $this->session->userdata('full_name'),
+            'admin_role' => $this->session->userdata('role'),
+            'jobs'       => $jobs,
+            'active_menu'=> 'lowongan',
+        ];
+
+        $this->load->view('admin/lowongan', $data);
+    }
+
+    public function lowongan_approve($id)
+    {
+        $this->load->model('Linkedin_model');
+        $this->Linkedin_model->update_job_status($id, 'approved');
+        $this->session->set_flashdata('success', 'Lowongan berhasil disetujui.');
+        redirect('admin/lowongan');
+    }
+
+    public function lowongan_reject($id)
+    {
+        $this->load->model('Linkedin_model');
+        $this->Linkedin_model->update_job_status($id, 'rejected');
+        $this->session->set_flashdata('success', 'Lowongan berhasil ditolak.');
+        redirect('admin/lowongan');
+    }
+
+    public function lowongan_delete($id)
+    {
+        $this->load->model('Linkedin_model');
+        $this->Linkedin_model->delete_job($id);
+        $this->session->set_flashdata('success', 'Lowongan berhasil dihapus.');
+        redirect('admin/lowongan');
+    }
+
+    public function lowongan_add()
+    {
+        $this->load->model('Linkedin_model');
+        $this->load->library('form_validation');
+
+        $this->form_validation->set_rules('company_name', 'Nama Perusahaan', 'required');
+        $this->form_validation->set_rules('job_title', 'Posisi / Jenis Pekerjaan', 'required');
+
+        if ($this->form_validation->run() == FALSE) {
+            $this->session->set_flashdata('error', 'Nama perusahaan dan posisi wajib diisi.');
+            redirect('admin/lowongan');
+            return;
+        }
+
+        $data = [
+            'user_id'        => $this->session->userdata('user_id'),
+            'publisher_name' => $this->session->userdata('full_name'),
+            'company_name'   => $this->input->post('company_name'),
+            'job_title'      => $this->input->post('job_title'),
+            'salary'         => $this->input->post('salary'),
+            'job_type'       => $this->input->post('job_type'),
+            'working_hours'  => $this->input->post('working_hours'),
+            'location'       => $this->input->post('location'),
+            'description'    => $this->input->post('description'),
+            'status'         => 'approved',
+        ];
+
+        $this->Linkedin_model->create_job($data);
+        $this->session->set_flashdata('success', 'Lowongan berhasil ditambahkan dan langsung aktif.');
+        redirect('admin/lowongan');
     }
 
 }

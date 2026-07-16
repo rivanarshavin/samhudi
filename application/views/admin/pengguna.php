@@ -52,6 +52,18 @@
         ::-webkit-scrollbar-track { background: #15201E; }
         ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 999px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+        .modal-backdrop {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 9999;
+            display: none; align-items: center; justify-content: center;
+            padding: 16px;
+        }
+        .modal-backdrop.open { display: flex; }
+        .modal-box {
+            background: #1D2A27; border: 1px solid #324742; border-radius: 20px;
+            width: 100%; max-width: 640px; padding: 28px; max-height: 90vh;
+            overflow-y: auto; transform: scale(0.95); transition: transform 0.25s;
+        }
+        .modal-backdrop.open .modal-box { transform: scale(1); }
     </style>
 </head>
 <body class="bg-teal-950 text-white font-body min-h-screen flex">
@@ -197,27 +209,26 @@
                                             <?php endif; ?>
                                         </td>
 
-                                        <!-- Actions -->
-                                        <td class="p-5 text-center">
-                                            <div class="flex items-center justify-center gap-2">
-                                                <?php if ($user['status'] !== 'active'): ?>
-                                                    <a href="<?= base_url('admin/pengguna_approve/' . $user['id']) ?>" 
-                                                       class="px-3.5 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-display text-xs font-bold shadow-md transition-all active:scale-95 flex items-center gap-1">
-                                                        <i class="bi bi-check-lg text-sm"></i>
-                                                        Setujui
-                                                    </a>
-                                                <?php endif; ?>
-                                                
-                                                <?php if ($user['role'] !== 'super_admin'): ?>
-                                                    <a href="<?= base_url('admin/pengguna_delete/' . $user['id']) ?>" 
-                                                       onclick="return confirm('Apakah Anda yakin ingin menghapus akun ini?');"
-                                                       class="px-3.5 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg font-display text-xs font-semibold border border-red-500/20 transition-all flex items-center gap-1">
-                                                        <i class="bi bi-trash text-sm"></i>
-                                                        Hapus
-                                                    </a>
-                                                <?php endif; ?>
-                                            </div>
-                                        </td>
+                                         <!-- Actions -->
+                                         <td class="p-5 text-center">
+                                             <div class="flex items-center justify-center gap-2">
+                                                 <?php if ($user['status'] !== 'active'): ?>
+                                                     <button onclick="showConfirm('<?= base_url('admin/pengguna_approve/' . $user['id']) ?>', 'Apakah Anda yakin ingin menyetujui pendaftaran akun dari <?= htmlspecialchars($user['full_name']) ?>?', 'Setujui Pengguna', 'success')" 
+                                                        class="px-3.5 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-display text-xs font-bold shadow-md transition-all active:scale-95 flex items-center gap-1">
+                                                         <i class="bi bi-check-lg text-sm"></i>
+                                                         Setujui
+                                                     </button>
+                                                 <?php endif; ?>
+                                                 
+                                                 <?php if ($user['role'] !== 'super_admin'): ?>
+                                                     <button onclick="showConfirm('<?= base_url('admin/pengguna_delete/' . $user['id']) ?>', 'Apakah Anda yakin ingin menghapus akun milik <?= htmlspecialchars($user['full_name']) ?>? Tindakan ini tidak dapat dibatalkan.', 'Hapus Pengguna', 'danger')" 
+                                                        class="px-3.5 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg font-display text-xs font-semibold border border-red-500/20 transition-all flex items-center gap-1">
+                                                         <i class="bi bi-trash text-sm"></i>
+                                                         Hapus
+                                                     </button>
+                                                 <?php endif; ?>
+                                             </div>
+                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
@@ -236,6 +247,73 @@
         </div>
 
     </main>
+
+    <!-- ================= MODAL: Konfirmasi Kustom ================= -->
+    <div id="confirmModal" class="modal-backdrop" onclick="closeConfirmModal()">
+        <div class="modal-box max-w-sm" onclick="event.stopPropagation()">
+            <div class="text-center space-y-4">
+                <div class="w-12 h-12 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center mx-auto text-2xl" id="confirmIcon">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                </div>
+                <div>
+                    <h3 class="font-display font-bold text-lg text-white" id="confirmTitle">Konfirmasi</h3>
+                    <p class="text-xs text-white/60 mt-1.5" id="confirmMessage">Apakah Anda yakin ingin melanjutkan tindakan ini?</p>
+                </div>
+                <div class="flex justify-center gap-3 pt-2">
+                    <button type="button" onclick="closeConfirmModal()" class="px-4 py-2 text-sm text-white/60 hover:text-white transition-colors bg-teal-900/40 border border-teal-800 rounded-xl">Batal</button>
+                    <a id="confirmBtn" href="#" class="px-6 py-2 bg-gold-400 hover:bg-gold-500 text-teal-950 font-display font-bold rounded-xl text-sm shadow-lg transition-all active:scale-95">Ya, Setuju</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openModal(id) {
+            document.getElementById(id).classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('open');
+            document.body.style.overflow = '';
+        }
+        function closeConfirmModal() {
+            closeModal('confirmModal');
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('confirmModal');
+                if (modal) modal.classList.remove('open');
+                document.body.style.overflow = '';
+            }
+        });
+
+        // --- Custom confirmation helpers ---
+        function showConfirm(url, message, title = 'Konfirmasi', type = 'warning') {
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmMessage').textContent = message;
+            
+            const confirmBtn = document.getElementById('confirmBtn');
+            confirmBtn.href = url;
+            
+            const iconEl = document.getElementById('confirmIcon');
+            if (type === 'danger') {
+                iconEl.className = "w-12 h-12 rounded-full bg-red-500/10 text-red-400 border border-red-500/20 flex items-center justify-center mx-auto text-2xl";
+                iconEl.innerHTML = '<i class="bi bi-trash-fill"></i>';
+                confirmBtn.className = "px-6 py-2 bg-red-650 hover:bg-red-700 text-white font-display font-bold rounded-xl text-sm shadow-lg transition-all active:scale-95";
+            } else if (type === 'success') {
+                iconEl.className = "w-12 h-12 rounded-full bg-green-500/10 text-green-400 border border-green-500/20 flex items-center justify-center mx-auto text-2xl";
+                iconEl.innerHTML = '<i class="bi bi-check-circle-fill"></i>';
+                confirmBtn.className = "px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-display font-bold rounded-xl text-sm shadow-lg transition-all active:scale-95";
+            } else {
+                iconEl.className = "w-12 h-12 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center mx-auto text-2xl";
+                iconEl.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i>';
+                confirmBtn.className = "px-6 py-2 bg-gold-400 hover:bg-gold-500 text-teal-950 font-display font-bold rounded-xl text-sm shadow-lg transition-all active:scale-95";
+            }
+            
+            openModal('confirmModal');
+        }
+    </script>
 
 </body>
 </html>

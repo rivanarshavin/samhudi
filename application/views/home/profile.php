@@ -315,6 +315,11 @@ if (!function_exists('time_elapsed_string')) {
                             </a>
                         </li>
                         <li>
+                            <a href="<?= base_url('linkedin') ?>" class="nav-sidebar-link flex items-center gap-4 py-2.5 px-4 rounded-xl transition-all text-[#B1CDCE] hover:text-white hover:bg-[#374D49]/40">
+                                <i class="bi bi-linkedin text-[#0077b5] text-xl bg-white rounded flex items-center justify-center h-5 w-5 leading-none"></i> LinkedIn Alumni
+                            </a>
+                        </li>
+                        <li>
                             <a href="<?= base_url('profile') ?>" class="nav-sidebar-link flex items-center gap-4 py-2.5 px-4 rounded-xl transition-all bg-[#374D49] text-white shadow-sm">
                                 <div class="w-6 h-6 rounded-full overflow-hidden bg-teal-800 flex-shrink-0">
                                     <img src="<?= !empty($user->avatar) ? base_url($user->avatar) : base_url('assets/images/photo.png') ?>" alt="Avatar" class="w-full h-full object-cover">
@@ -358,7 +363,7 @@ if (!function_exists('time_elapsed_string')) {
                             </div>
                             <div class="pf-user-info pb-2">
                                 <div class="pf-user-name"><?= htmlspecialchars($user->full_name) ?></div>
-                                <div class="pf-user-meta">
+                                <div class="pf-user-meta mb-2">
                                     <?php if (!empty($user->username)): ?>
                                     <span><i class="bi bi-at"></i> <?= htmlspecialchars($user->username) ?></span>
                                     <?php endif; ?>
@@ -367,8 +372,18 @@ if (!function_exists('time_elapsed_string')) {
                                     <?php endif; ?>
                                     <span><i class="bi bi-calendar3"></i> Bergabung <?= fmt_date_pf($user->created_at ?? date('Y-m-d'), $months_map) ?></span>
                                 </div>
+                                <?php if(isset($user->open_to_work) && $user->open_to_work == 1): ?>
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="px-2 py-0.5 bg-[#377C80]/30 text-[#7ecdd1] text-[10px] font-bold rounded border border-[#377C80]/50">
+                                            Open to Work
+                                        </span>
+                                        <?php if(!empty($user->work_role)): ?>
+                                            <span class="text-xs text-[#E49438] font-bold"><?= htmlspecialchars($user->work_role) ?></span>
+                                        <?php endif; ?>
+                                    </div>
+                                <?php endif; ?>
                                 <?php if (!empty($user->bio)): ?>
-                                    <p class="text-xs text-[#B1CDCE]/80 mt-2 mb-0 max-w-lg"><?= htmlspecialchars($user->bio) ?></p>
+                                    <p class="text-xs text-[#B1CDCE]/80 mt-1 mb-0 max-w-lg"><?= htmlspecialchars($user->bio) ?></p>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -547,12 +562,35 @@ if (!function_exists('time_elapsed_string')) {
                 <input type="file" name="avatar" id="avatarInput" accept="image/*" class="hidden">
             </div>
 
-            <!-- Basic Info -->
             <label class="pf-label">Bio</label>
             <textarea name="bio" class="pf-input" rows="2" placeholder="Ceritakan tentang Anda..."><?= htmlspecialchars($user->bio ?? '') ?></textarea>
 
             <label class="pf-label">Lokasi</label>
             <input type="text" name="location" class="pf-input" value="<?= htmlspecialchars($user->location ?? '') ?>">
+
+            <hr class="border-[#374D49] my-4">
+            <h4 class="text-sm font-bold text-[#E49438] mb-3">Pengaturan Karir</h4>
+            
+            <label class="flex items-center gap-2 cursor-pointer mb-3">
+                <input type="checkbox" name="open_to_work" value="1" <?= (isset($user->open_to_work) && $user->open_to_work == 1) ? 'checked' : '' ?> class="w-4 h-4 accent-[#377C80]">
+                <span class="text-sm font-bold text-white">Open to Work (Mencari Pekerjaan)</span>
+            </label>
+
+            <div class="grid grid-cols-2 gap-4 mb-2">
+                <div>
+                    <label class="pf-label">Peran yang dicari</label>
+                    <input type="text" name="work_role" class="pf-input !mb-0" value="<?= htmlspecialchars($user->work_role ?? '') ?>" placeholder="Contoh: Software Engineer">
+                </div>
+                <div>
+                    <label class="pf-label">Status Pengalaman</label>
+                    <label class="flex items-center gap-2 cursor-pointer mt-2 bg-[rgba(13,19,20,0.8)] border border-[#374D49] rounded-xl px-3 py-2">
+                        <input type="checkbox" name="is_fresh_graduate" value="1" <?= (isset($user->is_fresh_graduate) && $user->is_fresh_graduate == 1) ? 'checked' : '' ?> class="w-4 h-4 accent-[#377C80]">
+                        <span class="text-xs text-white">Fresh Graduate</span>
+                    </label>
+                </div>
+            </div>
+            
+            <hr class="border-[#374D49] my-4">
 
             <!-- Selectable Banners -->
             <label class="pf-label">Pilih Banner</label>
