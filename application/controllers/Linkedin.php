@@ -81,10 +81,12 @@ class Linkedin extends CI_Controller {
         $job = $this->Linkedin_model->get_job_by_id($id);
         if ($job) {
             $has_applied = $this->Linkedin_model->has_applied($user_id, $id);
+            $is_owner = ($job->user_id == $user_id);
             echo json_encode([
                 'status'      => 'success',
                 'data'        => $job,
                 'has_applied' => $has_applied,
+                'is_owner'    => $is_owner,
             ]);
         } else {
             echo json_encode(['status' => 'error', 'message' => 'Job not found']);
@@ -98,6 +100,20 @@ class Linkedin extends CI_Controller {
         $job_id = $this->input->post('job_id');
         if (!$job_id) {
             $this->session->set_flashdata('error_msg', 'Lowongan tidak valid.');
+            redirect('linkedin');
+            return;
+        }
+
+        $job = $this->Linkedin_model->get_job_by_id($job_id);
+        if (!$job) {
+            $this->session->set_flashdata('error_msg', 'Lowongan tidak ditemukan.');
+            redirect('linkedin');
+            return;
+        }
+
+        // Prevent owner from applying
+        if ($job->user_id == $user_id) {
+            $this->session->set_flashdata('error_msg', 'Anda tidak dapat melamar pekerjaan yang Anda terbitkan sendiri.');
             redirect('linkedin');
             return;
         }

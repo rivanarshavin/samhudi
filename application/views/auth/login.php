@@ -203,9 +203,20 @@ $mode = isset($_GET['mode']) && $_GET['mode'] === 'signup' ? 'signup' : 'login';
               <label for="login-password" class="block text-white/60 text-xs font-medium mb-2 tracking-wide uppercase">
                 Password <span class="text-red-400">*</span>
               </label>
-              <input id="login-password" name="password" type="password" required
-                     placeholder="••••••••"
-                     class="input-line">
+              <div class="relative">
+                <input id="login-password" name="password" type="password" required
+                       placeholder="••••••••"
+                       class="input-line pr-10">
+                <button type="button" onclick="togglePasswordVisibility('login-password', this)" class="absolute right-0 bottom-2 text-white/40 hover:text-white/80 focus:outline-none">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 toggle-eye-open">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                  </svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 toggle-eye-closed hidden">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+                  </svg>
+                </button>
+              </div>
             </div>
 
             <div>
@@ -298,18 +309,52 @@ $mode = isset($_GET['mode']) && $_GET['mode'] === 'signup' ? 'signup' : 'login';
               <label for="signup-password" class="block text-white/60 text-xs font-medium mb-2 tracking-wide uppercase">
                 Password <span class="text-red-400">*</span>
               </label>
-              <input id="signup-password" name="password" type="password" required minlength="8"
-                     placeholder="Min. 8 characters"
-                     class="input-line">
+              <div class="relative">
+                <input id="signup-password" name="password" type="password" required minlength="8"
+                       placeholder="Min. 8 characters"
+                       class="input-line pr-10">
+                <button type="button" onclick="togglePasswordVisibility('signup-password', this)" class="absolute right-0 bottom-2 text-white/40 hover:text-white/80 focus:outline-none">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 toggle-eye-open">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                  </svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 toggle-eye-closed hidden">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+                  </svg>
+                </button>
+              </div>
+              <!-- Password Strength Indicator -->
+              <div class="mt-2 space-y-1">
+                <div class="flex gap-1 h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                  <div id="strength-bar-1" class="h-full w-1/3 bg-transparent transition-all duration-300"></div>
+                  <div id="strength-bar-2" class="h-full w-1/3 bg-transparent transition-all duration-300"></div>
+                  <div id="strength-bar-3" class="h-full w-1/3 bg-transparent transition-all duration-300"></div>
+                </div>
+                <div class="flex justify-between items-center text-[10px] text-white/50">
+                  <span id="strength-label">Kekuatan: -</span>
+                  <span id="strength-req" class="text-red-300 font-semibold">• Harus ada simbol (!@#$%, dll)</span>
+                </div>
+              </div>
             </div>
 
             <div>
               <label for="signup-password-confirm" class="block text-white/60 text-xs font-medium mb-2 tracking-wide uppercase">
                 Confirm Password <span class="text-red-400">*</span>
               </label>
-              <input id="signup-password-confirm" name="password_confirmation" type="password" required minlength="8"
-                     placeholder="Re-enter password"
-                     class="input-line">
+              <div class="relative">
+                <input id="signup-password-confirm" name="password_confirmation" type="password" required minlength="8"
+                       placeholder="Re-enter password"
+                       class="input-line pr-10">
+                <button type="button" onclick="togglePasswordVisibility('signup-password-confirm', this)" class="absolute right-0 bottom-2 text-white/40 hover:text-white/80 focus:outline-none">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 toggle-eye-open">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                  </svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 toggle-eye-closed hidden">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+                  </svg>
+                </button>
+              </div>
               <p id="signup-password-error" class="hidden text-red-300 text-xs mt-1.5">Password tidak sama, cek lagi ya</p>
             </div>
 
@@ -380,12 +425,18 @@ $mode = isset($_GET['mode']) && $_GET['mode'] === 'signup' ? 'signup' : 'login';
     });
   });
 
-  // Confirm password validation
+  // Confirm password, strength bar & symbol validation
   (function() {
     var pw = document.getElementById('signup-password');
     var pwConfirm = document.getElementById('signup-password-confirm');
     var pwError = document.getElementById('signup-password-error');
     var signupForm = document.getElementById('form-signup');
+    
+    var strengthReq = document.getElementById('strength-req');
+    var strengthLabel = document.getElementById('strength-label');
+    var bar1 = document.getElementById('strength-bar-1');
+    var bar2 = document.getElementById('strength-bar-2');
+    var bar3 = document.getElementById('strength-bar-3');
 
     function checkMatch() {
       var match = pw.value === pwConfirm.value;
@@ -394,13 +445,77 @@ $mode = isset($_GET['mode']) && $_GET['mode'] === 'signup' ? 'signup' : 'login';
       return match;
     }
 
-    pw.addEventListener('input', checkMatch);
+    function checkStrength() {
+      var val = pw.value;
+      if (!val) {
+        strengthLabel.textContent = 'Kekuatan: -';
+        bar1.className = 'h-full w-1/3 bg-transparent transition-all duration-300';
+        bar2.className = 'h-full w-1/3 bg-transparent transition-all duration-300';
+        bar3.className = 'h-full w-1/3 bg-transparent transition-all duration-300';
+        strengthReq.classList.remove('text-green-400');
+        strengthReq.classList.add('text-red-300');
+        return;
+      }
+
+      var hasLength = val.length >= 8;
+      var hasMixed = /[a-z]/.test(val) && /[A-Z]/.test(val);
+      var hasSymbol = /[^a-zA-Z0-9]/.test(val);
+
+      if (hasSymbol) {
+        strengthReq.classList.remove('text-red-300');
+        strengthReq.classList.add('text-green-400');
+      } else {
+        strengthReq.classList.remove('text-green-400');
+        strengthReq.classList.add('text-red-300');
+      }
+
+      var score = 0;
+      if (hasLength) score++;
+      if (hasMixed) score++;
+      if (hasSymbol) score++;
+
+      if (score === 1) {
+        strengthLabel.textContent = 'Kekuatan: Lemah';
+        bar1.className = 'h-full w-1/3 bg-red-500 transition-all duration-300';
+        bar2.className = 'h-full w-1/3 bg-transparent transition-all duration-300';
+        bar3.className = 'h-full w-1/3 bg-transparent transition-all duration-300';
+      } else if (score === 2) {
+        strengthLabel.textContent = 'Kekuatan: Sedang';
+        bar1.className = 'h-full w-1/3 bg-amber-500 transition-all duration-300';
+        bar2.className = 'h-full w-1/3 bg-amber-500 transition-all duration-300';
+        bar3.className = 'h-full w-1/3 bg-transparent transition-all duration-300';
+      } else if (score === 3) {
+        strengthLabel.textContent = 'Kekuatan: Kuat';
+        bar1.className = 'h-full w-1/3 bg-green-500 transition-all duration-300';
+        bar2.className = 'h-full w-1/3 bg-green-500 transition-all duration-300';
+        bar3.className = 'h-full w-1/3 bg-green-500 transition-all duration-300';
+      } else {
+        strengthLabel.textContent = 'Kekuatan: Sangat Lemah';
+        bar1.className = 'h-full w-1/3 bg-red-700 transition-all duration-300';
+        bar2.className = 'h-full w-1/3 bg-transparent transition-all duration-300';
+        bar3.className = 'h-full w-1/3 bg-transparent transition-all duration-300';
+      }
+    }
+
+    pw.addEventListener('input', function() {
+      checkMatch();
+      checkStrength();
+    });
     pwConfirm.addEventListener('input', checkMatch);
 
     signupForm.addEventListener('submit', function(e) {
       if (!checkMatch()) {
         e.preventDefault();
         pwConfirm.focus();
+        return;
+      }
+
+      var val = pw.value;
+      var hasSymbol = /[^a-zA-Z0-9]/.test(val);
+      if (!hasSymbol) {
+        e.preventDefault();
+        alert('Registrasi Gagal: Password wajib mengandung minimal satu karakter simbol/unik (misal: @, #, $, %, *, dll)!');
+        pw.focus();
       }
     });
   })();
@@ -425,6 +540,22 @@ $mode = isset($_GET['mode']) && $_GET['mode'] === 'signup' ? 'signup' : 'login';
       });
     });
   })();
+
+  function togglePasswordVisibility(inputId, btn) {
+    var input = document.getElementById(inputId);
+    var openEye = btn.querySelector('.toggle-eye-open');
+    var closedEye = btn.querySelector('.toggle-eye-closed');
+    
+    if (input.type === 'password') {
+      input.type = 'text';
+      openEye.classList.add('hidden');
+      closedEye.classList.remove('hidden');
+    } else {
+      input.type = 'password';
+      openEye.classList.remove('hidden');
+      closedEye.classList.add('hidden');
+    }
+  }
 </script>
 </body>
 </html>

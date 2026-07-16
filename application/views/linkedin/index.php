@@ -484,7 +484,22 @@ if (!function_exists('time_elapsed_string')) {
 
             <label class="form-label">Upload CV <span class="text-red-500">*</span></label>
             <p class="text-[10px] text-[#B1CDCE]/60 mb-2">Format: PDF, DOC, DOCX, JPG, PNG. Maks 2MB.</p>
-            <input type="file" name="cv" class="form-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required style="padding:8px 14px;">
+            
+            <div id="dropzone" class="border-2 border-dashed border-[#374D49] hover:border-[#377C80] rounded-xl p-6 text-center cursor-pointer transition-all bg-black/25 flex flex-col items-center justify-center gap-2 mb-4 group">
+                <input type="file" name="cv" id="cvInput" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required class="hidden">
+                <div id="dropzonePrompt" class="flex flex-col items-center gap-2 text-[#B1CDCE]">
+                    <i class="bi bi-cloud-arrow-up text-3xl text-[#377C80] group-hover:scale-110 transition-transform"></i>
+                    <span class="text-xs font-semibold">Tarik & lepas file CV di sini, atau <span class="text-[#E49438] underline">pilih file</span></span>
+                </div>
+                <div id="dropzonePreview" class="hidden flex flex-col items-center gap-2 w-full">
+                    <div id="previewIconContainer" class="text-4xl text-[#E49438]">
+                        <i class="bi bi-file-earmark-pdf"></i>
+                    </div>
+                    <span id="previewFileName" class="text-xs font-bold text-white truncate max-w-[250px]">filename.pdf</span>
+                    <span id="previewFileSize" class="text-[10px] text-[#B1CDCE]/70">1.2 MB</span>
+                    <button type="button" onclick="resetDropzone(event)" class="text-[10px] text-red-400 hover:text-red-300 underline mt-1">Hapus & Ganti File</button>
+                </div>
+            </div>
 
             <label class="form-label" style="margin-top:4px;">Keterangan / Motivasi <span class="text-[#B1CDCE]/50 font-normal">(opsional)</span></label>
             <textarea name="keterangan" class="form-input" rows="4" placeholder="Ceritakan singkat mengapa Anda tertarik dengan posisi ini..."></textarea>
@@ -567,7 +582,9 @@ if (!function_exists('time_elapsed_string')) {
 
                     // Apply action area
                     const actionArea = document.getElementById('applyActionArea');
-                    if (res.has_applied) {
+                    if (res.is_owner) {
+                        actionArea.innerHTML = `<div style="display:inline-flex;align-items:center;gap:8px;background:rgba(228,148,56,0.15);border:1px solid rgba(228,148,56,0.4);color:#E49438;padding:10px 18px;border-radius:50px;font-weight:bold;font-size:0.85rem;"><i class="bi bi-person-fill"></i> Lowongan Anda</div>`;
+                    } else if (res.has_applied) {
                         actionArea.innerHTML = `<div style="display:inline-flex;align-items:center;gap:8px;background:rgba(55,124,128,0.15);border:1px solid rgba(55,124,128,0.4);color:#7ecdd1;padding:10px 18px;border-radius:50px;font-weight:bold;font-size:0.85rem;"><i class="bi bi-check-circle-fill"></i> Sudah Melamar</div>`;
                     } else {
                         actionArea.innerHTML = `<button onclick="openApplyModal(${data.id}, '${escapeAttr(data.job_title)}', '${escapeAttr(data.company_name)}')" class="btn-primary w-full" style="justify-content:center;"><i class="bi bi-send"></i> Lamar Pekerjaan</button>`;
@@ -597,10 +614,85 @@ if (!function_exists('time_elapsed_string')) {
         document.getElementById('applyJobId').value = jobId;
         document.getElementById('applyJobTitle').value = jobTitle;
         document.getElementById('applyJobCompany').value = companyName;
+        resetDropzone();
         openModal('applyJobModal');
     }
 
     function escapeAttr(str) {
         return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+
+    // --- Drag & Drop logic ---
+    const dropzone = document.getElementById('dropzone');
+    const cvInput = document.getElementById('cvInput');
+    const dropzonePrompt = document.getElementById('dropzonePrompt');
+    const dropzonePreview = document.getElementById('dropzonePreview');
+    const previewFileName = document.getElementById('previewFileName');
+    const previewFileSize = document.getElementById('previewFileSize');
+    const previewIconContainer = document.getElementById('previewIconContainer');
+
+    if (dropzone) {
+        dropzone.addEventListener('click', () => {
+            cvInput.click();
+        });
+
+        cvInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('border-[#377C80]', 'bg-[#377C80]/10');
+        });
+
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('border-[#377C80]', 'bg-[#377C80]/10');
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('border-[#377C80]', 'bg-[#377C80]/10');
+            if (e.dataTransfer.files.length) {
+                cvInput.files = e.dataTransfer.files;
+                handleFiles(e.dataTransfer.files);
+            }
+        });
+    }
+
+    function handleFiles(files) {
+        if (files.length === 0) return;
+        const file = files[0];
+        
+        previewFileName.textContent = file.name;
+        previewFileSize.textContent = formatBytes(file.size);
+        
+        let icon = '<i class="bi bi-file-earmark"></i>';
+        if (file.type.includes('pdf')) {
+            icon = '<i class="bi bi-file-earmark-pdf-fill text-red-400"></i>';
+        } else if (file.type.includes('word') || file.name.endsWith('.doc') || file.name.endsWith('.docx')) {
+            icon = '<i class="bi bi-file-earmark-word-fill text-blue-400"></i>';
+        } else if (file.type.includes('image')) {
+            icon = '<i class="bi bi-file-earmark-image-fill text-green-400"></i>';
+        }
+        previewIconContainer.innerHTML = icon;
+        
+        dropzonePrompt.classList.add('hidden');
+        dropzonePreview.classList.remove('hidden');
+    }
+
+    function resetDropzone(e) {
+        if (e) e.stopPropagation();
+        cvInput.value = '';
+        dropzonePrompt.classList.remove('hidden');
+        dropzonePreview.classList.add('hidden');
+    }
+
+    function formatBytes(bytes, decimals = 2) {
+        if (!+bytes) return '0 Bytes';
+        const k = 1024;
+        const dm = decimals < 0 ? 0 : decimals;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
     }
 </script>
