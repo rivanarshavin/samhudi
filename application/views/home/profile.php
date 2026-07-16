@@ -305,6 +305,30 @@ if (!function_exists('time_elapsed_string')) {
     .pf-save-btn { width: 100%; background: var(--color-light-teal); color: #fff; font-weight: 700; padding: 12px; border-radius: 50px; transition: opacity 0.2s; }
     .pf-save-btn:hover { opacity: 0.9; }
 
+    /* Premium 3D Icon Effect */
+    .text-3d {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transform: perspective(150px) rotateX(12deg) rotateY(-15deg);
+        text-shadow: 
+            1px 1px 0px #2a4a42,
+            2px 2px 0px #2a4a42,
+            3px 3px 4px rgba(0, 0, 0, 0.5);
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .nav-sidebar-link:hover .text-3d {
+        transform: perspective(150px) rotateX(15deg) rotateY(-20deg) translateZ(8px);
+        text-shadow: 
+            1px 1px 0px #377C80,
+            2px 2px 0px #377C80,
+            3px 3px 0px #377C80,
+            4px 4px 0px #377C80,
+            5px 5px 6px rgba(0,0,0,0.6);
+        color: #ffffff !important;
+    }
+
     /* CSS Overrides for hardcoded Tailwind arbitrary backgrounds and text */
     /* Prepended with .forum-container to increase CSS specificity over Tailwind CDN runtime styles */
     .forum-container .bg-\[\#15201E\] {
@@ -491,22 +515,22 @@ if (!function_exists('time_elapsed_string')) {
                     <ul class="space-y-4 font-semibold">
                         <li>
                             <a href="<?= base_url('forum?filter=all') ?>" class="nav-sidebar-link flex items-center gap-4 py-2.5 px-4 rounded-xl transition-all text-[#B1CDCE] hover:text-white hover:bg-[#374D49]/40">
-                                <i class="bi bi-house text-xl"></i> Beranda
+                                <img src="<?= base_url('assets/images/3d_house.png') ?>" class="w-9 h-9 object-contain" alt="Beranda"> Beranda
                             </a>
                         </li>
                         <li>
                             <a href="<?= base_url('forum?filter=populer') ?>" class="nav-sidebar-link flex items-center gap-4 py-2.5 px-4 rounded-xl transition-all text-[#B1CDCE] hover:text-white hover:bg-[#374D49]/40">
-                                <i class="bi bi-star-fill text-[#E49438] text-xl"></i> Populer
+                                <img src="<?= base_url('assets/images/3d_star.png') ?>" class="w-9 h-9 object-contain" alt="Populer"> Populer
                             </a>
                         </li>
                         <li>
                             <a href="<?= base_url('forum?filter=my_posts') ?>" class="nav-sidebar-link flex items-center gap-4 py-2.5 px-4 rounded-xl transition-all text-[#B1CDCE] hover:text-white hover:bg-[#374D49]/40">
-                                <i class="bi bi-clock text-xl"></i> Terbaru
+                                <img src="<?= base_url('assets/images/3d_clock.png') ?>" class="w-9 h-9 object-contain" alt="Terbaru"> Terbaru
                             </a>
                         </li>
                         <li>
                             <a href="<?= base_url('forum?filter=saved') ?>" class="nav-sidebar-link flex items-center gap-4 py-2.5 px-4 rounded-xl transition-all text-[#B1CDCE] hover:text-white hover:bg-[#374D49]/40">
-                                <i class="bi bi-bookmark-fill text-[#E49438] text-xl"></i> Simpan
+                                <img src="<?= base_url('assets/images/3d_bookmark.png') ?>" class="w-9 h-9 object-contain" alt="Simpan"> Simpan
                             </a>
                         </li>
                         <li>

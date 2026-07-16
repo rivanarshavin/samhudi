@@ -284,22 +284,22 @@
                     <ul class="space-y-4 font-semibold">
                         <li>
                             <a href="<?= base_url('forum?filter=all') ?>" class="nav-sidebar-link flex items-center gap-4 py-2.5 px-4 rounded-xl transition-all <?= ($filter === 'all' && empty($search)) ? 'bg-[#374D49] text-white shadow-sm' : 'text-[#B1CDCE] hover:text-white hover:bg-[#374D49]/40' ?>">
-                                <i class="bi bi-house text-xl"></i> Beranda
+                                <img src="<?= base_url('assets/images/3d_house.png') ?>" class="w-9 h-9 object-contain" alt="Beranda"> Beranda
                             </a>
                         </li>
                         <li>
                             <a href="<?= base_url('forum?filter=populer') ?>" class="nav-sidebar-link flex items-center gap-4 py-2.5 px-4 rounded-xl transition-all <?= ($filter === 'populer') ? 'bg-[#374D49] text-white shadow-sm' : 'text-[#B1CDCE] hover:text-white hover:bg-[#374D49]/40' ?>">
-                                <i class="bi bi-star-fill text-[#E49438] text-xl"></i> Populer
+                                <img src="<?= base_url('assets/images/3d_star.png') ?>" class="w-9 h-9 object-contain" alt="Populer"> Populer
                             </a>
                         </li>
                         <li>
                             <a href="<?= base_url('forum?filter=my_posts') ?>" class="nav-sidebar-link flex items-center gap-4 py-2.5 px-4 rounded-xl transition-all <?= ($filter === 'my_posts') ? 'active bg-[#374D49] text-white shadow-sm' : 'text-[#B1CDCE] hover:text-white hover:bg-[#374D49]/40' ?>">
-                                <i class="bi bi-clock text-xl"></i> Terbaru
+                                <img src="<?= base_url('assets/images/3d_clock.png') ?>" class="w-9 h-9 object-contain" alt="Terbaru"> Terbaru
                             </a>
                         </li>
                         <li>
                             <a href="<?= base_url('forum?filter=saved') ?>" class="nav-sidebar-link flex items-center gap-4 py-2.5 px-4 rounded-xl transition-all <?= ($filter === 'saved') ? 'bg-[#374D49] text-white shadow-sm' : 'text-[#B1CDCE] hover:text-white hover:bg-[#374D49]/40' ?>">
-                                <i class="bi bi-bookmark-fill text-[#E49438] text-xl"></i> Simpan
+                                <img src="<?= base_url('assets/images/3d_bookmark.png') ?>" class="w-9 h-9 object-contain" alt="Simpan"> Simpan
                             </a>
                         </li>
                         <li>
