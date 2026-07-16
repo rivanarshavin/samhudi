@@ -1,7 +1,15 @@
-html,
+html {
+    max-width: 100%;
+}
 body {
     max-width: 100%;
     overflow-x: hidden;
+}
+
+nav {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 50 !important;
 }
 
 /* Body & Typography */
@@ -553,6 +561,13 @@ body {
 
 .makam-info {
     padding: 2rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.makam-info .d-flex:last-child {
+    margin-top: auto;
 }
 
 .makam-alamat-title {
@@ -581,6 +596,25 @@ body {
     text-decoration: none;
     font-weight: 600;
     transition: all 0.3s ease;
+}
+
+.makam-foto-overlay:hover img {
+    filter: brightness(.25) !important;
+}
+.makam-foto-more {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 2rem;
+    font-weight: bold;
+    background: rgba(0,0,0,.1);
+    transition: all .3s ease;
+}
+.makam-foto-overlay:hover .makam-foto-more {
+    background: rgba(0,0,0,.3);
 }
 
 .makam-link:hover {

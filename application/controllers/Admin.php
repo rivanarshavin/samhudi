@@ -135,9 +135,62 @@ class Admin extends CI_Controller
             redirect('admin#intro-section');
         }
 
+        // Handle makam (lokasi pemakaman)
+        $makam_config_path = FCPATH . 'assets/makam-config.json';
+
+        // Handle single photo delete
+        if ($this->input->get('delete_makam_photo') !== null) {
+            $idx = (int) $this->input->get('delete_makam_photo');
+            $makam = json_decode(file_get_contents($makam_config_path), true);
+            if (isset($makam['photos'][$idx])) {
+                $old = $makam['photos'][$idx];
+                if ($old && strpos($old, 'assets/uploads/makam/') === 0 && file_exists('./' . $old)) {
+                    unlink('./' . $old);
+                }
+                array_splice($makam['photos'], $idx, 1);
+                file_put_contents($makam_config_path, json_encode($makam));
+            }
+            redirect('admin#makam-section');
+        }
+
+        if ($this->input->method() === 'post' && $this->input->post('save_makam')) {
+            $makam = json_decode(file_get_contents($makam_config_path), true);
+            $makam['address'] = $this->input->post('makam_address', TRUE);
+            $makam['maps_embed_url'] = $this->input->post('makam_maps_url', TRUE);
+            $makam['maps_link'] = $this->input->post('makam_maps_link', TRUE);
+
+            $upload_path = FCPATH . 'assets/uploads/makam/';
+            if (!is_dir($upload_path)) mkdir($upload_path, 0777, true);
+            $allowed = ['jpg','jpeg','png','webp','gif'];
+
+            if (isset($_FILES['makam_photo_new']) && is_array($_FILES['makam_photo_new']['name'])) {
+                $files = $_FILES['makam_photo_new'];
+                $names = array_filter($files['name']);
+                if (!empty($names)) {
+                    $base = time();
+                    $idx = 0;
+                    foreach ($names as $i => $name) {
+                        if ($files['error'][$i] !== 0) continue;
+                        $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+                        if (!in_array($ext, $allowed)) continue;
+                        $new_name = 'makam_' . $base . '_' . $idx . '_' . uniqid() . '.' . $ext;
+                        if (move_uploaded_file($files['tmp_name'][$i], $upload_path . $new_name)) {
+                            $makam['photos'][] = 'assets/uploads/makam/' . $new_name;
+                            $idx++;
+                        }
+                    }
+                }
+            }
+
+            file_put_contents($makam_config_path, json_encode($makam));
+            $this->session->set_flashdata('makam_success', 'Data lokasi pemakaman berhasil diperbarui.');
+            redirect('admin#makam-section');
+        }
+
         $banner_config = json_decode(file_get_contents($config_path), true);
         $intro_config = json_decode(file_get_contents(FCPATH . 'assets/intro-config.json'), true);
         $sambutan_config = json_decode(file_get_contents(FCPATH . 'assets/sambutan-config.json'), true);
+        $makam_config = json_decode(file_get_contents($makam_config_path), true);
 
         $data = [
             'admin_name'        => $this->session->userdata('full_name'),
@@ -155,6 +208,10 @@ class Admin extends CI_Controller
             'sambutan_pars'     => $sambutan_config['paragraphs'] ?? [],
             'sambutan_closing'  => $sambutan_config['closing'] ?? "Wassalamu'alaikum Warahmatullahi Wabarakatuh.",
             'sambutan_sender'   => $sambutan_config['sender'] ?? 'Keluarga Besar H.M. Samhudi',
+            'makam_address'     => $makam_config['address'] ?? '',
+            'makam_maps_url'    => $makam_config['maps_embed_url'] ?? '',
+            'makam_maps_link'   => $makam_config['maps_link'] ?? '',
+            'makam_photos'      => $makam_config['photos'] ?? [],
         ];
 
         $this->load->view('admin/dashboard', $data);

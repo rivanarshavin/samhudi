@@ -39,4 +39,4 @@
 
     <title>Keluarga Besar H.M Samhudi</title>
 </head>
-<body>
+<body class="has-fixed-nav">

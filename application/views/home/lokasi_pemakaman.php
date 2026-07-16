@@ -1,3 +1,12 @@
+<?php
+$makam_config = json_decode(file_get_contents(FCPATH . 'assets/makam-config.json'), true);
+$makam_address = $makam_config['address'] ?? '';
+$makam_maps_url = $makam_config['maps_embed_url'] ?? '';
+$makam_maps_link = $makam_config['maps_link'] ?? '';
+$makam_photos = $makam_config['photos'] ?? [];
+$maps_search_url = $makam_maps_link;
+$maps_dir_url = 'https://www.google.com/maps/dir//' . urlencode($makam_address);
+?>
 <section class="py-5 makam-section">
     <div class="container">
         <div class="text-center mb-5">
@@ -15,30 +24,47 @@
                     <div class="row g-0">
                         <div class="col-md-7">
                             <div class="makam-map">
-                                <iframe src="https://www.google.com/maps?q=Makam+Keluarga+H.+M.+Samhudi,+XVHJ%2B99H,+Citaman,+Nagreg,+Bandung,+Jawa+Barat+40215&output=embed" width="100%" height="100%" style="border:0; min-height: 350px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                                <iframe src="<?= htmlspecialchars($makam_maps_url) ?>" width="100%" height="100%" style="border:0; min-height: 350px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                             </div>
                         </div>
                         <div class="col-md-5">
                             <div class="makam-info">
                                 <h4 class="makam-alamat-title">Alamat</h4>
                                 <p class="makam-alamat">
-                                    Makam Keluarga H. M. Samhudi, XVHJ+99H, Citaman, Kec. Nagreg, Kabupaten Bandung, Jawa Barat 40215
+                                    <?= htmlspecialchars($makam_address) ?>
                                 </p>
                                 <h4 class="makam-alamat-title" style="margin-top:1rem;">Foto Pemakaman</h4>
+                                <?php if (!empty($makam_photos)):
+                                $total_photos = count($makam_photos);
+                                $has_more = $total_photos > 5;
+                                $more_count = $total_photos - 5;
+                                $display_count = $has_more ? 5 : $total_photos;
+                                ?>
                                 <div class="makam-photo mb-3">
                                     <div class="row g-2">
-                                        <?php for ($i = 1; $i <= 5; $i++): ?>
-                                        <div class="<?= $i <= 3 ? 'col-4' : 'col-6' ?>">
-                                            <img src="<?= base_url('assets/images/uji.jpeg') ?>" alt="Foto Makam <?= $i ?>" class="img-fluid w-100 makam-foto" style="border-radius: 8px; height: 100px; object-fit: cover; cursor: pointer;" onclick="previewImage(<?= $i - 1 ?>)">
+                                        <?php for ($i = 0; $i < $display_count; $i++):
+                                        $photo = $makam_photos[$i];
+                                        $is_last_overlay = $has_more && ($i === $display_count - 1);
+                                        ?>
+                                        <div class="<?= $i < 3 ? 'col-4' : 'col-6' ?>">
+                                            <?php if ($is_last_overlay): ?>
+                                            <div class="makam-foto-overlay" onclick="previewImage(0)" style="position:relative;border-radius:8px;overflow:hidden;height:100px;cursor:pointer;">
+                                                <img src="<?= base_url($photo) ?>" alt="Foto Makam <?= $i + 1 ?>" class="img-fluid w-100 makam-foto" style="width:100%;height:100%;object-fit:cover;filter:brightness(.4);">
+                                                <div class="makam-foto-more">+<?= $more_count ?></div>
+                                            </div>
+                                            <?php else: ?>
+                                            <img src="<?= base_url($photo) ?>" alt="Foto Makam <?= $i + 1 ?>" class="img-fluid w-100 makam-foto" style="border-radius: 8px; height: 100px; object-fit: cover; cursor: pointer;" onclick="previewImage(<?= $i ?>)">
+                                            <?php endif; ?>
                                         </div>
                                         <?php endfor; ?>
                                     </div>
                                 </div>
+                                <?php endif; ?>
                                 <div class="d-flex gap-2 flex-wrap">
-                                    <a href="https://www.google.com/maps/search/Makam+Keluarga+H.+M.+Samhudi,+XVHJ%2B99H,+Citaman,+Nagreg,+Bandung,+Jawa+Barat+40215" target="_blank" rel="noopener noreferrer" class="makam-link">
+                                    <a href="<?= htmlspecialchars($maps_search_url) ?>" target="_blank" rel="noopener noreferrer" class="makam-link">
                                         <i class="bi bi-geo-alt-fill"></i> Lihat Detail
                                     </a>
-                                    <a href="https://www.google.com/maps/dir//Makam+Keluarga+H.+M.+Samhudi,+XVHJ%2B99H,+Citaman,+Nagreg,+Bandung,+Jawa+Barat+40215" target="_blank" rel="noopener noreferrer" class="makam-link makam-link-outline">
+                                    <a href="<?= htmlspecialchars($maps_dir_url) ?>" target="_blank" rel="noopener noreferrer" class="makam-link makam-link-outline">
                                         <i class="bi bi-signpost-2-fill"></i> Rute
                                     </a>
                                 </div>
@@ -112,11 +138,12 @@
 var images = [];
 var currentIdx = 0;
 
-<?php for ($i = 0; $i < 5; $i++): ?>
-images.push('<?= base_url('assets/images/uji.jpeg') ?>');
-<?php endfor; ?>
+<?php foreach ($makam_photos as $photo): ?>
+images.push('<?= base_url($photo) ?>');
+<?php endforeach; ?>
 
 function previewImage(idx) {
+    if (images.length === 0) return;
     currentIdx = idx;
     updateLightbox();
     document.getElementById('lightbox').classList.add('show');
