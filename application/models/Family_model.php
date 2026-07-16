@@ -49,6 +49,20 @@ class Family_model extends CI_Model {
         $member = $this->row_to_person($memberRow, 0); // depth 0 just for general info
         $member['agama'] = $memberRow['religion'] ?? 'Islam'; // Defaulting if column doesn't exist, maybe assume Islam or leave empty if not present. I'll check if religion exists, if not just don't output or output what's there. Actually let's just use what's in DB or hardcode standard if needed. Let's just add it manually if it doesn't exist.
         
+        // Check if root to set "Generasi" properly
+        // Ideally we need depth logic. Since this is detail view, we might not have it exactly.
+        // We'll calculate depth by walking up.
+        $depth = 0;
+        $curr = $memberRow;
+        while ($curr['father_id'] || $curr['mother_id']) {
+            $depth++;
+            $pid = $curr['father_id'] ? $curr['father_id'] : $curr['mother_id'];
+            $curr = $this->db->get_where('family_members', ['id' => $pid])->row_array();
+            if (!$curr) break;
+        }
+        $member['generasi'] = $depth + 1;
+        $member['generasi_label'] = 'Generasi ' . $member['generasi'];
+        
         // Data Orang Tua
         $ayahRow = null;
         $ibuRow = null;
@@ -69,12 +83,12 @@ class Family_model extends CI_Model {
         $member['orang_tua'] = [];
         if ($ayahRow) {
             $p = $this->row_to_person($ayahRow, 0, 'Ayah Kandung');
-            $p['generasi_info'] = 'Generasi ke-N'; // Will figure out later if needed
+            if ($depth > 0) $p['generasi_info'] = 'Ayah Kandung • Generasi ' . $depth;
             $member['orang_tua'][] = $p;
         }
         if ($ibuRow) {
             $p = $this->row_to_person($ibuRow, 0, 'Ibu Kandung');
-            $p['generasi_info'] = 'Generasi ke-N';
+            if ($depth > 0) $p['generasi_info'] = 'Ibu Kandung • Generasi ' . $depth;
             $member['orang_tua'][] = $p;
         }
 
@@ -88,6 +102,7 @@ class Family_model extends CI_Model {
             $member['pasangan_label'] = $this->spouse_label($pasanganRows[0]['gender'] ?? null);
             foreach ($pasanganRows as $pasanganRow) {
                 $p = $this->row_to_person($pasanganRow, 0, $this->spouse_label($pasanganRow['gender'] ?? null));
+                $p['generasi_info'] = $p['hubungan'] . ' • Generasi ' . ($depth + 1);
                 $member['pasangan'][] = $p;
             }
         } else {
@@ -137,6 +152,7 @@ class Family_model extends CI_Model {
             $relation_label = $is_biological ? 'Anak Kandung' : 'Anak Sambung';
             
             $p = $this->row_to_person($childRow, 0, $relation_label);
+            $p['generasi_info'] = $relation_label . ' • Generasi ' . ($depth + 2);
             $p['urutan'] = $idx + 1;
             $member['anak_anak'][] = $p;
         }
@@ -166,24 +182,12 @@ class Family_model extends CI_Model {
                     $member['anak_ke'] = $idx + 1;
                 } else {
                     $p = $this->row_to_person($sibRow, 0, 'Saudara (Kakak/Adik)');
+                    $p['generasi_info'] = 'Saudara • Generasi ' . ($depth + 1);
                     $member['saudara'][] = $p;
                 }
             }
         }
-        
-        // Check if root to set "Generasi" properly
-        // Ideally we need depth logic. Since this is detail view, we might not have it exactly.
-        // We'll calculate depth by walking up.
-        $depth = 0;
-        $curr = $memberRow;
-        while ($curr['father_id'] || $curr['mother_id']) {
-            $depth++;
-            $pid = $curr['father_id'] ? $curr['father_id'] : $curr['mother_id'];
-            $curr = $this->db->get_where('family_members', ['id' => $pid])->row_array();
-            if (!$curr) break;
-        }
-        $member['generasi'] = $depth + 1;
-        $member['generasi_label'] = 'Generasi ' . $member['generasi'];
+
 
         return $member;
     }

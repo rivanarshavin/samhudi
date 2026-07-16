@@ -29,6 +29,7 @@ class Auth extends CI_Controller
         $data = [
             'mode'            => $mode,
             'errors'          => $this->session->flashdata('errors') ?: [],
+            'success_msg'     => $this->session->flashdata('success_msg'),
             'old'             => $this->session->flashdata('old') ?: [],
             'captcha_login'   => $this->_make_captcha('login', 'captcha-login-img'),
             'captcha_signup'  => $this->_make_captcha('signup', 'captcha-signup-img'),
@@ -191,7 +192,7 @@ class Auth extends CI_Controller
                     'phone'       => $signup_basic['phone'],
                     'password'    => $signup_basic['password'],
                     'role'        => $signup_basic['role'],
-                    'status'      => 'active', // Langsung aktif agar bisa onboarding
+                    'status'      => 'inactive', // Menunggu persetujuan admin
                     'is_verified' => 1,
                 ]);
 
@@ -200,15 +201,7 @@ class Auth extends CI_Controller
                 $this->session->unset_userdata('signup_member_info');
                 $this->session->unset_userdata('signup_otp');
 
-                // Auto login
-                $this->session->set_userdata([
-                    'user_id'    => $user_id,
-                    'full_name'  => $signup_basic['full_name'],
-                    'role'       => $signup_basic['role'],
-                    'logged_in'  => TRUE,
-                ]);
-
-                redirect('auth/onboarding');
+                redirect('auth/pending_approval');
                 return;
             }
 
