@@ -37,19 +37,33 @@ class Wasiat extends CI_Controller {
 
     // --- TEMPORARY CRUD ---
 
+    private function check_admin()
+    {
+        if (!$this->session->userdata('logged_in')) {
+            redirect('auth');
+        }
+        $role = $this->session->userdata('role');
+        if ($role !== 'admin' && $role !== 'superadmin') {
+            redirect('wasiat');
+        }
+    }
+
     public function manage()
     {
+        $this->check_admin();
         $data['wills'] = $this->Wasiat_model->get_all_wills();
         $this->load->view('wasiat_manage', $data);
     }
 
     public function add()
     {
+        $this->check_admin();
         $this->load->view('wasiat_form');
     }
 
     public function store()
     {
+        $this->check_admin();
         $data = [
             'title' => $this->input->post('title'),
             'content' => $this->input->post('content')
@@ -60,12 +74,14 @@ class Wasiat extends CI_Controller {
 
     public function edit($id)
     {
+        $this->check_admin();
         $data['will'] = $this->Wasiat_model->get_will_by_id($id);
         $this->load->view('wasiat_form', $data);
     }
 
     public function update($id)
     {
+        $this->check_admin();
         $data = [
             'title' => $this->input->post('title'),
             'content' => $this->input->post('content')
@@ -76,6 +92,7 @@ class Wasiat extends CI_Controller {
 
     public function delete($id)
     {
+        $this->check_admin();
         $this->Wasiat_model->delete_will($id);
         redirect('wasiat/manage');
     }

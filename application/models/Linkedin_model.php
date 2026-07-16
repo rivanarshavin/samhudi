@@ -52,11 +52,30 @@ class Linkedin_model extends CI_Model {
         return $this->db->insert('job_listings', $data);
     }
 
-    public function get_open_to_work_users()
+    /**
+     * Ambil semua user yang open_to_work = 1, dengan join ke open_to_work_profiles
+     * Mendukung filter pencarian nama dan jenis pekerjaan
+     */
+    public function get_open_to_work_users($worker_search = NULL, $worker_job = NULL)
     {
-        $this->db->select('id, full_name, avatar, open_to_work, work_role, is_fresh_graduate');
-        $this->db->from('users');
-        $this->db->where('open_to_work', 1);
+        $this->db->select('u.id, u.full_name, u.avatar, u.open_to_work, u.work_role, u.is_fresh_graduate,
+                   otwp.birth_date, otwp.work_history, otwp.desired_job, otwp.about, otwp.cv_path');
+        $this->db->from('users u');
+        $this->db->join('open_to_work_profiles otwp', 'otwp.user_id = u.id', 'left');
+        $this->db->where('u.open_to_work', 1);
+
+        if (!empty($worker_search)) {
+            $this->db->like('u.full_name', $worker_search);
+        }
+
+        if (!empty($worker_job)) {
+            $this->db->group_start();
+            $this->db->like('otwp.desired_job', $worker_job);
+            $this->db->or_like('u.work_role', $worker_job);
+            $this->db->group_end();
+        }
+
+        $this->db->order_by('u.full_name', 'ASC');
         return $this->db->get()->result();
     }
 
@@ -91,5 +110,45 @@ class Linkedin_model extends CI_Model {
     {
         $this->db->where('job_id', $id)->delete('job_applications');
         return $this->db->where('id', $id)->delete('job_listings');
+    }
+
+    // ==================== Open to Work Profile ====================
+
+    /**
+     * Ambil profil open to work berdasarkan user_id
+     */
+    public function get_open_to_work_profile($user_id)
+    {
+        return $this->db->where('user_id', $user_id)->get('open_to_work_profiles')->row();
+    }
+
+    /**
+     * Simpan atau update profil open to work
+     */
+    public function save_open_to_work_profile($user_id, $data)
+    {
+        $existing = $this->get_open_to_work_profile($user_id);
+        if ($existing) {
+            return $this->db->where('user_id', $user_id)->update('open_to_work_profiles', $data);
+        } else {
+            $data['user_id'] = $user_id;
+            return $this->db->insert('open_to_work_profiles', $data);
+        }
+    }
+
+    /**
+     * Hapus profil open to work
+     */
+    public function delete_open_to_work_profile($user_id)
+    {
+        return $this->db->where('user_id', $user_id)->delete('open_to_work_profiles');
+    }
+
+    /**
+     * Cek apakah tabel open_to_work_profiles sudah ada
+     */
+    public function table_exists()
+    {
+        return $this->db->table_exists('open_to_work_profiles');
     }
 }

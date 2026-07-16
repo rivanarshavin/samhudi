@@ -42,7 +42,9 @@
         <div class="card-body">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
               <h3 class="card-title" style="margin: 0;"><?php echo htmlspecialchars($wasiat['title']); ?></h3>
+              <?php if ($this->session->userdata('logged_in') && in_array($this->session->userdata('role'), ['admin', 'superadmin'])): ?>
               <a href="<?php echo site_url('wasiat/edit/'.$wasiat['id']); ?>" style="color: #94a3b8; font-size: 13px; text-decoration: none; font-family: 'Inter', sans-serif; transition: color 0.2s; padding-top: 5px;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#94a3b8'">Edit ✎</a>
+              <?php endif; ?>
           </div>
           <p class="card-text" style="margin-top: 20px;"><?php echo htmlspecialchars($shortText); ?></p>
           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto;">

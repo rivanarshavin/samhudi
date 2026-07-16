@@ -309,9 +309,15 @@
                         </li>
                         <li>
                             <a href="<?= base_url('profile') ?>" class="nav-sidebar-link flex items-center gap-4 py-2.5 px-4 rounded-xl transition-all text-[#B1CDCE] hover:text-white hover:bg-[#374D49]/40">
-                                <div class="w-6 h-6 rounded-full overflow-hidden bg-teal-800 flex-shrink-0">
-                                    <img src="<?= !empty($user->avatar) ? base_url($user->avatar) : base_url('assets/images/photo.png') ?>" alt="Avatar" class="w-full h-full object-cover">
-                                </div>
+                                <?php if (!empty($user->avatar)): ?>
+                                    <div class="w-6 h-6 rounded-full overflow-hidden bg-teal-800 flex-shrink-0">
+                                        <img src="<?= base_url($user->avatar) ?>" alt="Avatar" class="w-full h-full object-cover">
+                                    </div>
+                                <?php else: ?>
+                                    <div class="w-6 h-6 rounded-full bg-teal-700/60 border border-[#374D49]/40 flex items-center justify-center font-bold text-white text-xs select-none flex-shrink-0">
+                                        <?= strtoupper(substr($this->session->userdata('full_name') ?? 'U', 0, 1)) ?>
+                                    </div>
+                                <?php endif; ?>
                                 Profil Saya
                             </a>
                         </li>

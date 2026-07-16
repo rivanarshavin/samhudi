@@ -14,6 +14,7 @@ class Auth extends CI_Controller
     {
         parent::__construct();
         $this->load->model('User_model');
+        $this->load->model('Log_model');
         $this->load->library(['session', 'form_validation', 'email']);
         $this->load->helper(['url', 'form', 'otp', 'captcha']);
     }
@@ -28,6 +29,7 @@ class Auth extends CI_Controller
         $data = [
             'mode'            => $mode,
             'errors'          => $this->session->flashdata('errors') ?: [],
+            'success_msg'     => $this->session->flashdata('success_msg'),
             'old'             => $this->session->flashdata('old') ?: [],
             'captcha_login'   => $this->_make_captcha('login', 'captcha-login-img'),
             'captcha_signup'  => $this->_make_captcha('signup', 'captcha-signup-img'),
@@ -89,6 +91,8 @@ class Auth extends CI_Controller
             'role'       => $user->role,
             'logged_in'  => TRUE,
         ]);
+
+        $this->Log_model->insert_log($user->id, $user->full_name, $user->role, 'Login berhasil');
 
         if ($this->input->post('remember')) {
             // opsional: set cookie remember-me token kalau lo mau dikembangin lagi
@@ -188,36 +192,9 @@ class Auth extends CI_Controller
                     'phone'       => $signup_basic['phone'],
                     'password'    => $signup_basic['password'],
                     'role'        => $signup_basic['role'],
-                    'status'      => 'inactive', // stays inactive until admin approves
+                    'status'      => 'inactive', // Menunggu persetujuan admin
                     'is_verified' => 1,
                 ]);
-
-                // Create family member if exist in session
-                $member_info = $this->session->userdata('signup_member_info');
-                if ($member_info) {
-                    $member_data = [
-                        'full_name'  => $member_info['full_name'],
-                        'birth_date' => $member_info['birth_date'],
-                        'gender'     => $member_info['gender'],
-                        'is_alive'   => 1,
-                        'status'     => 'pending', // pending approval
-                        'user_id'    => $user_id,
-                        'phone'      => $signup_basic['phone'],
-                        'email'      => $signup_basic['email'],
-                    ];
-                    if (!empty($member_info['photo'])) {
-                        // Move photo from raw name to assets/uploads/ if relative path
-                        $raw_photo = $member_info['photo'];
-                        if (strpos($raw_photo, 'assets/uploads/') === 0) {
-                            $member_data['photo'] = $raw_photo;
-                        } else {
-                            $member_data['photo'] = 'assets/uploads/' . $raw_photo;
-                        }
-                    }
-                    
-                    $this->load->model('Family_model');
-                    $this->Family_model->insert_new_member($member_data, $member_info['role'], $member_info['rel_id']);
-                }
 
                 // Clear temporary registration session variables
                 $this->session->unset_userdata('signup_basic_info');
@@ -417,6 +394,12 @@ class Auth extends CI_Controller
     // ==========================================================
     public function logout()
     {
+        if ($this->session->userdata('logged_in')) {
+            $user_id = $this->session->userdata('user_id');
+            $nama = $this->session->userdata('full_name') ?? 'User';
+            $role = $this->session->userdata('role');
+            $this->Log_model->insert_log($user_id, $nama, $role, 'Logout berhasil');
+        }
         $this->session->sess_destroy();
         redirect('auth');
     }
@@ -525,23 +508,6 @@ class Auth extends CI_Controller
     }
 
     // ==========================================================
-    // SIGNUP WIZARD: FAMILY TREE DETAILS
-    // ==========================================================
-    public function register_wizard()
-    {
-        $signup_basic = $this->session->userdata('signup_basic_info');
-        if (!$signup_basic) {
-            redirect('auth');
-            return;
-        }
-
-        $this->load->view('templates/header');
-        // Load the wizard view without main navigation navbar (standalone wizard flow)
-        $this->load->view('silsilah/add_member_view');
-        $this->load->view('templates/footer');
-    }
-
-    // ==========================================================
     // TRIGGER AND SEND OTP EMAIL BEFORE REDIRECT
     // ==========================================================
     public function trigger_otp()
@@ -565,23 +531,158 @@ class Auth extends CI_Controller
     }
 
     // ==========================================================
-    // TEMP SAVE API FOR WIZARD FLOW (BEFORE DB INSERT)
+    // ONBOARDING (SETELAH LOGIN, SEBELUM BISA MASUK SILSILAH)
     // ==========================================================
-    public function api_save_member_temp()
+    public function onboarding()
+    {
+        if (!$this->session->userdata('logged_in')) {
+            redirect('auth');
+            return;
+        }
+
+        // Cek apakah sudah onboarded
+        $this->load->model('Family_model');
+        $user_id = $this->session->userdata('user_id');
+        if ($this->Family_model->is_user_onboarded($user_id)) {
+            redirect('/');
+            return;
+        }
+
+        $this->load->view('templates/header');
+        $this->load->view('auth/onboarding');
+        $this->load->view('templates/footer');
+    }
+
+    public function onboarding_wizard()
+    {
+        if (!$this->session->userdata('logged_in')) {
+            redirect('auth');
+            return;
+        }
+
+        // Cek apakah sudah onboarded
+        $this->load->model('Family_model');
+        $user_id = $this->session->userdata('user_id');
+        if ($this->Family_model->is_user_onboarded($user_id)) {
+            redirect('/');
+            return;
+        }
+
+        $data['is_onboarding'] = true;
+        
+        $this->load->view('templates/header');
+        $this->load->view('silsilah/add_member_view', $data);
+        $this->load->view('templates/footer');
+    }
+
+    public function api_link_member()
     {
         header('Content-Type: application/json; charset=utf-8');
+        
+        if (!$this->session->userdata('logged_in')) {
+            echo json_encode(['status' => false, 'message' => 'Silakan login terlebih dahulu.']);
+            return;
+        }
 
-        $role = $this->input->post('role'); // 'anak', 'pasangan', 'orangtua'
-        $rel_id = $this->input->post('rel_id'); // ID dari anggota yang dipilih
+        $member_id = $this->input->post('member_id');
+        $user_id   = $this->session->userdata('user_id');
+
+        if (!$member_id) {
+            echo json_encode(['status' => false, 'message' => 'Pilih anggota keluarga terlebih dahulu.']);
+            return;
+        }
+
+        $this->load->model('Family_model');
+        $this->db->where('id', $member_id);
+        $member = $this->db->get('family_members')->row_array();
+
+        if (!$member) {
+            echo json_encode(['status' => false, 'message' => 'Anggota keluarga tidak ditemukan.']);
+            return;
+        }
+
+        if (!empty($member['user_id'])) {
+            echo json_encode(['status' => false, 'message' => 'Anggota keluarga ini sudah tertaut dengan akun lain.']);
+            return;
+        }
+
+        // Link
+        $this->db->where('id', $member_id)->update('family_members', [
+            'user_id' => $user_id
+        ]);
+
+        echo json_encode(['status' => true, 'message' => 'Berhasil menautkan profil.']);
+    }
+
+    public function api_add_self_member()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        
+        if (!$this->session->userdata('logged_in')) {
+            echo json_encode(['status' => false, 'message' => 'Silakan login terlebih dahulu.']);
+            return;
+        }
+
+        $user_id = $this->session->userdata('user_id');
+        $role    = $this->input->post('role'); // 'anak', 'pasangan', 'orangtua'
+        $rel_ids = $this->input->post('rel_id'); // Bisa string tunggal atau array
+        
+        if (!is_array($rel_ids)) {
+            $rel_ids = empty($rel_ids) ? [] : explode(',', $rel_ids);
+        }
+
+        $processed_rel_ids = [];
+        $this->load->model('Family_model');
+
+        foreach ($rel_ids as $r_id) {
+            if (strpos($r_id, 'new_') === 0) {
+                // Format: new_Nama_Gender[_ParentID]
+                $parts = explode('_', $r_id);
+                $parent_id = null;
+                if (count($parts) >= 4 && is_numeric(end($parts))) {
+                    $parent_id = array_pop($parts);
+                }
+                
+                if (count($parts) >= 3) {
+                    $gender = array_pop($parts); // L atau P
+                    array_shift($parts); // hapus awalan 'new'
+                    $name = urldecode(implode('_', $parts));
+
+                    // Buat relasi baru (pending)
+                    $new_member_data = [
+                        'full_name' => $name,
+                        'gender'    => $gender,
+                        'is_alive'  => 1,
+                        'status'    => 'pending'
+                    ];
+                    
+                    // Cek jika parent ID disertakan
+                    if ($parent_id) {
+                        $parent_member = $this->db->where('id', $parent_id)->get('family_members')->row();
+                        if ($parent_member) {
+                            if (strtoupper($parent_member->gender) === 'L') {
+                                $new_member_data['father_id'] = $parent_id;
+                            } else {
+                                $new_member_data['mother_id'] = $parent_id;
+                            }
+                        }
+                    }
+                    
+                    $this->db->insert('family_members', $new_member_data);
+                    $processed_rel_ids[] = $this->db->insert_id();
+                }
+            } else {
+                $processed_rel_ids[] = (int)$r_id;
+            }
+        }
         
         $data = [
-            'role' => $role,
-            'rel_id' => $rel_id,
-            'full_name' => $this->input->post('full_name'),
+            'full_name'  => $this->input->post('full_name'),
             'birth_date' => $this->input->post('birth_date'),
-            'gender' => $this->input->post('gender'), // 'L' atau 'P'
-            'is_alive' => 1,
-            'status' => 'pending'
+            'gender'     => $this->input->post('gender'), // 'L' atau 'P'
+            'is_alive'   => 1,
+            'status'     => 'pending',
+            'user_id'    => $user_id
         ];
 
         // Handle photo upload
@@ -600,61 +701,18 @@ class Auth extends CI_Controller
             
             if ($this->upload->do_upload('photo')) {
                 $uploadData = $this->upload->data();
-                // We save it inside the same uploads directory
                 $data['photo'] = 'assets/uploads/' . $uploadData['file_name'];
             }
         }
 
-        $this->session->set_userdata('signup_member_info', $data);
+        $result = $this->Family_model->insert_new_member($data, $role, $processed_rel_ids);
 
-        echo json_encode(['status' => true, 'id' => 999999]);
-    }
-
-    // ==========================================================
-    // TEMP MEMBER DETAILS FOR WIZARD TREE PREVIEW (BEFORE DB INSERT)
-    // ==========================================================
-    public function get_member_detail_temp()
-    {
-        header('Content-Type: application/json; charset=utf-8');
-        
-        $data = $this->session->userdata('signup_member_info');
-        if (!$data) {
-            echo json_encode(['error' => 'Data tidak ditemukan']);
-            return;
+        if (isset($result['status']) && $result['status']) {
+            echo json_encode(['status' => true, 'id' => $result['id'] ?? null, 'message' => 'Berhasil menambahkan diri ke silsilah.']);
+        } else {
+            $msg = $result['message'] ?? 'Gagal menambahkan data, pastikan relasi valid.';
+            echo json_encode(['status' => false, 'message' => $msg]);
         }
-
-        // Fetch parent details
-        $this->load->model('Family_model');
-        $rel_id = (int)$data['rel_id'];
-        $this->db->where('id', $rel_id);
-        $rel_member = $this->db->get('family_members')->row_array();
-        
-        $result = [
-            'photo' => $data['photo'] ?? null,
-            'orang_tua' => [],
-            'pasangan' => [],
-            'anak_anak' => []
-        ];
-
-        if ($rel_member) {
-            $p_name = $rel_member['full_name'];
-            $p_photo = !empty($rel_member['photo']) ? base_url($rel_member['photo']) : 'https://placehold.co/100x100/CBD9CF/4A6055?text=' . urlencode(strtoupper(substr($p_name, 0, 1)));
-            
-            $ot = [
-                'nama' => $p_name,
-                'foto' => $p_photo
-            ];
-            
-            if ($data['role'] === 'anak') {
-                $result['orang_tua'][] = $ot;
-            } elseif ($data['role'] === 'pasangan') {
-                $result['pasangan'][] = $ot;
-            } elseif ($data['role'] === 'orangtua') {
-                $result['anak_anak'][] = $ot;
-            }
-        }
-
-        echo json_encode($result);
     }
 
     // ==========================================================

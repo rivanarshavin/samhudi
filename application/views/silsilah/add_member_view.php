@@ -70,6 +70,9 @@
             <i class="bi bi-search"></i>
             <input type="text" id="searchMember" placeholder="Cari nama.." onkeyup="searchMember(this.value)">
         </div>
+        <div style="text-align: right; margin-bottom: 15px;">
+            <button class="btn-secondary" style="font-size: 12px; padding: 5px 10px; border-radius: 8px; border: 1px solid #4a6055; background: transparent; color: #4a6055;" onclick="promptNewRelative(document.getElementById('searchMember').value)"><i class="bi bi-plus"></i> Tambah Manual</button>
+        </div>
         <div class="selected-members-container" id="selectedMembers"></div>
         <div class="member-list" id="memberList">
             <!-- List goes here -->
@@ -207,11 +210,64 @@
 </div>
 </div>
 
+<!-- Modal Tambah Relasi Baru -->
+<div id="newRelModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+    <div style="background: white; padding: 30px; border-radius: 20px; max-width: 400px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+        <h3 style="margin-top: 0; color: #2b3d34; font-size: 18px; margin-bottom: 10px;">Tambah Kerabat Baru</h3>
+        <p style="color: #6a7b73; font-size: 14px; margin-bottom: 20px;">Silakan lengkapi data kerabat baru ini:</p>
+        
+        <div style="margin-bottom: 20px;">
+            <p style="color: #6a7b73; font-size: 13px; margin-bottom: 8px;">Nama Lengkap:</p>
+            <input type="text" id="newRelNameInput" class="form-control" placeholder="Ketik nama lengkap..." autocomplete="off">
+            <div id="newRelNameError" style="color: #b3543f; font-size: 12px; margin-top: 5px; display: none;">Nama harus diisi</div>
+        </div>
+        
+        <div style="margin-bottom: 25px; position: relative;">
+            <p style="color: #6a7b73; font-size: 13px; margin-bottom: 8px;">Tautkan ke orang tua (Opsional jika Anda tahu kakek/neneknya):</p>
+            <div class="search-box" style="position: relative;">
+                <i class="bi bi-search search-icon"></i>
+                <input type="text" id="parentSearch" class="form-control" placeholder="Cari nama orang tua dari kerabat ini..." autocomplete="off">
+            </div>
+            <div id="parentSearchResult" style="position: absolute; top: 100%; left: 0; right: 0; background: white; max-height: 200px; overflow-y: auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10; margin-top: 5px; display: none; border: 1px solid #eee;"></div>
+            
+            <div id="selectedParentContainer" style="display: none; align-items: center; background: #e8f4fc; padding: 10px; border-radius: 8px; margin-top: 10px;">
+                <span style="font-size: 14px; color: #2b3d34; flex: 1;">Orang Tua terpilih: <strong id="selectedParentName"></strong></span>
+                <button type="button" onclick="clearSelectedParent()" style="background: none; border: none; color: #c2185b; cursor: pointer;"><i class="bi bi-x-circle-fill"></i></button>
+                <input type="hidden" id="selectedParentId">
+            </div>
+        </div>
+
+        <p style="color: #6a7b73; font-size: 13px; margin-bottom: 8px;">Pilih Jenis Kelamin:</p>
+        <div style="display: flex; gap: 15px; margin-bottom: 25px;">
+            <input type="hidden" id="newRelGenderVal">
+            <div id="btnMale" style="flex: 1; padding: 15px; border: 2px solid #e2e8e5; border-radius: 12px; background: white; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 10px; transition: 0.2s;" onclick="selectGender('L')">
+                <div style="width: 50px; height: 50px; border-radius: 50%; background: #e8f4fc; color: #0288d1; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                    <i class="bi bi-gender-male"></i>
+                </div>
+                <span style="font-weight: 600; color: #2b3d34;">Laki-laki</span>
+            </div>
+            <div id="btnFemale" style="flex: 1; padding: 15px; border: 2px solid #e2e8e5; border-radius: 12px; background: white; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 10px; transition: 0.2s;" onclick="selectGender('P')">
+                <div style="width: 50px; height: 50px; border-radius: 50%; background: #fce8ef; color: #c2185b; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                    <i class="bi bi-gender-female"></i>
+                </div>
+                <span style="font-weight: 600; color: #2b3d34;">Perempuan</span>
+            </div>
+        </div>
+        <div id="newRelGenderError" style="color: #b3543f; font-size: 12px; text-align: center; margin-top: -15px; margin-bottom: 20px; display: none;">Jenis kelamin harus dipilih</div>
+        
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button onclick="closeNewRelModal()" style="padding: 10px 20px; background: none; border: none; color: #6a7b73; font-weight: 600; cursor: pointer;">Batal</button>
+            <button onclick="submitNewRelative()" style="padding: 10px 20px; background: #2b3d34; border: none; color: white; border-radius: 8px; font-weight: 600; cursor: pointer;">Simpan</button>
+        </div>
+    </div>
+</div>
+
 <script>
-    const isSignupFlow = <?php echo $this->session->userdata('signup_basic_info') ? 'true' : 'false'; ?>;
+    const isOnboarding = <?php echo isset($is_onboarding) && $is_onboarding ? 'true' : 'false'; ?>;
     const searchApiUrl = "<?php echo site_url('familytree/api_search_members'); ?>";
-    const saveApiUrl = isSignupFlow ? "<?php echo site_url('auth/api_save_member_temp'); ?>" : "<?php echo site_url('familytree/api_save_member'); ?>";
+    const saveApiUrl = isOnboarding ? "<?php echo site_url('auth/api_add_self_member'); ?>" : "<?php echo site_url('familytree/api_save_member'); ?>";
     const baseTreeUrl = "<?php echo site_url('familytree'); ?>";
-    const detailApiUrl = isSignupFlow ? "<?php echo site_url('auth/get_member_detail_temp'); ?>" : "<?php echo site_url('familytree/get_member_detail'); ?>";
+    const baseUrl = "<?php echo base_url(); ?>";
+    const detailApiUrl = "<?php echo site_url('familytree/get_member_detail'); ?>";
 </script>
 <script src="<?php echo base_url('assets/js/wizard.js?v=' . time()); ?>"></script>

@@ -81,10 +81,6 @@ function searchMember(term) {
             .then(res => res.json())
             .then(data => {
                 listEl.innerHTML = '';
-                if (data.length === 0) {
-                    listEl.innerHTML = '<div style="text-align:center; color:gray; font-size:12px; padding:10px;">Tidak ditemukan.</div>';
-                    return;
-                }
                 
                 data.forEach(item => {
                     const isSelected = selectedRelIds.some(r => r.id == item.id);
@@ -100,12 +96,174 @@ function searchMember(term) {
                     `;
                     listEl.insertAdjacentHTML('beforeend', html);
                 });
+
+                // Tambahkan opsi "Tambah Baru" di akhir list
+                const addHtml = `
+                    <div class="member-item" style="border: 2px dashed #4A6055; cursor: pointer; justify-content: center; background: #f8faf9;" onclick="promptNewRelative('${term}')">
+                        <div style="text-align: center; color: #4A6055;">
+                            <i class="bi bi-plus-circle-fill"></i> Tambah "<strong>${term}</strong>"
+                        </div>
+                    </div>
+                `;
+                listEl.insertAdjacentHTML('beforeend', addHtml);
+
             })
             .catch(err => {
                 listEl.innerHTML = '<div style="text-align:center; color:red; font-size:12px; padding:10px;">Error pencarian.</div>';
             });
     }, 500);
 }
+
+function promptNewRelative(name = '') {
+    // Reset dan atur input nama
+    document.getElementById('newRelNameInput').value = name;
+    document.getElementById('newRelNameError').style.display = 'none';
+    
+    // Reset gender selection
+    document.getElementById('newRelGenderVal').value = '';
+    document.getElementById('newRelGenderError').style.display = 'none';
+    document.getElementById('btnMale').style.borderColor = '#e2e8e5';
+    document.getElementById('btnMale').style.background = 'white';
+    document.getElementById('btnFemale').style.borderColor = '#e2e8e5';
+    document.getElementById('btnFemale').style.background = 'white';
+    
+    // Reset form pencarian orang tua
+    clearSelectedParent();
+    document.getElementById('parentSearch').value = '';
+    
+    document.getElementById('newRelModal').style.display = 'flex';
+}
+
+function closeNewRelModal() {
+    document.getElementById('newRelModal').style.display = 'none';
+}
+
+function selectGender(gender) {
+    document.getElementById('newRelGenderVal').value = gender;
+    document.getElementById('newRelGenderError').style.display = 'none';
+    
+    const btnMale = document.getElementById('btnMale');
+    const btnFemale = document.getElementById('btnFemale');
+    
+    if (gender === 'L') {
+        btnMale.style.borderColor = '#0288d1';
+        btnMale.style.background = '#f0f8ff';
+        btnFemale.style.borderColor = '#e2e8e5';
+        btnFemale.style.background = 'white';
+    } else {
+        btnFemale.style.borderColor = '#c2185b';
+        btnFemale.style.background = '#fff0f5';
+        btnMale.style.borderColor = '#e2e8e5';
+        btnMale.style.background = 'white';
+    }
+}
+
+function submitNewRelative() {
+    const nameInput = document.getElementById('newRelNameInput');
+    const name = nameInput.value.trim();
+    
+    if (!name) {
+        document.getElementById('newRelNameError').style.display = 'block';
+        nameInput.focus();
+        return;
+    }
+    
+    const gender = document.getElementById('newRelGenderVal').value;
+    if (!gender) {
+        document.getElementById('newRelGenderError').style.display = 'block';
+        return;
+    }
+    
+    const parentId = document.getElementById('selectedParentId').value;
+    
+    let id = 'new_' + encodeURIComponent(name) + '_' + gender;
+    if (parentId) {
+        id += '_' + parentId;
+    }
+    
+    if (!selectedRelIds.some(r => r.id == id)) {
+        selectedRelIds.push({id: id, name: name, gender: gender});
+    }
+    
+    updateSelectedTags();
+    closeNewRelModal();
+    
+    // Kosongkan pencarian utama
+    document.getElementById('searchMember').value = '';
+    document.getElementById('memberList').innerHTML = '';
+}
+
+function selectParent(id, name) {
+    document.getElementById('selectedParentId').value = id;
+    document.getElementById('selectedParentName').innerText = name;
+    document.getElementById('selectedParentContainer').style.display = 'flex';
+    document.getElementById('parentSearch').style.display = 'none';
+    document.getElementById('parentSearchResult').style.display = 'none';
+    document.getElementById('parentSearch').value = '';
+}
+
+function clearSelectedParent() {
+    document.getElementById('selectedParentId').value = '';
+    document.getElementById('selectedParentName').innerText = '';
+    document.getElementById('selectedParentContainer').style.display = 'none';
+    document.getElementById('parentSearch').style.display = 'block';
+    document.getElementById('parentSearchResult').style.display = 'none';
+}
+
+// Event Listeners diletakkan setelah DOM siap
+document.addEventListener('DOMContentLoaded', () => {
+    // Parent search logic
+    const parentSearch = document.getElementById('parentSearch');
+    let parentSearchTimeout;
+    if (parentSearch) {
+        parentSearch.addEventListener('input', function() {
+            clearTimeout(parentSearchTimeout);
+            const term = this.value.trim();
+            const resEl = document.getElementById('parentSearchResult');
+            
+            if (term.length < 2) {
+                resEl.style.display = 'none';
+                return;
+            }
+            
+            parentSearchTimeout = setTimeout(() => {
+                fetch(searchApiUrl + '?term=' + encodeURIComponent(term))
+                    .then(r => r.json())
+                    .then(res => {
+                        resEl.innerHTML = '';
+                        if (res.length === 0) {
+                            resEl.innerHTML = '<div style="padding:10px; color:#6a7b73; font-size:13px; text-align:center;">Tidak ditemukan</div>';
+                        } else {
+                            res.forEach(item => {
+                                const div = document.createElement('div');
+                                div.style.cssText = 'padding:10px; cursor:pointer; border-bottom:1px solid #eee; display:flex; flex-direction:column;';
+                                div.innerHTML = `
+                                    <span style="font-weight:600; font-size:14px;">${item.full_name}</span>
+                                    <span style="font-size:11px; color:#6a7b73;">${item.gender === 'L' ? 'Laki-laki' : 'Perempuan'}</span>
+                                `;
+                                div.onmouseover = () => div.style.background = '#f8faf9';
+                                div.onmouseout = () => div.style.background = 'white';
+                                div.onclick = () => selectParent(item.id, item.full_name);
+                                resEl.appendChild(div);
+                            });
+                        }
+                        resEl.style.display = 'block';
+                    })
+                    .catch(() => {
+                        resEl.innerHTML = '<div style="padding:10px; color:red; font-size:12px; text-align:center;">Error</div>';
+                        resEl.style.display = 'block';
+                    });
+            }, 500);
+        });
+        
+        // Hide result on click outside
+        document.addEventListener('click', (e) => {
+            if (!parentSearch.contains(e.target) && !document.getElementById('parentSearchResult').contains(e.target)) {
+                document.getElementById('parentSearchResult').style.display = 'none';
+            }
+        });
+    }
+});
 
 function selectRelation(input) {
     const id = input.value;
@@ -302,7 +460,9 @@ function loadMiniTree() {
         // Anda
         const namaAnda = document.getElementById('successName').innerText || 'A';
         const inisialAnda = namaAnda.charAt(0).toUpperCase();
-        const photoAnda = data.photo ? `${baseTreeUrl.replace('/familytree', '')}/assets/uploads/${data.photo}` : `https://placehold.co/70x70/CBD9CF/4A6055?text=${inisialAnda}`;
+        
+        // Backend already resolves 'foto' to a full URL or a placeholder
+        const photoAnda = data.foto ? data.foto : `https://ui-avatars.com/api/?name=${inisialAnda}&background=CBD9CF&color=4A6055&size=100`;
         document.getElementById('miniPhotoAnda').src = photoAnda;
 
         // Orang Tua

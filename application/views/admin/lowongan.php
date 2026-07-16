@@ -237,23 +237,21 @@
                                         <td class="p-5 text-center">
                                             <div class="flex items-center justify-center gap-2 flex-wrap">
                                                 <?php if ($job['status'] !== 'approved'): ?>
-                                                    <a href="<?= base_url('admin/lowongan_approve/' . $job['id']) ?>"
+                                                    <button onclick="showConfirm('<?= base_url('admin/lowongan_approve/' . $job['id']) ?>', 'Apakah Anda yakin ingin menyetujui lowongan pekerjaan dari perusahaan <?= htmlspecialchars($job['company_name']) ?> untuk posisi <?= htmlspecialchars($job['job_title']) ?>?', 'Setujui Lowongan', 'success')"
                                                        class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-display text-xs font-bold shadow-md transition-all active:scale-95 flex items-center gap-1">
                                                         <i class="bi bi-check-lg"></i> Setujui
-                                                    </a>
+                                                    </button>
                                                 <?php endif; ?>
                                                 <?php if ($job['status'] !== 'rejected'): ?>
-                                                    <a href="<?= base_url('admin/lowongan_reject/' . $job['id']) ?>"
-                                                       onclick="return confirm('Tolak lowongan ini?');"
+                                                    <button onclick="showConfirm('<?= base_url('admin/lowongan_reject/' . $job['id']) ?>', 'Apakah Anda yakin ingin menolak lowongan pekerjaan dari perusahaan <?= htmlspecialchars($job['company_name']) ?> untuk posisi <?= htmlspecialchars($job['job_title']) ?>?', 'Tolak Lowongan', 'warning')"
                                                        class="px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 rounded-lg font-display text-xs font-semibold border border-amber-500/25 transition-all flex items-center gap-1">
                                                         <i class="bi bi-x-lg"></i> Tolak
-                                                    </a>
+                                                    </button>
                                                 <?php endif; ?>
-                                                <a href="<?= base_url('admin/lowongan_delete/' . $job['id']) ?>"
-                                                   onclick="return confirm('Hapus lowongan dan semua lamarannya?');"
+                                                <button onclick="showConfirm('<?= base_url('admin/lowongan_delete/' . $job['id']) ?>', 'Apakah Anda yakin ingin menghapus lowongan pekerjaan dari perusahaan <?= htmlspecialchars($job['company_name']) ?> untuk posisi <?= htmlspecialchars($job['job_title']) ?> beserta semua data pelamar yang melamar?', 'Hapus Lowongan', 'danger')"
                                                    class="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg font-display text-xs font-semibold border border-red-500/20 transition-all flex items-center gap-1">
                                                     <i class="bi bi-trash"></i> Hapus
-                                                </a>
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -422,7 +420,56 @@
         }
 
         const baseUrl = '<?= base_url() ?>';
+
+        // --- Custom confirmation helpers ---
+        function showConfirm(url, message, title = 'Konfirmasi', type = 'warning') {
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmMessage').textContent = message;
+            
+            const confirmBtn = document.getElementById('confirmBtn');
+            confirmBtn.href = url;
+            
+            const iconEl = document.getElementById('confirmIcon');
+            if (type === 'danger') {
+                iconEl.className = "w-12 h-12 rounded-full bg-red-500/10 text-red-400 border border-red-500/20 flex items-center justify-center mx-auto text-2xl";
+                iconEl.innerHTML = '<i class="bi bi-trash-fill"></i>';
+                confirmBtn.className = "px-6 py-2 bg-red-650 hover:bg-red-700 text-white font-display font-bold rounded-xl text-sm shadow-lg transition-all active:scale-95";
+            } else if (type === 'success') {
+                iconEl.className = "w-12 h-12 rounded-full bg-green-500/10 text-green-400 border border-green-500/20 flex items-center justify-center mx-auto text-2xl";
+                iconEl.innerHTML = '<i class="bi bi-check-circle-fill"></i>';
+                confirmBtn.className = "px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-display font-bold rounded-xl text-sm shadow-lg transition-all active:scale-95";
+            } else {
+                iconEl.className = "w-12 h-12 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center mx-auto text-2xl";
+                iconEl.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i>';
+                confirmBtn.className = "px-6 py-2 bg-gold-400 hover:bg-gold-500 text-teal-950 font-display font-bold rounded-xl text-sm shadow-lg transition-all active:scale-95";
+            }
+            
+            openModal('confirmModal');
+        }
+
+        function closeConfirmModal() {
+            closeModal('confirmModal');
+        }
     </script>
+
+    <!-- ================= MODAL: Konfirmasi Kustom ================= -->
+    <div id="confirmModal" class="modal-backdrop" onclick="closeConfirmModal()">
+        <div class="modal-box max-w-sm" onclick="event.stopPropagation()">
+            <div class="text-center space-y-4">
+                <div class="w-12 h-12 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center mx-auto text-2xl" id="confirmIcon">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                </div>
+                <div>
+                    <h3 class="font-display font-bold text-lg text-white" id="confirmTitle">Konfirmasi</h3>
+                    <p class="text-xs text-white/60 mt-1.5" id="confirmMessage">Apakah Anda yakin ingin melanjutkan tindakan ini?</p>
+                </div>
+                <div class="flex justify-center gap-3 pt-2">
+                    <button type="button" onclick="closeConfirmModal()" class="px-4 py-2 text-sm text-white/60 hover:text-white transition-colors bg-teal-900/40 border border-teal-800 rounded-xl">Batal</button>
+                    <a id="confirmBtn" href="#" class="px-6 py-2 bg-gold-400 hover:bg-gold-500 text-teal-950 font-display font-bold rounded-xl text-sm shadow-lg transition-all active:scale-95">Ya, Setuju</a>
+                </div>
+            </div>
+        </div>
+    </div>
 
 </body>
 </html>

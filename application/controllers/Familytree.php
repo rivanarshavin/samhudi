@@ -10,6 +10,21 @@ class Familytree extends CI_Controller
         $this->load->model('Family_model');
         $this->load->library('session');
         $this->load->helper('url');
+
+        // Middleware Onboarding
+        $allowed_methods = ['api_search_members', 'api_get_unlinked_members', 'api_save_member'];
+        $current_method = $this->router->fetch_method();
+        
+        if ($this->session->userdata('logged_in') && !in_array($current_method, $allowed_methods)) {
+            $role = $this->session->userdata('role');
+            if ($role === 'member') {
+                $user_id = $this->session->userdata('user_id');
+                if (!$this->Family_model->is_user_onboarded($user_id)) {
+                    // Redirect to onboarding page if not onboarded
+                    redirect('auth/onboarding');
+                }
+            }
+        }
     }
 
     public function index()
@@ -86,6 +101,18 @@ class Familytree extends CI_Controller
         echo json_encode($results);
     }
     
+    public function api_get_unlinked_members()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        if (!$this->session->userdata('logged_in')) {
+            echo json_encode([]);
+            return;
+        }
+
+        $results = $this->Family_model->get_unlinked_members(20);
+        echo json_encode($results);
+    }
+    
     public function api_save_member()
     {
         header('Content-Type: application/json; charset=utf-8');
@@ -96,8 +123,57 @@ class Familytree extends CI_Controller
         }
         
         $role = $this->input->post('role'); // 'anak', 'pasangan', 'orangtua'
-        $rel_id = $this->input->post('rel_id'); // ID dari anggota yang dipilih
+        $rel_ids = $this->input->post('rel_id'); // ID dari anggota yang dipilih
         
+        if (!is_array($rel_ids)) {
+            $rel_ids = empty($rel_ids) ? [] : explode(',', $rel_ids);
+        }
+
+        $processed_rel_ids = [];
+        $this->load->model('Family_model');
+
+        foreach ($rel_ids as $r_id) {
+            if (strpos($r_id, 'new_') === 0) {
+                // Format: new_Nama_Gender[_ParentID]
+                $parts = explode('_', $r_id);
+                $parent_id = null;
+                if (count($parts) >= 4 && is_numeric(end($parts))) {
+                    $parent_id = array_pop($parts);
+                }
+                
+                if (count($parts) >= 3) {
+                    $gender = array_pop($parts);
+                    array_shift($parts); // hapus awalan 'new'
+                    $name = urldecode(implode('_', $parts));
+
+                    // Buat relasi baru (pending)
+                    $new_member_data = [
+                        'full_name' => $name,
+                        'gender'    => $gender,
+                        'is_alive'  => 1,
+                        'status'    => 'pending'
+                    ];
+                    
+                    // Cek jika parent ID disertakan
+                    if ($parent_id) {
+                        $parent_member = $this->db->where('id', $parent_id)->get('family_members')->row();
+                        if ($parent_member) {
+                            if (strtoupper($parent_member->gender) === 'L') {
+                                $new_member_data['father_id'] = $parent_id;
+                            } else {
+                                $new_member_data['mother_id'] = $parent_id;
+                            }
+                        }
+                    }
+                    
+                    $this->db->insert('family_members', $new_member_data);
+                    $processed_rel_ids[] = $this->db->insert_id();
+                }
+            } else {
+                $processed_rel_ids[] = (int)$r_id;
+            }
+        }
+
         $this->load->library('session');
         $pending_user_id = $this->session->userdata('pending_user_id');
 
@@ -121,7 +197,7 @@ class Familytree extends CI_Controller
             }
         }
         
-        if (empty($role) || empty($rel_id) || empty($data['full_name']) || empty($data['gender'])) {
+        if (empty($role) || empty($processed_rel_ids) || empty($data['full_name']) || empty($data['gender'])) {
             echo json_encode(['status' => false, 'message' => 'Data tidak lengkap.']);
             return;
         }
@@ -146,13 +222,13 @@ class Familytree extends CI_Controller
             }
         }
         
-        $result = $this->Family_model->insert_new_member($data, $role, $rel_id);
+        $result = $this->Family_model->insert_new_member($data, $role, $processed_rel_ids);
         
-        if ($result['status']) {
-            $result['message'] = 'Data berhasil dikirim dan sedang menunggu persetujuan Admin.';
-            $this->session->set_flashdata('success', $result['message']);
+        if (isset($result['status']) && $result['status']) {
+            echo json_encode(['status' => true, 'message' => 'Berhasil menambahkan data keluarga.', 'id' => $result['id'] ?? null]);
+        } else {
+            $msg = $result['message'] ?? 'Gagal menambahkan data, pastikan relasi valid.';
+            echo json_encode(['status' => false, 'message' => $msg]);
         }
-        
-        echo json_encode($result);
     }
 }

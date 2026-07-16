@@ -2,7 +2,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const treeContainer = document.getElementById('treeContainer');
     
     // Fetch and render tree
-    fetch(treeApiUrl)
+    const bustCacheUrl = treeApiUrl + (treeApiUrl.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
+    fetch(bustCacheUrl)
         .then(res => res.json())
         .then(data => {
             if (data.error) {
@@ -197,7 +198,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Reset tabs to first tab
         tabs[0].click();
 
-        fetch(detailApiUrl + '?id=' + id)
+        const bustCacheUrl = detailApiUrl + '?id=' + id + '&t=' + new Date().getTime();
+        fetch(bustCacheUrl)
             .then(res => res.json())
             .then(data => {
                 if (data.error) {
@@ -236,6 +238,10 @@ document.addEventListener('DOMContentLoaded', () => {
             { icon: 'house', label: 'Alamat', value: data.tempat_tinggal || '-' }
         ];
 
+        if (data.is_alive === 0) {
+            infoItems.push({ icon: 'geo-fill text-brand-medium', label: 'Tempat Makam', value: 'Makam Keluarga H. M. Samhudi' });
+        }
+
         let htmlIndividu = '';
         infoItems.forEach(item => {
             htmlIndividu += `
@@ -245,29 +251,23 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         document.getElementById('infoListIndividu').innerHTML = htmlIndividu;
 
-        // Tab Keluarga
-        let htmlKeluargaInfo = '';
-        if (data.generasi === 1 || data.generasi === 2) {
-            // For parents, show spouse and children count at top
-            htmlKeluargaInfo += `
-                <div class="info-label"><i class="bi bi-person"></i> Nama ${data.pasangan_label || 'Pasangan'}</div>
-                <div class="info-value">${data.pasangan_name || '-'}</div>
-                <div class="info-label"><i class="bi bi-people"></i> Jumlah Anak</div>
-                <div class="info-value">${data.jumlah_anak || '-'}</div>
-            `;
-        } else {
-            // For children, show order and parents
-            htmlKeluargaInfo += `
-                <div class="info-label"><i class="bi bi-sort-numeric-down"></i> Anak ke</div>
-                <div class="info-value">${data.anak_ke || '-'}</div>
-                <div class="info-label"><i class="bi bi-people"></i> Dari (jumlah)</div>
-                <div class="info-value">${data.dari_jumlah_saudara || '-'} bersaudara</div>
-                <div class="info-label"><i class="bi bi-person"></i> Ayah</div>
-                <div class="info-value">${data.ayah_name || '-'}</div>
-                <div class="info-label"><i class="bi bi-person"></i> Ibu</div>
-                <div class="info-value">${data.ibu_name || '-'}</div>
-            `;
-        }
+        // Tab Keluarga (Tampilkan lengkap untuk semua generasi)
+        let htmlKeluargaInfo = `
+            <div class="info-label"><i class="bi bi-person"></i> Nama ${data.pasangan_label || 'Pasangan'}</div>
+            <div class="info-value mb-2">${data.pasangan_name || '-'}</div>
+            
+            <div class="info-label"><i class="bi bi-people"></i> Jumlah Anak</div>
+            <div class="info-value mb-2">${data.jumlah_anak || '-'}</div>
+            
+            <div class="info-label"><i class="bi bi-person"></i> Ayah</div>
+            <div class="info-value mb-2">${data.ayah_name || '-'}</div>
+            
+            <div class="info-label"><i class="bi bi-person"></i> Ibu</div>
+            <div class="info-value mb-2">${data.ibu_name || '-'}</div>
+            
+            <div class="info-label"><i class="bi bi-sort-numeric-down"></i> Anak ke</div>
+            <div class="info-value mb-2">${data.anak_ke || '-'} dari ${data.dari_jumlah_saudara || '-'} bersaudara</div>
+        `;
         document.getElementById('infoListKeluargaInfo').innerHTML = htmlKeluargaInfo;
 
         // Family Cards (Istri, Anak, Ortua, Saudara)
@@ -286,6 +286,8 @@ document.addEventListener('DOMContentLoaded', () => {
             htmlCards += renderSubCardGroup('Saudara', data.saudara);
         }
 
+        htmlCards += renderMiniTree(data);
+
         document.getElementById('familyCardsSection').innerHTML = htmlCards;
     }
 
@@ -293,7 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let html = `<div class="sub-card-group"><div class="sub-card-title">${title}</div>`;
         membersArray.forEach(m => {
             html += `
-                <div class="sub-card">
+                <div class="sub-card" onclick="openModal(${m.id})" style="cursor: pointer;">
                     <img src="${m.foto}" alt="${m.nama}">
                     <div class="sub-card-info">
                         <h4>${m.nama}</h4>
@@ -303,6 +305,78 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         });
         html += `</div>`;
+        return html;
+    }
+
+    function renderMiniTree(data) {
+        let html = `
+        <div class="mt-8 pt-6 border-t border-gray-200">
+            <h4 class="text-sm font-bold text-center mb-6 text-gray-800" style="font-family: 'Manuale', serif;">
+                <i class="bi bi-diagram-3 mr-1"></i> Pohon Keluarga Inti
+            </h4>
+            <div class="flex flex-col items-center w-full pb-4">
+        `;
+            
+        if (data.orang_tua && data.orang_tua.length > 0) {
+            html += `<div class="flex justify-center gap-4 relative z-10 w-full">`;
+            data.orang_tua.forEach(ot => {
+                html += `
+                    <div class="flex flex-col items-center w-20 cursor-pointer transition-transform hover:scale-105" onclick="openModal(${ot.id})">
+                        <img src="${ot.foto}" class="w-12 h-12 rounded-full object-cover border-2 border-gray-300 shadow-sm mb-1 bg-white">
+                        <span class="text-[10px] text-gray-700 text-center leading-tight line-clamp-2 font-semibold mt-1">${ot.nama}</span>
+                        <span class="text-[9px] text-gray-500">${ot.hubungan}</span>
+                    </div>
+                `;
+            });
+            html += `</div>`;
+            html += `<div class="w-px h-6 bg-gray-300 mx-auto relative z-0"></div>`;
+        }
+
+        html += `<div class="flex justify-center items-start gap-6 relative z-10 w-full">`;
+        html += `
+            <div class="flex flex-col items-center w-24 relative z-10">
+                <img src="${data.foto}" class="w-14 h-14 rounded-full object-cover border-[3px] border-amber-500 shadow-md mb-1 bg-white">
+                <span class="text-[11px] text-gray-900 font-bold text-center leading-tight line-clamp-2 mt-1">${data.nama}</span>
+                <span class="text-[9px] text-amber-600 font-bold">Diri Sendiri</span>
+            </div>
+        `;
+        if (data.pasangan && data.pasangan.length > 0) {
+            data.pasangan.forEach(pas => {
+                html += `
+                    <div class="flex flex-col items-center w-24 cursor-pointer transition-transform hover:scale-105 relative z-10" onclick="openModal(${pas.id})">
+                        <img src="${pas.foto}" class="w-12 h-12 rounded-full object-cover border-2 border-emerald-500 shadow-sm mb-1 bg-white">
+                        <span class="text-[11px] text-gray-800 font-semibold text-center leading-tight line-clamp-2 mt-1">${pas.nama}</span>
+                        <span class="text-[9px] text-emerald-600">${pas.hubungan}</span>
+                    </div>
+                `;
+            });
+            html += `<div class="absolute top-7 left-1/2 transform -translate-x-1/2 w-24 border-t-2 border-gray-300 z-0"></div>`;
+        }
+        html += `</div>`;
+
+        if (data.anak_anak && data.anak_anak.length > 0) {
+            html += `<div class="w-px h-6 bg-gray-300 mx-auto relative z-0"></div>`;
+            
+            if (data.anak_anak.length > 1) {
+                html += `<div class="w-full max-w-[80%] border-t-2 border-gray-300 mx-auto relative z-0" style="height: 10px; border-left: 2px solid #d1d5db; border-right: 2px solid #d1d5db; border-bottom: 0;"></div>`;
+            } else {
+                html += `<div class="w-px h-2 bg-gray-300 mx-auto relative z-0"></div>`;
+            }
+            
+            html += `<div class="flex justify-center gap-3 relative z-10 flex-wrap w-full">`;
+            data.anak_anak.forEach(anak => {
+                html += `
+                    <div class="flex flex-col items-center w-16 cursor-pointer transition-transform hover:scale-105 relative" onclick="openModal(${anak.id})">
+                        <img src="${anak.foto}" class="w-10 h-10 rounded-full object-cover border-2 border-gray-300 shadow-sm mb-1 bg-white">
+                        <span class="text-[10px] text-gray-700 text-center leading-tight line-clamp-2 font-medium mt-1">${anak.nama}</span>
+                        <span class="text-[9px] text-gray-500">${anak.hubungan}</span>
+                    </div>
+                `;
+            });
+            html += `</div>`;
+        }
+
+        html += `</div></div>`;
         return html;
     }
 });

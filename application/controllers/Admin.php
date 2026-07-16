@@ -9,6 +9,7 @@ class Admin extends CI_Controller
         $this->load->library('session');
         $this->load->helper('url');
         $this->load->model('Admin_model');
+        $this->load->model('Log_model');
 
         // Proteksi Halaman Admin: Hanya untuk role admin atau super_admin
         if (!$this->session->userdata('logged_in')) {
@@ -21,6 +22,25 @@ class Admin extends CI_Controller
             redirect('home'); // Anggota biasa ditendang ke homepage
             return;
         }
+    }
+
+    private function _log_action($action)
+    {
+        $user_id = $this->session->userdata('user_id');
+        $nama = $this->session->userdata('nama') ?? $this->session->userdata('full_name') ?? 'Admin';
+        $role = $this->session->userdata('role');
+        $this->Log_model->insert_log($user_id, $nama, $role, $action);
+    }
+
+    public function history_log()
+    {
+        $data = [
+            'logs' => $this->Log_model->get_all_logs(1000), // Batasi 1000 log terbaru
+            'admin_name' => $this->session->userdata('nama') ?? $this->session->userdata('full_name') ?? 'Admin',
+            'admin_role' => $this->session->userdata('role'),
+            'active_menu' => 'history_log'
+        ];
+        $this->load->view('admin/logs', $data);
     }
 
     public function index()
@@ -254,6 +274,7 @@ class Admin extends CI_Controller
             if (!empty($member['user_id'])) {
                 $this->db->where('id', $member['user_id'])->update('users', ['status' => 'active']);
             }
+            $this->_log_action('Menyetujui pendaftaran silsilah: ' . $member['full_name']);
             $this->session->set_flashdata('success', 'Anggota silsilah dan akun penggunanya berhasil disetujui.');
         } else {
             $this->session->set_flashdata('error', 'Anggota tidak ditemukan.');
@@ -269,8 +290,10 @@ class Admin extends CI_Controller
             $this->Silsilah_model->update_member($id, ['status' => 'rejected']);
             // Delete linked user account to allow re-registration
             if (!empty($member['user_id'])) {
+                $this->db->where('user_id', $member['user_id'])->update('family_members', ['user_id' => null]);
                 $this->db->where('id', $member['user_id'])->delete('users');
             }
+            $this->_log_action('Menolak pendaftaran silsilah: ' . $member['full_name']);
             $this->session->set_flashdata('success', 'Pendaftaran anggota ditolak.');
         } else {
             $this->session->set_flashdata('error', 'Anggota tidak ditemukan.');
@@ -354,6 +377,7 @@ class Admin extends CI_Controller
             }
 
             $this->Silsilah_model->insert_member($insert_data);
+            $this->_log_action('Menambahkan anggota silsilah: ' . $insert_data['full_name']);
             $this->session->set_flashdata('success', 'Anggota silsilah berhasil ditambahkan.');
             redirect('admin/silsilah');
         }
@@ -430,6 +454,7 @@ class Admin extends CI_Controller
             ];
 
             $this->Silsilah_model->update_member($id, $update_data);
+            $this->_log_action('Mengedit data silsilah: ' . $update_data['full_name']);
             $this->session->set_flashdata('success', 'Anggota silsilah berhasil diperbarui.');
             redirect('admin/silsilah');
         }
@@ -446,9 +471,11 @@ class Admin extends CI_Controller
             }
             // Delete linked user account if exists
             if (!empty($member['user_id'])) {
+                $this->db->where('user_id', $member['user_id'])->update('family_members', ['user_id' => null]);
                 $this->db->where('id', $member['user_id'])->delete('users');
             }
             $this->Silsilah_model->delete_member($id);
+            $this->_log_action('Menghapus data silsilah: ' . $member['full_name']);
             $this->session->set_flashdata('success', 'Anggota silsilah dan akun penggunanya berhasil dihapus.');
         }
         redirect('admin/silsilah');
@@ -473,6 +500,7 @@ class Admin extends CI_Controller
         $forum = $this->Admin_model->get_forum_by_id_admin($id);
         if ($forum) {
             $this->Admin_model->delete_forum_admin($id);
+            $this->_log_action('Menghapus topik forum: ' . $forum['title']);
             $this->session->set_flashdata('success', 'Topik forum berhasil dihapus.');
         } else {
             $this->session->set_flashdata('error', 'Forum tidak ditemukan.');
@@ -500,6 +528,7 @@ class Admin extends CI_Controller
     public function forum_comment_delete($comment_id, $forum_id)
     {
         $this->Admin_model->delete_comment_admin($comment_id);
+        $this->_log_action('Menghapus komentar di forum ID: ' . $forum_id);
         $this->session->set_flashdata('success', 'Komentar jorok/tidak pantas berhasil dihapus.');
         redirect('admin/forum');
     }
@@ -578,6 +607,7 @@ class Admin extends CI_Controller
             ];
 
             $this->Admin_model->insert_news($insert_data);
+            $this->_log_action('Menambahkan berita: ' . $insert_data['title']);
             $this->session->set_flashdata('success', 'Berita berhasil ditambahkan.');
             redirect('admin/berita');
         }
@@ -644,6 +674,7 @@ class Admin extends CI_Controller
             ];
 
             $this->Admin_model->update_news($id, $update_data);
+            $this->_log_action('Mengedit berita: ' . $update_data['title']);
             $this->session->set_flashdata('success', 'Berita berhasil diperbarui.');
             redirect('admin/berita');
         }
@@ -657,6 +688,7 @@ class Admin extends CI_Controller
                 unlink('./' . $news['thumbnail']);
             }
             $this->Admin_model->delete_news($id);
+            $this->_log_action('Menghapus berita: ' . $news['title']);
             $this->session->set_flashdata('success', 'Berita berhasil dihapus.');
         } else {
             $this->session->set_flashdata('error', 'Berita tidak ditemukan.');
@@ -667,6 +699,7 @@ class Admin extends CI_Controller
     public function berita_toggle_status($id)
     {
         $this->Admin_model->toggle_news_status($id);
+        $this->_log_action('Mengubah status berita ID: ' . $id);
         $this->session->set_flashdata('success', 'Status berita berhasil diubah.');
         redirect('admin/berita');
     }
@@ -771,9 +804,11 @@ class Admin extends CI_Controller
             }
             // Delete user account if linked
             if (!empty($member['user_id'])) {
+                $this->db->where('user_id', $member['user_id'])->update('family_members', ['user_id' => null]);
                 $this->db->where('id', $member['user_id'])->delete('users');
             }
             $this->Silsilah_model->delete_member($id);
+            $this->_log_action('Menghapus anggota silsilah (API): ' . $member['full_name']);
         }
         echo json_encode(['status' => true, 'message' => 'Anggota dan akun penggunanya berhasil dihapus.']);
     }
@@ -827,6 +862,7 @@ class Admin extends CI_Controller
             'status' => 'active',
             'is_verified' => 1
         ]);
+        $this->_log_action('Menyetujui pendaftaran pengguna ID: ' . $id);
         $this->session->set_flashdata('success', 'User berhasil disetujui.');
         redirect('admin/pengguna');
     }
@@ -836,6 +872,7 @@ class Admin extends CI_Controller
         // Set user_id in family_members to NULL before deleting user
         $this->db->where('user_id', $id)->update('family_members', ['user_id' => null]);
         $this->db->where('id', $id)->delete('users');
+        $this->_log_action('Menghapus pengguna ID: ' . $id);
 
         $this->session->set_flashdata('success', 'User berhasil dihapus.');
         redirect('admin/pengguna');
@@ -921,6 +958,97 @@ class Admin extends CI_Controller
         $this->Linkedin_model->create_job($data);
         $this->session->set_flashdata('success', 'Lowongan berhasil ditambahkan dan langsung aktif.');
         redirect('admin/lowongan');
+    }
+
+    // ================= KELOLA PEKERJA (OPEN TO WORK) =================
+
+    public function pekerja()
+    {
+        $search = $this->input->get('search') ?? '';
+
+        $data = [
+            'admin_name' => $this->session->userdata('full_name'),
+            'admin_role' => $this->session->userdata('role'),
+            'pekerja'    => $this->Admin_model->get_all_pekerja_admin($search),
+            'search'     => $search,
+        ];
+
+        $this->load->view('admin/pekerja/index', $data);
+    }
+
+    public function pekerja_edit($id)
+    {
+        $pekerja = $this->Admin_model->get_pekerja_by_id($id);
+        if (!$pekerja) {
+            show_404();
+        }
+
+        $this->load->library('form_validation');
+        $this->form_validation->set_rules('desired_job', 'Pekerjaan Diharapkan', 'required|trim');
+
+        if ($this->form_validation->run() == FALSE) {
+            $data = [
+                'admin_name' => $this->session->userdata('full_name'),
+                'admin_role' => $this->session->userdata('role'),
+                'pekerja'    => $pekerja,
+            ];
+            $this->load->view('admin/pekerja/edit', $data);
+        } else {
+            // Handle CV upload
+            $cv_path = $pekerja['cv_path'];
+            if (!empty($_FILES['cv_file']['name'])) {
+                $upload_dir = FCPATH . 'assets/uploads/cv/';
+                if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
+
+                $config['upload_path']   = $upload_dir;
+                $config['allowed_types'] = 'pdf|jpg|jpeg|png|doc|docx';
+                $config['max_size']      = 2048; // 2MB
+                $config['encrypt_name']  = TRUE;
+
+                $this->load->library('upload', $config);
+                $this->upload->initialize($config);
+
+                if ($this->upload->do_upload('cv_file')) {
+                    if (!empty($cv_path) && file_exists(FCPATH . $cv_path)) {
+                        unlink(FCPATH . $cv_path);
+                    }
+                    $upload_data = $this->upload->data();
+                    $cv_path = 'assets/uploads/cv/' . $upload_data['file_name'];
+                } else {
+                    $this->session->set_flashdata('error', 'Gagal upload CV: ' . $this->upload->display_errors('', ''));
+                    redirect('admin/pekerja_edit/' . $id);
+                    return;
+                }
+            }
+
+            $update_data = [
+                'birth_date'   => $this->input->post('birth_date') ?: NULL,
+                'work_history' => $this->input->post('work_history'),
+                'desired_job'  => $this->input->post('desired_job'),
+                'about'        => $this->input->post('about'),
+                'cv_path'      => $cv_path,
+            ];
+
+            $this->Admin_model->update_pekerja($id, $update_data);
+            $this->session->set_flashdata('success', 'Profil pekerja berhasil diperbarui.');
+            redirect('admin/pekerja');
+        }
+    }
+
+    public function pekerja_delete($id)
+    {
+        $pekerja = $this->Admin_model->get_pekerja_by_id($id);
+        if ($pekerja) {
+            // Hapus file CV jika ada
+            if (!empty($pekerja['cv_path']) && file_exists(FCPATH . $pekerja['cv_path'])) {
+                unlink(FCPATH . $pekerja['cv_path']);
+            }
+            $this->Admin_model->delete_pekerja($id);
+            $this->session->set_flashdata('success', 'Profil pekerja berhasil dihapus.');
+        } else {
+            $this->session->set_flashdata('error', 'Profil pekerja tidak ditemukan.');
+        }
+        redirect('admin/pekerja');
     }
 
 }

@@ -362,8 +362,6 @@ if (!function_exists('fmt_date_detail')) {
                 <div class="col-lg-8">
                     <div class="detail-content-card">
                         <h4>
-                            <i class="bi bi-file-text-fill"></i>
-                            Isi Berita
                         </h4>
                         <?php if (!empty($news['content'])): ?>
                             <div class="content-text"><?= htmlspecialchars($news['content']) ?></div>

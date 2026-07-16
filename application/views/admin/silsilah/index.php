@@ -49,13 +49,13 @@
         ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
     </style>
 </head>
-<body class="bg-teal-950 text-white font-body min-h-screen flex">
+<body class="bg-teal-950 text-white font-body h-screen flex overflow-hidden">
 
     <!-- Sidebar -->
     <?php $this->load->view('admin/sidebar'); ?>
 
     <!-- Main Content -->
-    <main class="flex-1 flex flex-col overflow-y-auto">
+    <main class="flex-1 flex flex-col overflow-y-auto overflow-x-hidden">
         
         <!-- Header -->
         <?php $this->load->view('admin/header'); ?>
@@ -85,16 +85,16 @@
 
             <!-- Filters & Search -->
             <div class="bg-brand-dark/20 border border-brand-medium/20 rounded-2xl p-6 shadow-sm">
-                <form method="GET" action="<?= base_url('admin/silsilah') ?>" class="grid grid-cols-1 md:grid-cols-6 gap-4">
+                <form method="GET" action="<?= base_url('admin/silsilah') ?>" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 gap-4">
                     
                     <!-- Search Input -->
-                    <div class="relative md:col-span-2">
+                    <div class="relative md:col-span-2 xl:col-span-3">
                         <i class="bi bi-search absolute left-4 top-3.5 text-white/40"></i>
                         <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Cari nama, email, pekerjaan..." class="w-full bg-[#1A2824] border border-[#4D6B67]/30 rounded-xl py-3 pl-11 pr-4 text-sm text-white placeholder-white/40 focus:outline-none focus:border-brand-medium transition-all">
                     </div>
 
                     <!-- Gender Filter -->
-                    <div>
+                    <div class="xl:col-span-2">
                         <select name="gender" class="w-full bg-[#1A2824] border border-[#4D6B67]/30 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-brand-medium transition-all">
                             <option value="">Semua Jenis Kelamin</option>
                             <option value="L" <?= $gender == 'L' ? 'selected' : '' ?>>Laki-laki</option>
@@ -103,7 +103,7 @@
                     </div>
 
                     <!-- Generasi Filter -->
-                    <div>
+                    <div class="xl:col-span-2">
                         <select name="generasi" class="w-full bg-[#1A2824] border border-[#4D6B67]/30 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-brand-medium transition-all">
                             <option value="">Semua Generasi</option>
                             <?php for ($i = 1; $i <= $max_generasi; $i++): ?>
@@ -113,7 +113,7 @@
                     </div>
 
                     <!-- Persetujuan Filter -->
-                    <div>
+                    <div class="xl:col-span-2">
                         <select name="status" class="w-full bg-[#1A2824] border border-[#4D6B67]/30 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-brand-medium transition-all">
                             <option value="">Semua Status</option>
                             <option value="pending" <?= ($status ?? '') === 'pending' ? 'selected' : '' ?>>Pending</option>
@@ -123,7 +123,7 @@
                     </div>
 
                     <!-- Status Filter -->
-                    <div class="flex gap-2">
+                    <div class="flex gap-2 xl:col-span-3">
                         <select name="is_alive" class="flex-1 bg-[#1A2824] border border-[#4D6B67]/30 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-brand-medium transition-all">
                             <option value="">Semua Status Hidup</option>
                             <option value="1" <?= $is_alive === '1' ? 'selected' : '' ?>>Masih Hidup</option>

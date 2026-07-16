@@ -192,10 +192,15 @@
                 <!-- Author & Time -->
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-full overflow-hidden bg-teal-800 border-2 border-[#377C80] flex-shrink-0">
-                            <img src="<?= !empty($forum->author_avatar) ? base_url($forum->author_avatar) : base_url('assets/images/photo.png') ?>" 
-                                 alt="Avatar" class="w-full h-full object-cover">
-                        </div>
+                        <?php if (!empty($forum->author_avatar)): ?>
+                            <div class="w-12 h-12 rounded-full overflow-hidden bg-teal-800 border-2 border-[#377C80] flex-shrink-0">
+                                <img src="<?= base_url($forum->author_avatar) ?>" alt="Avatar" class="w-full h-full object-cover">
+                            </div>
+                        <?php else: ?>
+                            <div class="w-12 h-12 rounded-full bg-teal-700/60 border border-[#377C80] flex items-center justify-center font-bold text-white text-base select-none flex-shrink-0">
+                                <?= strtoupper(substr($forum->author_name ?? 'U', 0, 1)) ?>
+                            </div>
+                        <?php endif; ?>
                         <div>
                             <h4 class="text-sm font-bold text-white"><?= htmlspecialchars($forum->author_name ?? 'Anggota Keluarga') ?></h4>
                             <p class="text-xs text-white/50 mt-0.5">
@@ -264,10 +269,15 @@
                         <?php foreach ($comments as $comment): ?>
                             <!-- Comment Item -->
                             <div class="flex items-start gap-3 bg-[#1F3637]/40 p-4 rounded-2xl border border-teal-800/20">
-                                <div class="w-9 h-9 rounded-full overflow-hidden bg-teal-800 flex-shrink-0">
-                                    <img src="<?= !empty($comment->author_avatar) ? base_url($comment->author_avatar) : base_url('assets/images/photo.png') ?>" 
-                                         alt="Avatar" class="w-full h-full object-cover">
-                                </div>
+                                <?php if (!empty($comment->author_avatar)): ?>
+                                    <div class="w-9 h-9 rounded-full overflow-hidden bg-teal-800 flex-shrink-0">
+                                        <img src="<?= base_url($comment->author_avatar) ?>" alt="Avatar" class="w-full h-full object-cover">
+                                    </div>
+                                <?php else: ?>
+                                    <div class="w-9 h-9 rounded-full bg-teal-700/60 border border-[#374D49]/40 flex items-center justify-center font-bold text-white text-xs select-none flex-shrink-0">
+                                        <?= strtoupper(substr($comment->author_name ?? 'U', 0, 1)) ?>
+                                    </div>
+                                <?php endif; ?>
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-center justify-between gap-2">
                                         <h5 class="text-xs font-bold text-white"><?= htmlspecialchars($comment->author_name ?? 'Anggota Keluarga') ?></h5>
@@ -308,10 +318,15 @@
                                         <div class="mt-4 pl-4 border-l-2 border-teal-800/50 space-y-4">
                                             <?php foreach ($comment->replies as $reply): ?>
                                                 <div class="flex items-start gap-3 bg-[#1F3637]/20 p-3 rounded-xl">
-                                                    <div class="w-7 h-7 rounded-full overflow-hidden bg-teal-800 flex-shrink-0">
-                                                        <img src="<?= !empty($reply->author_avatar) ? base_url($reply->author_avatar) : base_url('assets/images/photo.png') ?>" 
-                                                             alt="Avatar" class="w-full h-full object-cover">
-                                                    </div>
+                                                    <?php if (!empty($reply->author_avatar)): ?>
+                                                        <div class="w-7 h-7 rounded-full overflow-hidden bg-teal-800 flex-shrink-0">
+                                                            <img src="<?= base_url($reply->author_avatar) ?>" alt="Avatar" class="w-full h-full object-cover">
+                                                        </div>
+                                                    <?php else: ?>
+                                                        <div class="w-7 h-7 rounded-full bg-teal-700/60 border border-[#374D49]/40 flex items-center justify-center font-bold text-white text-[10px] select-none flex-shrink-0">
+                                                            <?= strtoupper(substr($reply->author_name ?? 'U', 0, 1)) ?>
+                                                        </div>
+                                                    <?php endif; ?>
                                                     <div class="flex-1 min-w-0">
                                                         <div class="flex items-center justify-between gap-2">
                                                             <h6 class="text-[11px] font-bold text-white"><?= htmlspecialchars($reply->author_name ?? 'Anggota Keluarga') ?></h6>
