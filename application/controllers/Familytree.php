@@ -181,6 +181,7 @@ class Familytree extends CI_Controller
             'full_name' => $this->input->post('full_name'),
             'birth_date' => $this->input->post('birth_date'),
             'gender' => $this->input->post('gender'), // 'L' atau 'P'
+            'generasi' => $this->input->post('generasi') ? (int)$this->input->post('generasi') : NULL,
             'is_alive' => 1,
             'status' => 'pending'
         ];

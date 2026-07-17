@@ -15,8 +15,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const generations = {};
             
             function traverse(node, depth) {
-                if (!generations[depth]) generations[depth] = [];
-                generations[depth].push(node);
+                // Gunakan generasi manual jika ada, jika tidak fallback ke hitungan otomatis (depth + 1)
+                let genIndex = node.generasi ? (parseInt(node.generasi) - 1) : depth;
+                
+                if (!generations[genIndex]) generations[genIndex] = [];
+                generations[genIndex].push(node);
                 
                 if (node.children && node.children.length > 0) {
                     node.children.forEach(child => traverse(child, depth + 1));
@@ -311,7 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderMiniTree(data) {
         let html = `
         <div class="mt-8 pt-6 border-t border-gray-200">
-            <h4 class="text-sm font-bold text-center mb-6 text-gray-800" style="font-family: 'Manuale', serif;">
+            <h4 class="text-sm font-bold text-center mb-6 text-[color:var(--ink)]" style="font-family: 'Manuale', serif;">
                 <i class="bi bi-diagram-3 mr-1"></i> Pohon Keluarga Inti
             </h4>
             <div class="flex flex-col items-center w-full pb-4">
@@ -323,8 +326,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 html += `
                     <div class="flex flex-col items-center w-20 cursor-pointer transition-transform hover:scale-105" onclick="openModal(${ot.id})">
                         <img src="${ot.foto}" class="w-12 h-12 rounded-full object-cover border-2 border-gray-300 shadow-sm mb-1 bg-white">
-                        <span class="text-[10px] text-gray-700 text-center leading-tight line-clamp-2 font-semibold mt-1">${ot.nama}</span>
-                        <span class="text-[9px] text-gray-500">${ot.hubungan}</span>
+                        <span class="text-[10px] text-[color:var(--ink)] text-center leading-tight line-clamp-2 font-semibold mt-1">${ot.nama}</span>
+                        <span class="text-[9px] text-[color:var(--text-muted)]">${ot.hubungan}</span>
                     </div>
                 `;
             });
@@ -336,7 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
         html += `
             <div class="flex flex-col items-center w-24 relative z-10">
                 <img src="${data.foto}" class="w-14 h-14 rounded-full object-cover border-[3px] border-amber-500 shadow-md mb-1 bg-white">
-                <span class="text-[11px] text-gray-900 font-bold text-center leading-tight line-clamp-2 mt-1">${data.nama}</span>
+                <span class="text-[11px] text-[color:var(--ink)] font-bold text-center leading-tight line-clamp-2 mt-1">${data.nama}</span>
                 <span class="text-[9px] text-amber-600 font-bold">Diri Sendiri</span>
             </div>
         `;
@@ -345,7 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 html += `
                     <div class="flex flex-col items-center w-24 cursor-pointer transition-transform hover:scale-105 relative z-10" onclick="openModal(${pas.id})">
                         <img src="${pas.foto}" class="w-12 h-12 rounded-full object-cover border-2 border-emerald-500 shadow-sm mb-1 bg-white">
-                        <span class="text-[11px] text-gray-800 font-semibold text-center leading-tight line-clamp-2 mt-1">${pas.nama}</span>
+                        <span class="text-[11px] text-[color:var(--ink)] font-semibold text-center leading-tight line-clamp-2 mt-1">${pas.nama}</span>
                         <span class="text-[9px] text-emerald-600">${pas.hubungan}</span>
                     </div>
                 `;
@@ -368,8 +371,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 html += `
                     <div class="flex flex-col items-center w-16 cursor-pointer transition-transform hover:scale-105 relative" onclick="openModal(${anak.id})">
                         <img src="${anak.foto}" class="w-10 h-10 rounded-full object-cover border-2 border-gray-300 shadow-sm mb-1 bg-white">
-                        <span class="text-[10px] text-gray-700 text-center leading-tight line-clamp-2 font-medium mt-1">${anak.nama}</span>
-                        <span class="text-[9px] text-gray-500">${anak.hubungan}</span>
+                        <span class="text-[10px] text-[color:var(--ink)] text-center leading-tight line-clamp-2 font-medium mt-1">${anak.nama}</span>
+                        <span class="text-[9px] text-[color:var(--text-muted)]">${anak.hubungan}</span>
                     </div>
                 `;
             });

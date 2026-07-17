@@ -91,6 +91,7 @@
             
             // Apply saved theme on load
             const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
             document.body.setAttribute('data-theme', savedTheme);
             updateIcons(savedTheme);
             
@@ -103,6 +104,7 @@
             function toggleTheme() {
                 const currentTheme = document.body.getAttribute('data-theme');
                 const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', newTheme);
                 document.body.setAttribute('data-theme', newTheme);
                 localStorage.setItem('theme', newTheme);
                 updateIcons(newTheme);

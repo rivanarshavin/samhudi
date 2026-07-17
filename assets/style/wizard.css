@@ -22,6 +22,10 @@ body[data-theme="dark"] {
   --input-bg: #0d1314;
 }
 
+body[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+}
+
 .wizard-wrapper {
   background: var(--page-bg);
   font-family: 'Manrope', sans-serif;
@@ -30,7 +34,8 @@ body[data-theme="dark"] {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  min-height: calc(100vh - 100px); /* Kurangi tinggi navbar */
+  min-height: calc(100vh - 100px); /* Fallback */
+  min-height: calc(100dvh - 100px); /* Modern mobile browsers */
 }
 
 .wizard-container {
@@ -226,6 +231,7 @@ body[data-theme="dark"] {
   width: 100%;
   max-width: 400px;
   margin-bottom: 20px;
+  background: var(--input-bg);
 }
 
 .search-box input {
@@ -234,6 +240,31 @@ body[data-theme="dark"] {
   margin-left: 8px;
   width: 100%;
   font-family: 'Manrope', sans-serif;
+  background: transparent !important;
+  color: var(--ink) !important;
+}
+
+.search-box input::placeholder {
+  color: var(--ink-soft);
+  opacity: 1;
+}
+
+.form-control {
+  background-color: var(--input-bg) !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--line) !important;
+}
+
+.form-control::placeholder {
+  color: var(--ink-soft);
+  opacity: 1;
+}
+
+.form-control:focus {
+  background-color: var(--input-bg) !important;
+  color: var(--ink) !important;
+  border-color: var(--forest-deep) !important;
+  box-shadow: none !important;
 }
 
 .member-list {

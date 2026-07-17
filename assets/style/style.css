@@ -107,12 +107,17 @@ p, h1, h2, h3, h4, h5, h6, span, a, i, button {
 body {
     max-width: 100%;
     overflow-x: clip;
-    background-color: var(--bg-body);
+    background-color: var(--bg-body) !important;
+    min-height: 100vh;
+    min-height: 100dvh;
+    margin: 0;
 }
 
 html {
     max-width: 100%;
     overflow-x: clip;
+    background-color: var(--bg-body) !important;
+    height: 100%;
 }
 
 nav {
