@@ -81,6 +81,12 @@
                     </div>
                 <?php endif; ?>
 
+                <?php if ($this->session->flashdata('error')): ?>
+                    <div class="bg-brand-red/20 border border-brand-red text-red-300 px-6 py-4 rounded-xl mb-6 text-sm">
+                        <?= $this->session->flashdata('error') ?>
+                    </div>
+                <?php endif; ?>
+
                 <?= form_open_multipart('admin/silsilah_edit/' . $member['id'], ['class' => 'space-y-6']) ?>
 
                     <!-- Section 1: Data Diri Utama -->
@@ -102,6 +108,12 @@
                                     <option value="L" <?= set_select('gender', 'L', $member['gender'] == 'L') ?>>Laki-laki</option>
                                     <option value="P" <?= set_select('gender', 'P', $member['gender'] == 'P') ?>>Perempuan</option>
                                 </select>
+                            </div>
+
+                            <!-- Generasi -->
+                            <div>
+                                <label class="block text-xs font-semibold text-white/70 mb-2 uppercase tracking-wide">Generasi</label>
+                                <input type="number" name="generasi" min="1" max="10" placeholder="Kosongkan untuk otomatis" value="<?= set_value('generasi', $member['generasi']) ?>" class="w-full bg-[#1A2824] border border-[#4D6B67]/30 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-brand-medium transition-all">
                             </div>
 
                             <!-- Hubungkan Akun Pengguna -->
@@ -158,6 +170,28 @@
                                         <?php endif; ?>
                                     <?php endforeach; ?>
                                 </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 2.5: Data Pasangan -->
+                    <div class="border-b border-[#4D6B67]/20 pb-6">
+                        <h3 class="font-display font-bold text-base text-white mb-4"><i class="bi bi-heart-fill text-brand-medium mr-2"></i>Data Pasangan (Suami / Istri)</h3>
+                        <p class="text-xs text-white/50 mb-4">Centang kotak pada nama untuk menjadikan anggota tersebut sebagai pasangan.</p>
+                        
+                        <div>
+                            <label class="block text-xs font-semibold text-white/70 mb-2 uppercase tracking-wide">Pilih Pasangan</label>
+                            <div class="w-full bg-[#1A2824] border border-[#4D6B67]/30 rounded-xl max-h-48 overflow-y-auto custom-scrollbar p-2">
+                                <?php foreach ($spouse_options as $spouse): ?>
+                                    <?php $selected = in_array($spouse['id'], $current_spouses) ? 'checked' : ''; ?>
+                                    <label class="flex items-center gap-3 p-3 hover:bg-[#4D6B67]/20 rounded-lg cursor-pointer transition-all border border-transparent hover:border-[#4D6B67]/30 group">
+                                        <input type="checkbox" name="spouses[]" value="<?= $spouse['id'] ?>" <?= $selected ?> class="w-4 h-4 text-brand-medium bg-[#15201E] border-[#4D6B67]/50 rounded focus:ring-brand-medium/50 focus:ring-2 cursor-pointer transition-all">
+                                        <span class="text-sm text-white/80 group-hover:text-white transition-colors font-medium"><?= htmlspecialchars($spouse['full_name']) ?></span>
+                                    </label>
+                                <?php endforeach; ?>
+                                <?php if (empty($spouse_options)): ?>
+                                    <p class="text-sm text-white/40 p-4 text-center italic">Tidak ada kandidat pasangan yang tersedia.</p>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>

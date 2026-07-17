@@ -306,8 +306,9 @@ class Admin extends CI_Controller
         $this->load->model('Silsilah_model');
         $this->load->library('form_validation');
 
-        $this->form_validation->set_rules('full_name', 'Nama Lengkap', 'required|trim');
+        $this->form_validation->set_rules('full_name', 'Nama Lengkap', 'required|trim|is_unique[family_members.full_name]');
         $this->form_validation->set_rules('gender', 'Jenis Kelamin', 'required');
+        $this->form_validation->set_message('is_unique', 'Nama {field} sudah terdaftar dalam silsilah. Mohon gunakan nama lain (misal: tambah nama panggilan/alias).');
 
         if ($this->form_validation->run() == FALSE) {
             $data = [
@@ -396,7 +397,20 @@ class Admin extends CI_Controller
         $this->form_validation->set_rules('full_name', 'Nama Lengkap', 'required|trim');
         $this->form_validation->set_rules('gender', 'Jenis Kelamin', 'required');
 
-        if ($this->form_validation->run() == FALSE) {
+        $is_valid = $this->form_validation->run();
+        
+        // Manual unique check for full_name (excluding current id)
+        if ($is_valid && $this->input->post('full_name')) {
+            $this->db->where('full_name', trim($this->input->post('full_name')));
+            $this->db->where('id !=', $id);
+            if ($this->db->get('family_members')->num_rows() > 0) {
+                $is_valid = FALSE;
+                // Add fake form error so view can show it (or use session flashdata)
+                $this->session->set_flashdata('error', 'Nama anggota "' . htmlspecialchars($this->input->post('full_name')) . '" sudah terdaftar dalam silsilah.');
+            }
+        }
+
+        if ($is_valid == FALSE) {
             $data = [
                 'admin_name'     => $this->session->userdata('full_name'),
                 'admin_role'     => $this->session->userdata('role'),
@@ -404,6 +418,8 @@ class Admin extends CI_Controller
                 'families'       => $this->Silsilah_model->get_all_families(),
                 'fathers'        => $this->Silsilah_model->get_parent_options('L'),
                 'mothers'        => $this->Silsilah_model->get_parent_options('P'),
+                'spouse_options' => $this->Silsilah_model->get_spouse_options($member['gender'], $id),
+                'current_spouses'=> $this->Silsilah_model->get_spouses_by_member_id($id),
                 'unlinked_users' => $this->Silsilah_model->get_unlinked_users($member['user_id'])
             ];
 
@@ -441,6 +457,7 @@ class Admin extends CI_Controller
                 'father_id'   => $this->input->post('father_id') ? $this->input->post('father_id') : null,
                 'mother_id'   => $this->input->post('mother_id') ? $this->input->post('mother_id') : null,
                 'full_name'   => $this->input->post('full_name'),
+                'generasi'    => $this->input->post('generasi') ? $this->input->post('generasi') : null,
                 'gender'      => $this->input->post('gender'),
                 'birth_place' => $this->input->post('birth_place'),
                 'birth_date'  => $this->input->post('birth_date') ? $this->input->post('birth_date') : null,
@@ -454,6 +471,11 @@ class Admin extends CI_Controller
             ];
 
             $this->Silsilah_model->update_member($id, $update_data);
+            
+            // Update spouses
+            $spouses = $this->input->post('spouses') ?? [];
+            $this->Silsilah_model->sync_marriages($id, $update_data['gender'], $spouses);
+
             $this->_log_action('Mengedit data silsilah: ' . $update_data['full_name']);
             $this->session->set_flashdata('success', 'Anggota silsilah berhasil diperbarui.');
             redirect('admin/silsilah');
@@ -477,6 +499,40 @@ class Admin extends CI_Controller
             $this->Silsilah_model->delete_member($id);
             $this->_log_action('Menghapus data silsilah: ' . $member['full_name']);
             $this->session->set_flashdata('success', 'Anggota silsilah dan akun penggunanya berhasil dihapus.');
+        }
+        redirect('admin/silsilah');
+    }
+
+    public function silsilah_delete_multiple()
+    {
+        $ids = $this->input->post('ids');
+        if (!empty($ids) && is_array($ids)) {
+            $this->load->model('Silsilah_model');
+            $deleted_count = 0;
+            
+            foreach ($ids as $id) {
+                $member = $this->Silsilah_model->get_member_by_id($id);
+                if ($member) {
+                    // Delete photo file
+                    if ($member['photo'] && file_exists('./' . $member['photo'])) {
+                        unlink('./' . $member['photo']);
+                    }
+                    // Delete linked user account if exists
+                    if (!empty($member['user_id'])) {
+                        $this->db->where('user_id', $member['user_id'])->update('family_members', ['user_id' => null]);
+                        $this->db->where('id', $member['user_id'])->delete('users');
+                    }
+                    $this->Silsilah_model->delete_member($id);
+                    $deleted_count++;
+                }
+            }
+            
+            if ($deleted_count > 0) {
+                $this->_log_action('Menghapus ' . $deleted_count . ' data silsilah secara massal');
+                $this->session->set_flashdata('success', $deleted_count . ' anggota silsilah berhasil dihapus.');
+            }
+        } else {
+            $this->session->set_flashdata('error', 'Tidak ada anggota yang dipilih untuk dihapus.');
         }
         redirect('admin/silsilah');
     }
