@@ -29,9 +29,16 @@ class Familytree extends CI_Controller
 
     public function index()
     {
+        $data = [];
+        if ($this->session->userdata('logged_in')) {
+            $user_id = $this->session->userdata('user_id');
+            $member = $this->db->get_where('family_members', ['user_id' => $user_id])->row();
+            $data['logged_in_member_id'] = $member ? $member->id : null;
+        }
+
         $this->load->view('templates/header');
         $this->load->view('partials/navbar');
-        $this->load->view('silsilah/familytree_view');
+        $this->load->view('silsilah/familytree_view', $data);
         $this->load->view('templates/footer');
     }
 
@@ -245,6 +252,137 @@ class Familytree extends CI_Controller
         } else {
             $msg = $result['message'] ?? 'Gagal menambahkan data, pastikan relasi valid.';
             echo json_encode(['status' => false, 'message' => $msg]);
+        }
+    }
+
+    private function _is_nuclear_family($user_id, $target_id)
+    {
+        $user_member = $this->db->get_where('family_members', ['user_id' => $user_id])->row();
+        if (!$user_member) return false;
+        $uid = $user_member->id;
+        
+        if ($uid == $target_id) return true;
+        
+        // Cek apakah target adalah anak
+        $this->db->where('id', $target_id);
+        $this->db->group_start();
+        $this->db->where('father_id', $uid);
+        $this->db->or_where('mother_id', $uid);
+        $this->db->group_end();
+        if ($this->db->count_all_results('family_members') > 0) return true;
+        
+        // Cek apakah target adalah pasangan
+        $this->db->group_start();
+        $this->db->where('husband_id', $uid);
+        $this->db->where('wife_id', $target_id);
+        $this->db->group_end();
+        $this->db->or_group_start();
+        $this->db->where('husband_id', $target_id);
+        $this->db->where('wife_id', $uid);
+        $this->db->group_end();
+        if ($this->db->count_all_results('marriages') > 0) return true;
+        
+        return false;
+    }
+
+    public function api_get_member_raw()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        if (!$this->session->userdata('logged_in')) {
+            echo json_encode(['error' => 'Akses ditolak']);
+            return;
+        }
+
+        $id = $this->input->get('id');
+        $user_id = $this->session->userdata('user_id');
+        
+        if (!$this->_is_nuclear_family($user_id, $id)) {
+            echo json_encode(['error' => 'Anda hanya dapat mengedit data keluarga inti Anda (suami/istri, anak).']);
+            return;
+        }
+        
+        $member = $this->db->get_where('family_members', ['id' => $id])->row_array();
+        if (!$member) {
+            echo json_encode(['error' => 'Data tidak ditemukan']);
+            return;
+        }
+        
+        echo json_encode($member);
+    }
+
+    public function api_update_member()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        if (!$this->session->userdata('logged_in')) {
+            echo json_encode(['status' => false, 'message' => 'Akses ditolak']);
+            return;
+        }
+
+        $id = $this->input->post('id');
+        $user_id = $this->session->userdata('user_id');
+        
+        if (!$this->_is_nuclear_family($user_id, $id)) {
+            echo json_encode(['status' => false, 'message' => 'Anda hanya dapat mengedit data keluarga inti Anda.']);
+            return;
+        }
+
+        $this->load->library('form_validation');
+        $this->form_validation->set_rules('full_name', 'Nama Lengkap', 'required|trim');
+        $this->form_validation->set_rules('gender', 'Jenis Kelamin', 'required');
+
+        if ($this->form_validation->run() == FALSE) {
+            echo json_encode(['status' => false, 'message' => strip_tags(validation_errors())]);
+            return;
+        }
+        
+        // Manual check for unique full_name if name changed
+        $full_name = trim($this->input->post('full_name'));
+        $current_member = $this->db->get_where('family_members', ['id' => $id])->row();
+        if ($full_name !== $current_member->full_name) {
+            $this->db->where('full_name', $full_name);
+            $this->db->where('id !=', $id);
+            if ($this->db->get('family_members')->num_rows() > 0) {
+                echo json_encode(['status' => false, 'message' => 'Nama sudah terdaftar. Mohon gunakan variasi nama yang berbeda agar tidak kembar.']);
+                return;
+            }
+        }
+
+        $update_data = [
+            'full_name'   => $full_name,
+            'gender'      => $this->input->post('gender'),
+            'birth_place' => $this->input->post('birth_place'),
+            'birth_date'  => $this->input->post('birth_date') ? $this->input->post('birth_date') : null,
+            'occupation'  => $this->input->post('occupation'),
+            'address'     => $this->input->post('address'),
+            'phone'       => $this->input->post('phone'),
+            'email'       => $this->input->post('email'),
+        ];
+
+        // Handle photo upload if exists
+        if (isset($_FILES['photo']) && $_FILES['photo']['name']) {
+            $config['upload_path']   = FCPATH . 'assets/uploads/';
+            $config['allowed_types'] = 'gif|jpg|jpeg|png';
+            $config['max_size']      = 2048; // 2MB
+            $config['file_name']     = time() . '_' . $_FILES['photo']['name'];
+            
+            if (!is_dir($config['upload_path'])) {
+                mkdir($config['upload_path'], 0777, true);
+            }
+            
+            $this->load->library('upload');
+            $this->upload->initialize($config);
+            
+            if ($this->upload->do_upload('photo')) {
+                $uploadData = $this->upload->data();
+                $update_data['photo'] = 'assets/uploads/' . $uploadData['file_name'];
+            }
+        }
+
+        $this->db->where('id', $id);
+        if ($this->db->update('family_members', $update_data)) {
+            echo json_encode(['status' => true, 'message' => 'Data berhasil diperbarui.']);
+        } else {
+            echo json_encode(['status' => false, 'message' => 'Terjadi kesalahan sistem saat menyimpan.']);
         }
     }
 }
