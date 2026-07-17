@@ -122,31 +122,31 @@
 
         <ul class="font-display font-semibold text-base tracking-wide text-white/80 space-y-4 p-6 pl-2 flex-1">
             <li>
-                <a href="<?= base_url() ?>" class="mobile-link group block py-2 pl-8 hover:text-white transition-colors duration-200" data-page="home"><span class="arrow-icon" style="display:none;margin-right:8px;">&gt;</span><?php if ($this->session->userdata('logged_in')): ?><i class="bi bi-house mr-2"></i><?php endif; ?>Home</a>
+                <a href="<?= base_url() ?>" class="mobile-link group block py-2 pl-8 hover:text-white transition-colors duration-200" data-page="home"><span class="arrow-icon" style="display:none;margin-right:8px;">&gt;</span><?php if ($this->session->userdata('logged_in')): ?><img src="<?= base_url('assets/images/3d_house.png') ?>" class="w-7 h-7 inline-block mr-2 align-middle object-contain" alt="Home"><?php endif; ?>Home</a>
             </li>
             <li>
-                <a href="<?= base_url('Wasiat') ?>" class="mobile-link group block py-2 pl-8 hover:text-white transition-colors duration-200" data-page="wasiat"><span class="arrow-icon" style="display:none;margin-right:8px;">&gt;</span><?php if ($this->session->userdata('logged_in')): ?><i class="bi bi-book mr-2"></i><?php endif; ?>Wasiat alm. H.M Samhudi</a>
+                <a href="<?= base_url('Wasiat') ?>" class="mobile-link group block py-2 pl-8 hover:text-white transition-colors duration-200" data-page="wasiat"><span class="arrow-icon" style="display:none;margin-right:8px;">&gt;</span><?php if ($this->session->userdata('logged_in')): ?><img src="<?= base_url('assets/images/3d_wasiat.png') ?>" class="w-7 h-7 inline-block mr-2 align-middle object-contain" alt="Wasiat"><?php endif; ?>Wasiat alm. H.M Samhudi</a>
             </li>
             <li>
-                <a href="#" class="mobile-link group block py-2 pl-8 hover:text-white transition-colors duration-200" data-page="yayasan"><span class="arrow-icon" style="display:none;margin-right:8px;">&gt;</span><?php if ($this->session->userdata('logged_in')): ?><i class="bi bi-house-heart mr-2"></i><?php endif; ?>Yayasan</a>
+                <a href="#" class="mobile-link group block py-2 pl-8 hover:text-white transition-colors duration-200" data-page="yayasan"><span class="arrow-icon" style="display:none;margin-right:8px;">&gt;</span><?php if ($this->session->userdata('logged_in')): ?><img src="<?= base_url('assets/images/3d_yayasan.png') ?>" class="w-7 h-7 inline-block mr-2 align-middle object-contain" alt="Yayasan"><?php endif; ?>Yayasan</a>
             </li>
             <li>
-                <a href="<?= base_url('Familytree') ?>" class="mobile-link group block py-2 pl-8 hover:text-white transition-colors duration-200" data-page="familytree"><span class="arrow-icon" style="display:none;margin-right:8px;">&gt;</span><?php if ($this->session->userdata('logged_in')): ?><i class="bi bi-people mr-2"></i><?php endif; ?>Silsilah Keluarga</a>
+                <a href="<?= base_url('Familytree') ?>" class="mobile-link group block py-2 pl-8 hover:text-white transition-colors duration-200" data-page="familytree"><span class="arrow-icon" style="display:none;margin-right:8px;">&gt;</span><?php if ($this->session->userdata('logged_in')): ?><img src="<?= base_url('assets/images/3d_silsilah.png') ?>" class="w-7 h-7 inline-block mr-2 align-middle object-contain" alt="Silsilah Keluarga"><?php endif; ?>Silsilah Keluarga</a>
             </li>
             <li>
-                <a href="<?= base_url('forum') ?>" class="mobile-link group block py-2 pl-8 hover:text-white transition-colors duration-200" data-page="forum"><span class="arrow-icon" style="display:none;margin-right:8px;">&gt;</span><?php if ($this->session->userdata('logged_in')): ?><i class="bi bi-chat-dots mr-2"></i><?php endif; ?>Forum Diskusi</a>
+                <a href="<?= base_url('forum') ?>" class="mobile-link group block py-2 pl-8 hover:text-white transition-colors duration-200" data-page="forum"><span class="arrow-icon" style="display:none;margin-right:8px;">&gt;</span><?php if ($this->session->userdata('logged_in')): ?><img src="<?= base_url('assets/images/3d_forum.png') ?>" class="w-7 h-7 inline-block mr-2 align-middle object-contain" alt="Forum Diskusi"><?php endif; ?>Forum Diskusi</a>
             </li>
             <li>
-                <a href="<?= base_url('Berita') ?>" class="mobile-link group block py-2 pl-8 hover:text-white transition-colors duration-200" data-page="berita"><span class="arrow-icon" style="display:none;margin-right:8px;">&gt;</span><?php if ($this->session->userdata('logged_in')): ?><i class="bi bi-newspaper mr-2"></i><?php endif; ?>Berita</a>
+                <a href="<?= base_url('Berita') ?>" class="mobile-link group block py-2 pl-8 hover:text-white transition-colors duration-200" data-page="berita"><span class="arrow-icon" style="display:none;margin-right:8px;">&gt;</span><?php if ($this->session->userdata('logged_in')): ?><img src="<?= base_url('assets/images/3d_berita.png') ?>" class="w-7 h-7 inline-block mr-2 align-middle object-contain" alt="Berita"><?php endif; ?>Berita</a>
             </li>
         <?php if ($this->session->userdata('logged_in')): ?>
             <?php if (in_array($this->session->userdata('role'), ['admin', 'super_admin'])): ?>
             <li>
-                <a href="<?= base_url('admin') ?>" class="mobile-link group block py-2 pl-8 hover:text-white transition-colors duration-200" data-page="admin"><span class="arrow-icon" style="display:none;margin-right:8px;">&gt;</span><i class="bi bi-speedometer2 mr-2"></i>Dashboard</a>
+                <a href="<?= base_url('admin') ?>" class="mobile-link group block py-2 pl-8 hover:text-white transition-colors duration-200" data-page="admin"><span class="arrow-icon" style="display:none;margin-right:8px;">&gt;</span><img src="<?= base_url('assets/images/3d_dashboard.png') ?>" class="w-7 h-7 inline-block mr-2 align-middle object-contain" alt="Dashboard">Dashboard</a>
             </li>
             <?php endif; ?>
             <li>
-                <a href="<?= base_url('profile') ?>" class="mobile-link group block py-2 pl-8 hover:text-white transition-colors duration-200" data-page="profile"><span class="arrow-icon" style="display:none;margin-right:8px;">&gt;</span><i class="bi bi-pencil-square mr-2"></i>Edit Profil</a>
+                <a href="<?= base_url('profile') ?>" class="mobile-link group block py-2 pl-8 hover:text-white transition-colors duration-200" data-page="profile"><span class="arrow-icon" style="display:none;margin-right:8px;">&gt;</span><img src="<?= base_url('assets/images/3d_edit_profile.png') ?>" class="w-7 h-7 inline-block mr-2 align-middle object-contain" alt="Edit Profil">Edit Profil</a>
             </li>
         <?php endif; ?>
         <?php if (!$this->session->userdata('logged_in')): ?>

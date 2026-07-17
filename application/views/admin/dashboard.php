@@ -579,7 +579,6 @@ function previewCarouselInput(input, idx) {
 var makamNewFiles = [];
 
 function deleteMakamPhoto(idx) {
-    if (!confirm('Hapus foto ini?')) return;
     window.location.href = '<?= base_url('admin') ?>?delete_makam_photo=' + idx + '#makam-section';
 }
 
