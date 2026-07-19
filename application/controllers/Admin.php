@@ -220,6 +220,7 @@ class Admin extends CI_Controller
             'total_forums'      => $this->Admin_model->get_total_forums(),
             'total_wills'       => $this->Admin_model->get_total_wills(),
             'recent_activities' => $this->Admin_model->get_recent_activities(5),
+            'highlighted_news'  => $this->Admin_model->get_highlighted_news(),
             'selected_banner'   => $banner_config['file'] ?? 'background2.png',
             'carousel_items'    => json_decode(file_get_contents($carousel_config_path), true),
             'intro_text'        => $intro_config['text'] ?? "Dengan rasa syukur dan bangga,\nkami persembahkan website ini\nsebagai ruang digital untuk\nmenyambung tali silaturahmi",
@@ -757,6 +758,14 @@ class Admin extends CI_Controller
         $this->Admin_model->toggle_news_status($id);
         $this->_log_action('Mengubah status berita ID: ' . $id);
         $this->session->set_flashdata('success', 'Status berita berhasil diubah.');
+        redirect('admin/berita');
+    }
+
+    public function berita_highlight($id)
+    {
+        $this->Admin_model->highlight_news($id);
+        $this->_log_action('Mengubah highlight berita ID: ' . $id);
+        $this->session->set_flashdata('success', 'Status highlight berita berhasil diubah.');
         redirect('admin/berita');
     }
 

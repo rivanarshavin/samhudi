@@ -1,16 +1,42 @@
 document.addEventListener('DOMContentLoaded', () => {
     const treeContainer = document.getElementById('treeContainer');
+    let currentMode = 'besar';
     
-    // Fetch and render tree
-    const bustCacheUrl = treeApiUrl + (treeApiUrl.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
-    fetch(bustCacheUrl)
-        .then(res => res.json())
-        .then(data => {
-            if (data.error) {
-                treeContainer.innerHTML = `<div class="empty-state">${data.error}</div>`;
+    // Tab Listeners
+    const btnBesar = document.getElementById('tabKeluargaBesar');
+    const btnKecil = document.getElementById('tabKeluargaKecil');
+    
+    if (btnBesar) {
+        btnBesar.addEventListener('click', () => {
+            currentMode = 'besar';
+            btnBesar.classList.add('active');
+            btnBesar.style.borderColor = '#D8B45B';
+            btnBesar.style.color = '#fff';
+            if (btnKecil) {
+                btnKecil.classList.remove('active');
+                btnKecil.style.borderColor = 'transparent';
+                btnKecil.style.color = 'rgba(255,255,255,0.6)';
+            }
+            loadTree();
+        });
+    }
+    
+    if (btnKecil) {
+        btnKecil.addEventListener('click', () => {
+            if (!loggedInMemberId) {
+                alert('Anda belum memiliki profil silsilah. Silakan tambah data diri Anda terlebih dahulu.');
                 return;
             }
-            
+            currentMode = 'kecil';
+            btnKecil.classList.add('active');
+            btnKecil.style.borderColor = '#D8B45B';
+            btnKecil.style.color = '#fff';
+            if (btnBesar) {
+                btnBesar.classList.remove('active');
+                btnBesar.style.borderColor = 'transparent';
+                btnBesar.style.color = 'rgba(255,255,255,0.6)';
+            }
+
             // Flatten tree by depth
             const generations = {};
             window.allTreeMembers = [];
@@ -39,11 +65,58 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             renderGenerations(generations);
-        })
-        .catch(err => {
-            treeContainer.innerHTML = `<div class="empty-state">Gagal memuat data silsilah.</div>`;
-            console.error(err);
         });
+    }
+    
+    function loadTree() {
+        treeContainer.innerHTML = `<div class="loading-state">Memuat data silsilah...</div>`;
+        
+        let url = treeApiUrl;
+        if (currentMode === 'kecil' && loggedInMemberId) {
+            url += `?root_id=${loggedInMemberId}&nuclear=1`;
+        }
+        const bustCacheUrl = url + (url.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
+        
+        fetch(bustCacheUrl)
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    treeContainer.innerHTML = `<div class="empty-state">${data.error}</div>`;
+                    return;
+                }
+                
+                // Flatten tree by depth
+                const generations = {};
+                
+                function traverse(node, depth) {
+                    let genIndex = node.generasi ? (parseInt(node.generasi) - 1) : depth;
+                    
+                    if (!generations[genIndex]) generations[genIndex] = [];
+                    generations[genIndex].push(node);
+                    
+                    if (node.children && node.children.length > 0) {
+                        // Jika mode kecil, node root kedalaman 0, anak2nya kedalaman 1.
+                        // Batasi kedalaman jika di mode kecil agar tidak load cucu dsb.
+                        if (currentMode === 'kecil' && depth >= 0 && node.id !== loggedInMemberId) {
+                            return; // Stop traverse kalau ini bukan root (sudah masuk level anak)
+                        }
+                        node.children.forEach(child => traverse(child, depth + 1));
+                    }
+                }
+                
+                traverse(data, 0);
+                renderGenerations(generations);
+            })
+            .catch(err => {
+                treeContainer.innerHTML = `<div class="empty-state">Gagal memuat data silsilah.</div>`;
+                console.error(err);
+            });
+    }
+
+    // Load initial
+    loadTree();
+    
+    document.addEventListener('refreshTreeEvent', loadTree);
 
     // Fitur Pencarian (Client-side)
     const searchInput = document.querySelector('.silsilah-search-box input');
@@ -136,6 +209,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         document.querySelectorAll('.clickable-profile').forEach(col => {
             col.addEventListener('click', function(e) {
+                if (e.target.closest('.inline-edit-btn')) {
+                    // Stop modal dari terbuka jika yang diklik adalah tombol edit
+                    e.stopPropagation();
+                    return;
+                }
                 e.stopPropagation();
                 const id = this.getAttribute('data-id');
                 if (id) openModal(id);
@@ -146,8 +224,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderMemberCard(member) {
         let profilesHtml = '';
         
+        let editBtn = (id) => (currentMode === 'kecil') ? `<button onclick="event.stopPropagation(); openEditModalPopup(${id});" class="inline-edit-btn" title="Edit Data" style="position: absolute; top: 0; right: 0; background: #D8B45B; color: #15201E; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; z-index: 5; border: none; cursor: pointer;"><i class="bi bi-pencil-fill"></i></button>` : '';
+
         profilesHtml += `
-            <div class="profile-col clickable-profile" data-id="${member.id}">
+            <div class="profile-col clickable-profile" data-id="${member.id}" style="position: relative;">
+                ${editBtn(member.id)}
                 <img src="${member.foto}" class="profile-img" alt="${member.nama}">
                 <div class="profile-name">${member.nama.split(' ')[0]}</div>
             </div>
@@ -157,7 +238,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (Array.isArray(member.pasangan)) {
                 member.pasangan.forEach(p => {
                     profilesHtml += `
-                        <div class="profile-col clickable-profile" data-id="${p.id}">
+                        <div class="profile-col clickable-profile" data-id="${p.id}" style="position: relative;">
+                            ${editBtn(p.id)}
                             <img src="${p.foto}" class="profile-img" alt="${p.nama}">
                             <div class="profile-name">${p.nama.split(' ')[0]}</div>
                         </div>
@@ -165,7 +247,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             } else {
                 profilesHtml += `
-                    <div class="profile-col clickable-profile" data-id="${member.pasangan.id}">
+                    <div class="profile-col clickable-profile" data-id="${member.pasangan.id}" style="position: relative;">
+                        ${editBtn(member.pasangan.id)}
                         <img src="${member.pasangan.foto}" class="profile-img" alt="${member.pasangan.nama}">
                         <div class="profile-name">${member.pasangan.nama.split(' ')[0]}</div>
                     </div>
@@ -337,6 +420,20 @@ document.addEventListener('DOMContentLoaded', () => {
         htmlCards += renderMiniTree(data);
 
         document.getElementById('familyCardsSection').innerHTML = htmlCards;
+        
+        // Tampilkan tombol Edit jika di mode Keluarga Kecil
+        const btnEditModal = document.getElementById('btnEditModal');
+        if (btnEditModal) {
+            if (currentMode === 'kecil') {
+                btnEditModal.style.display = 'inline-block';
+                btnEditModal.onclick = (e) => {
+                    e.preventDefault();
+                    openEditModalPopup(data.id);
+                };
+            } else {
+                btnEditModal.style.display = 'none';
+            }
+        }
     }
 
     function renderSubCardGroup(title, membersArray) {
@@ -578,4 +675,121 @@ document.addEventListener('DOMContentLoaded', () => {
         editModal.style.display = 'flex';
         editModal.removeAttribute('aria-hidden');
     };
+
+// Edit Popup Logic (incoming branch)
+const editPopup = document.getElementById('editPopup');
+const editPopupClose = document.getElementById('editPopupClose');
+const btnBatalEdit = document.getElementById('btnBatalEdit');
+const editForm = document.getElementById('inlineEditForm');
+const editAlert = document.getElementById('editAlert');
+
+function closeEditPopup() {
+    if (editPopup) {
+        editPopup.classList.remove('open');
+    }
+}
+
+if (editPopupClose) editPopupClose.addEventListener('click', closeEditPopup);
+if (btnBatalEdit) btnBatalEdit.addEventListener('click', closeEditPopup);
+if (editPopup) editPopup.addEventListener('click', (e) => {
+    if (e.target === editPopup) closeEditPopup();
 });
+
+window.openEditModalPopup = function(id) {
+    // Tutup popup profil info kalau masih terbuka
+    const infoPopup = document.getElementById('infoPopup');
+    if (infoPopup && infoPopup.classList.contains('open')) {
+        infoPopup.classList.remove('open');
+    }
+
+    if (editAlert) editAlert.style.display = 'none';
+    
+    // Ambil data raw untuk diedit
+    fetch(baseUrl + 'familytree/api_get_member_raw?id=' + id)
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+            
+            // Isi form
+            document.getElementById('edit_id').value = data.id;
+            document.getElementById('edit_full_name').value = data.full_name || '';
+            document.getElementById('edit_gender').value = data.gender || 'L';
+            document.getElementById('edit_birth_date').value = data.birth_date || '';
+            document.getElementById('edit_birth_place').value = data.birth_place || '';
+            document.getElementById('edit_occupation').value = data.occupation || '';
+            document.getElementById('edit_address').value = data.address || '';
+            document.getElementById('edit_phone').value = data.phone || '';
+            document.getElementById('edit_email').value = data.email || '';
+            document.getElementById('edit_photo').value = ''; // Reset file input
+            
+            // Tampilkan modal
+            editPopup.classList.add('open');
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Gagal mengambil data profil.');
+        });
+};
+
+if (editForm) {
+    editForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const btnSimpan = document.getElementById('btnSimpanEdit');
+        const oldText = btnSimpan.innerText;
+        btnSimpan.innerText = 'Menyimpan...';
+        btnSimpan.disabled = true;
+        if (editAlert) editAlert.style.display = 'none';
+
+        const formData = new FormData(this);
+        
+        fetch(baseUrl + 'familytree/api_update_member', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status) {
+                if (editAlert) {
+                    editAlert.style.background = 'rgba(76, 175, 80, 0.2)';
+                    editAlert.style.color = '#4CAF50';
+                    editAlert.style.border = '1px solid #4CAF50';
+                    editAlert.innerText = data.message;
+                    editAlert.style.display = 'block';
+                }
+                
+                // Refresh data silsilah di latar belakang
+                document.dispatchEvent(new Event('refreshTreeEvent'));
+                
+                setTimeout(() => {
+                    closeEditPopup();
+                }, 1500);
+            } else {
+                if (editAlert) {
+                    editAlert.style.background = 'rgba(244, 67, 54, 0.2)';
+                    editAlert.style.color = '#F44336';
+                    editAlert.style.border = '1px solid #F44336';
+                    editAlert.innerText = data.message;
+                    editAlert.style.display = 'block';
+                }
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            if (editAlert) {
+                editAlert.style.background = 'rgba(244, 67, 54, 0.2)';
+                editAlert.style.color = '#F44336';
+                editAlert.style.border = '1px solid #F44336';
+                editAlert.innerText = 'Terjadi kesalahan sistem.';
+                editAlert.style.display = 'block';
+            }
+        })
+        .finally(() => {
+            btnSimpan.innerText = oldText;
+            btnSimpan.disabled = false;
+        });
+    });
+}

@@ -256,12 +256,20 @@
             <div id="newRelGenerasiError" style="color: #b3543f; font-size: 12px; margin-top: 5px; display: none;">Generasi harus dipilih</div>
         </div>
 
-        <div style="margin-bottom: 25px; position: relative; display: none;">
-            <input type="hidden" id="selectedParentId">
-            <input type="text" id="parentSearch" class="form-control" autocomplete="off">
-            <div id="parentSearchResult"></div>
-            <div id="selectedParentContainer">
-                <strong id="selectedParentName"></strong>
+        <div style="margin-bottom: 25px; position: relative;">
+            <p style="color: var(--ink-soft, #6a7b73); font-size: 13px; margin-bottom: 8px;">Tautkan ke orang tua (Opsional jika Anda tahu kakek/neneknya):</p>
+            <div class="search-box" style="position: relative;">
+                <i class="bi bi-search search-icon"></i>
+                <input type="text" id="parentSearch" class="form-control" placeholder="Cari nama orang tua dari kerabat ini..." autocomplete="off">
+            </div>
+            <div id="parentSearchResult" style="position: absolute; top: 100%; left: 0; right: 0; background: var(--container-bg, white); color: var(--ink); max-height: 200px; overflow-y: auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10; margin-top: 5px; display: none; border: 1px solid var(--line, #eee);"></div>
+            
+            <div id="selectedParentContainer" style="display: none; align-items: center; background: #e8f4fc; padding: 10px; border-radius: 8px; margin-top: 10px;">
+                <span style="font-size: 14px; color: #2b3d34; flex: 1;">Orang Tua terpilih: <strong id="selectedParentName"></strong></span>
+                <button type="button" onclick="clearSelectedParent()" style="background: none; border: none; color: #c2185b; cursor: pointer;"><i class="bi bi-x-circle-fill"></i></button>
+                <input type="hidden" id="selectedParentId">
+            </div>
+        </div>
             </div>
         </div>
 

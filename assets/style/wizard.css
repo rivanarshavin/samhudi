@@ -407,7 +407,7 @@ body[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator {
   justify-content: center;
 }
 
-button {
+.wizard-wrapper button {
   font-family: 'Manrope', sans-serif;
   font-weight: 600;
   padding: 12px 24px;
@@ -420,33 +420,33 @@ button {
   gap: 8px;
 }
 
-button:disabled {
+.wizard-wrapper button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.btn-primary {
+.wizard-wrapper .btn-primary {
   background: var(--primary-btn);
   color: white;
   flex: 1;
   justify-content: center;
   transition: color 0.2s, background 0.2s;
 }
-.btn-primary:hover:not(:disabled) {
+.wizard-wrapper .btn-primary:hover:not(:disabled) {
   opacity: 0.9;
 }
-body[data-theme="dark"] .btn-primary {
+body[data-theme="dark"] .wizard-wrapper .btn-primary {
   color: #0F211F !important;
 }
 
-.btn-secondary {
+.wizard-wrapper .btn-secondary {
   background: var(--container-bg);
   color: var(--forest-deep);
   border: 1px solid var(--forest-deep);
   flex: 1;
   justify-content: center;
 }
-.btn-secondary:hover {
+.wizard-wrapper .btn-secondary:hover {
   background: var(--cream);
 }
 

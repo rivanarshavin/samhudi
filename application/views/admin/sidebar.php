@@ -20,88 +20,89 @@ $current_page = isset($active_menu) ? $active_menu : ($this->uri->segment(2) ? $
     </div>
 
     <!-- Sidebar Navigation -->
-    <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto">
+    <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto overscroll-contain">
         
         <!-- Dashboard -->
         <a href="<?= base_url('admin') ?>" 
            class="flex items-center gap-3.5 px-4 py-3 rounded-lg text-sm font-medium transition-all <?= ($current_page == 'admin' || $current_page == 'dashboard') ? 'bg-gradient-to-r from-brand-medium to-brand-dark/20 text-white border-l-4 border-white shadow-md' : 'text-white/80 hover:text-white hover:bg-brand-medium/20' ?>">
-            <i class="bi bi-grid-fill text-lg"></i>
+            <img src="<?= base_url('assets/images/3d_dashboard.png') ?>" class="w-9 h-9 object-contain" alt="Dashboard">
             <span>Dashboard</span>
         </a>
 
         <!-- Kelola Silsilah -->
         <a href="<?= base_url('admin/silsilah') ?>" 
            class="flex items-center gap-3.5 px-4 py-3 rounded-lg text-sm font-medium transition-all <?= ($current_page == 'silsilah') ? 'bg-gradient-to-r from-brand-medium to-brand-dark/20 text-white border-l-4 border-white shadow-md' : 'text-white/80 hover:text-white hover:bg-brand-medium/20' ?>">
-            <i class="bi bi-diagram-3 text-lg"></i>
+            <img src="<?= base_url('assets/images/3d_silsilah.png') ?>" class="w-9 h-9 object-contain" alt="Kelola Silsilah">
             <span>Kelola Silsilah</span>
         </a>
 
         <!-- Kelola Wasiat -->
         <a href="#" 
            class="flex items-center gap-3.5 px-4 py-3 rounded-lg text-sm font-medium transition-all <?= ($current_page == 'wasiat') ? 'bg-gradient-to-r from-brand-medium to-brand-dark/20 text-white border-l-4 border-white shadow-md' : 'text-white/80 hover:text-white hover:bg-brand-medium/20' ?>">
-            <i class="bi bi-file-earmark-text text-lg"></i>
+            <img src="<?= base_url('assets/images/3d_wasiat.png') ?>" class="w-9 h-9 object-contain" alt="Kelola Wasiat">
             <span>Kelola Wasiat</span>
         </a>
 
         <!-- Kelola Forum Diskusi -->
         <a href="<?= base_url('admin/forum') ?>" 
            class="flex items-center gap-3.5 px-4 py-3 rounded-lg text-sm font-medium transition-all <?= ($current_page == 'forum') ? 'bg-gradient-to-r from-brand-medium to-brand-dark/20 text-white border-l-4 border-white shadow-md' : 'text-white/80 hover:text-white hover:bg-brand-medium/20' ?>">
-            <i class="bi bi-chat-left-text text-lg"></i>
+            <img src="<?= base_url('assets/images/3d_forum.png') ?>" class="w-9 h-9 object-contain" alt="Kelola Forum Diskusi">
             <span>Kelola Forum Diskusi</span>
         </a>
 
         <!-- Kelola Berita -->
         <a href="<?= base_url('admin/berita') ?>" 
            class="flex items-center gap-3.5 px-4 py-3 rounded-lg text-sm font-medium transition-all <?= ($current_page == 'berita') ? 'bg-gradient-to-r from-brand-medium to-brand-dark/20 text-white border-l-4 border-white shadow-md' : 'text-white/80 hover:text-white hover:bg-brand-medium/20' ?>">
-            <i class="bi bi-newspaper text-lg"></i>
+            <img src="<?= base_url('assets/images/3d_berita.png') ?>" class="w-9 h-9 object-contain" alt="Kelola Berita">
             <span>Kelola Berita</span>
         </a>
 
         <!-- Kelola Yayasan -->
         <a href="#" 
            class="flex items-center gap-3.5 px-4 py-3 rounded-lg text-sm font-medium transition-all <?= ($current_page == 'yayasan') ? 'bg-gradient-to-r from-brand-medium to-brand-dark/20 text-white border-l-4 border-white shadow-md' : 'text-white/80 hover:text-white hover:bg-brand-medium/20' ?>">
-            <i class="bi bi-bank text-lg"></i>
+            <img src="<?= base_url('assets/images/3d_yayasan.png') ?>" class="w-9 h-9 object-contain" alt="Kelola Yayasan">
             <span>Kelola Yayasan</span>
         </a>
 
         <!-- Kelola Banner Profil -->
         <a href="<?= base_url('admin/banner_profil') ?>" 
            class="flex items-center gap-3.5 px-4 py-3 rounded-lg text-sm font-medium transition-all <?= ($current_page == 'banner_profil') ? 'bg-gradient-to-r from-brand-medium to-brand-dark/20 text-white border-l-4 border-white shadow-md' : 'text-white/80 hover:text-white hover:bg-brand-medium/20' ?>">
-            <i class="bi bi-images text-lg"></i>
+            <img src="<?= base_url('assets/images/3d_banner.png') ?>" class="w-9 h-9 object-contain" alt="Kelola Banner Profil">
             <span>Kelola Banner Profil</span>
         </a>
 
         <!-- Kelola Pengguna -->
         <a href="<?= base_url('admin/pengguna') ?>" 
            class="flex items-center gap-3.5 px-4 py-3 rounded-lg text-sm font-medium transition-all <?= ($current_page == 'pengguna') ? 'bg-gradient-to-r from-brand-medium to-brand-dark/20 text-white border-l-4 border-white shadow-md' : 'text-white/80 hover:text-white hover:bg-brand-medium/20' ?>">
-            <i class="bi bi-people text-lg"></i>
+            <img src="<?= base_url('assets/images/3d_pengguna.png') ?>" class="w-9 h-9 object-contain" alt="Kelola Pengguna">
             <span>Kelola Pengguna</span>
         </a>
 
         <!-- History Log -->
         <a href="<?= base_url('admin/history_log') ?>" 
            class="flex items-center gap-3.5 px-4 py-3 rounded-lg text-sm font-medium transition-all <?= ($current_page == 'history_log') ? 'bg-gradient-to-r from-brand-medium to-brand-dark/20 text-white border-l-4 border-white shadow-md' : 'text-white/80 hover:text-white hover:bg-brand-medium/20' ?>">
-            <i class="bi bi-clock-history text-lg"></i>
+            <img src="<?= base_url('assets/images/3d_history.png') ?>" class="w-9 h-9 object-contain" alt="History Log">
             <span>History Log</span>
+        </a>
             
         <!-- Kelola Lowongan -->
         <a href="<?= base_url('admin/lowongan') ?>" 
            class="flex items-center gap-3.5 px-4 py-3 rounded-lg text-sm font-medium transition-all <?= ($current_page == 'lowongan') ? 'bg-gradient-to-r from-brand-medium to-brand-dark/20 text-white border-l-4 border-white shadow-md' : 'text-white/80 hover:text-white hover:bg-brand-medium/20' ?>">
-            <i class="bi bi-briefcase text-lg"></i>
+            <img src="<?= base_url('assets/images/3d_lowongan.png') ?>" class="w-9 h-9 object-contain" alt="Kelola Lowongan">
             <span>Kelola Lowongan</span>
         </a>
 
         <!-- Kelola Pekerja -->
         <a href="<?= base_url('admin/pekerja') ?>" 
            class="flex items-center gap-3.5 px-4 py-3 rounded-lg text-sm font-medium transition-all <?= ($current_page == 'pekerja') ? 'bg-gradient-to-r from-brand-medium to-brand-dark/20 text-white border-l-4 border-white shadow-md' : 'text-white/80 hover:text-white hover:bg-brand-medium/20' ?>">
-            <i class="bi bi-person-workspace text-lg"></i>
+            <img src="<?= base_url('assets/images/3d_pekerja.png') ?>" class="w-9 h-9 object-contain" alt="Kelola Pekerja">
             <span>Kelola Pekerja</span>
         </a>
 
         <!-- Pengaturan -->
         <a href="#" 
            class="flex items-center gap-3.5 px-4 py-3 rounded-lg text-sm font-medium transition-all <?= ($current_page == 'pengaturan') ? 'bg-gradient-to-r from-brand-medium to-brand-dark/20 text-white border-l-4 border-white shadow-md' : 'text-white/80 hover:text-white hover:bg-brand-medium/20' ?>">
-            <i class="bi bi-gear text-lg"></i>
+            <img src="<?= base_url('assets/images/3d_settings.png') ?>" class="w-9 h-9 object-contain" alt="Pengaturan">
             <span>Pengaturan</span>
         </a>
 

@@ -965,6 +965,13 @@
             .then(users => {
                 allContacts = users;
                 filterChatContacts(); // Render contacts with current search filter if any
+                
+                // Update active chat header online status if open
+                if (activeChatUserId) {
+                    const activeUser = allContacts.find(u => parseInt(u.id) === parseInt(activeChatUserId));
+                    const isOnline = activeUser && parseInt(activeUser.is_online) === 1;
+                    updateActiveChatStatus(isOnline);
+                }
             });
     }
 
@@ -986,14 +993,25 @@
         let html = '';
         users.forEach(u => {
             let avatarHtml = '';
+            let onlineBadge = '';
+            if (parseInt(u.is_online) === 1) {
+                onlineBadge = `<span class="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full ring-2 ring-[#15201E] bg-emerald-500"></span>`;
+            }
+
             if (u.avatar) {
-                avatarHtml = `<div class="w-9 h-9 rounded-full overflow-hidden bg-teal-800 flex-shrink-0 border border-[#374D49]/30 shadow-sm">
-                                  <img src="<?= base_url() ?>${u.avatar}" class="w-full h-full object-cover">
+                avatarHtml = `<div class="relative flex-shrink-0">
+                                  <div class="w-9 h-9 rounded-full overflow-hidden bg-teal-800 border border-[#374D49]/30 shadow-sm">
+                                      <img src="<?= base_url() ?>${u.avatar}" class="w-full h-full object-cover">
+                                  </div>
+                                  ${onlineBadge}
                               </div>`;
             } else {
                 const initial = (u.full_name || 'U').charAt(0).toUpperCase();
-                avatarHtml = `<div class="w-9 h-9 rounded-full bg-teal-700/60 border border-[#374D49]/40 flex items-center justify-center font-bold text-white text-xs select-none flex-shrink-0">
-                                  ${initial}
+                avatarHtml = `<div class="relative flex-shrink-0">
+                                  <div class="w-9 h-9 rounded-full bg-teal-700/60 border border-[#374D49]/40 flex items-center justify-center font-bold text-white text-xs select-none">
+                                      ${initial}
+                                  </div>
+                                  ${onlineBadge}
                               </div>`;
             }
             const badge = u.unread_count > 0 ? `<span class="bg-emerald-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0">${u.unread_count}</span>` : '';
@@ -1028,6 +1046,21 @@
         }
     }
 
+    function updateActiveChatStatus(isOnline) {
+        const statusPara = document.querySelector('#floatingChatWidget #chatActiveName').nextElementSibling;
+        if (statusPara) {
+            if (isOnline) {
+                statusPara.innerHTML = `<span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> online`;
+                statusPara.classList.remove('text-white/40');
+                statusPara.classList.add('text-teal-400');
+            } else {
+                statusPara.innerHTML = `<span class="w-1.5 h-1.5 bg-white/30 rounded-full"></span> offline`;
+                statusPara.classList.remove('text-teal-400');
+                statusPara.classList.add('text-white/40');
+            }
+        }
+    }
+
     // Open Chat panel
     function openChatWidget(userId, userName, avatar) {
         activeChatUserId = userId;
@@ -1046,6 +1079,10 @@
             initial.textContent = (userName || 'U').charAt(0).toUpperCase();
             initial.classList.remove('hidden');
         }
+
+        const userObj = allContacts.find(u => parseInt(u.id) === parseInt(userId));
+        const isOnline = userObj && parseInt(userObj.is_online) === 1;
+        updateActiveChatStatus(isOnline);
 
         const widget = document.getElementById('floatingChatWidget');
         widget.classList.remove('hidden');

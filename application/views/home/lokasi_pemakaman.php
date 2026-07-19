@@ -45,15 +45,32 @@ $maps_dir_url = 'https://www.google.com/maps/dir//' . urlencode($makam_address);
                                         <?php for ($i = 0; $i < $display_count; $i++):
                                         $photo = $makam_photos[$i];
                                         $is_last_overlay = $has_more && ($i === $display_count - 1);
+
+                                        if ($total_photos === 1) {
+                                            $col_class = 'col-12';
+                                            $img_height = '180px';
+                                        } elseif ($total_photos === 2) {
+                                            $col_class = 'col-6';
+                                            $img_height = '130px';
+                                        } elseif ($total_photos === 3) {
+                                            $col_class = 'col-4';
+                                            $img_height = '100px';
+                                        } elseif ($total_photos === 4) {
+                                            $col_class = 'col-3';
+                                            $img_height = '90px';
+                                        } else {
+                                            $col_class = $i < 3 ? 'col-4' : 'col-6';
+                                            $img_height = '100px';
+                                        }
                                         ?>
-                                        <div class="<?= $i < 3 ? 'col-4' : 'col-6' ?>">
+                                        <div class="<?= $col_class ?>">
                                             <?php if ($is_last_overlay): ?>
-                                            <div class="makam-foto-overlay" onclick="previewImage(0)" style="position:relative;border-radius:8px;overflow:hidden;height:100px;cursor:pointer;">
+                                            <div class="makam-foto-overlay" onclick="previewImage(<?= $i ?>)" style="position:relative;border-radius:8px;overflow:hidden;height:<?= $img_height ?>;cursor:pointer;">
                                                 <img src="<?= base_url($photo) ?>" alt="Foto Makam <?= $i + 1 ?>" class="img-fluid w-100 makam-foto" style="width:100%;height:100%;object-fit:cover;filter:brightness(.4);">
                                                 <div class="makam-foto-more">+<?= $more_count ?></div>
                                             </div>
                                             <?php else: ?>
-                                            <img src="<?= base_url($photo) ?>" alt="Foto Makam <?= $i + 1 ?>" class="img-fluid w-100 makam-foto" style="border-radius: 8px; height: 100px; object-fit: cover; cursor: pointer;" onclick="previewImage(<?= $i ?>)">
+                                            <img src="<?= base_url($photo) ?>" alt="Foto Makam <?= $i + 1 ?>" class="img-fluid w-100 makam-foto" style="border-radius: 8px; height: <?= $img_height ?>; object-fit: cover; cursor: pointer;" onclick="previewImage(<?= $i ?>)">
                                             <?php endif; ?>
                                         </div>
                                         <?php endfor; ?>

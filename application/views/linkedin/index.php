@@ -24,6 +24,9 @@ if (!function_exists('time_elapsed_string')) {
     }
 }
 ?>
+<!-- Leaflet CSS & JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
     :root {
@@ -385,9 +388,53 @@ if (!function_exists('time_elapsed_string')) {
         border-radius: 4px;
         display: inline-flex; align-items: center; justify-content: center;
         font-size: 11px; font-weight: 900; color: white;
-        font-style: italic;
         letter-spacing: -1px;
         flex-shrink: 0;
+    }
+
+    /* Range Slider Styling */
+    .slider-input {
+        pointer-events: none;
+        appearance: none;
+        background: none;
+        border: none;
+    }
+    .slider-input::-webkit-slider-thumb {
+        pointer-events: auto;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #ffffff;
+        border: 2px solid var(--color-light-teal);
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        -webkit-appearance: none;
+        transition: transform 0.1s;
+    }
+    .slider-input::-webkit-slider-thumb:hover {
+        transform: scale(1.1);
+    }
+    .slider-input::-moz-range-thumb {
+        pointer-events: auto;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #ffffff;
+        border: 2px solid var(--color-light-teal);
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        transition: transform 0.1s;
+    }
+    .slider-input::-moz-range-thumb:hover {
+        transform: scale(1.1);
+    }
+    .slider-input::-webkit-slider-runnable-track {
+        background: transparent;
+        border: none;
+    }
+    .slider-input::-moz-range-track {
+        background: transparent;
+        border: none;
     }
 </style>
 
@@ -459,7 +506,7 @@ if (!function_exists('time_elapsed_string')) {
                 <div class="flex items-center justify-between border-b border-[#374D49] mb-6">
                     <div class="flex">
                         <button class="tab-btn active" id="tab-btn-lowongan" onclick="switchTab('lowongan', this)">Lowongan Pekerjaan</button>
-                        <button class="tab-btn" id="tab-btn-pekerja" onclick="switchTab('pekerja', this)">Pekerja</button>
+                        <button class="tab-btn" id="tab-btn-pekerja" onclick="switchTab('pekerja', this)">Rekan Kerja</button>
                     </div>
                 </div>
 
@@ -594,9 +641,9 @@ if (!function_exists('time_elapsed_string')) {
                 <!-- TAB: Pekerja -->
                 <div id="tab-pekerja" class="tab-content hidden">
 
-                    <!-- Header Pekerja + Button OTW -->
+                    <!-- Header Rekan Kerja + Button OTW -->
                     <div class="flex flex-wrap justify-between items-center mb-5 gap-3">
-                        <h2 class="text-xl font-bold text-white">Pekerja</h2>
+                        <h2 class="text-xl font-bold text-white">Rekan Kerja</h2>
                         <?php if ($my_open_to_work): ?>
                             <button onclick="openOTWModal(true)" class="btn-edit-otw" id="btn-otw">
                                 <i class="bi bi-pencil-square"></i> Edit Open to Work
@@ -608,11 +655,11 @@ if (!function_exists('time_elapsed_string')) {
                         <?php endif; ?>
                     </div>
 
-                    <!-- Search Filter Pekerja -->
+                    <!-- Search Filter Rekan Kerja -->
                     <form method="GET" action="<?= base_url('linkedin') ?>" class="mb-5 flex flex-wrap gap-3 items-end" id="worker-search-form">
                         <input type="hidden" name="tab" value="pekerja">
                         <div class="flex-1 min-w-[180px]">
-                            <label class="form-label">Cari Nama Pekerja</label>
+                            <label class="form-label">Cari Nama Rekan Kerja</label>
                             <input type="text" name="worker_search" class="form-input" style="margin-bottom:0" placeholder="Cari nama..." value="<?= htmlspecialchars($filters['worker_search'] ?? '') ?>">
                         </div>
                         <div class="flex-1 min-w-[180px]">
@@ -710,19 +757,44 @@ if (!function_exists('time_elapsed_string')) {
                     <input type="text" name="job_type" class="form-input" placeholder="Contoh: Full-time / Part-time">
                 </div>
                 <div>
-                    <label class="form-label">Gaji</label>
-                    <input type="text" name="salary" class="form-input" placeholder="Contoh: Rp 5.000.000">
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <div>
                     <label class="form-label">Jam Kerja</label>
                     <input type="text" name="working_hours" class="form-input" placeholder="Contoh: 08:00 - 17:00">
                 </div>
-                <div>
-                    <label class="form-label">Lokasi</label>
-                    <input type="text" name="location" class="form-input" placeholder="Contoh: Jakarta Selatan">
+            </div>
+
+            <!-- Gaji Range Slider -->
+            <div class="mb-4">
+                <label class="form-label">Gaji / Rate Pekerjaan</label>
+                <div class="relative w-full h-2 bg-[#22443F] rounded-full my-6 select-none">
+                    <div id="slider-track" class="absolute h-full bg-[#377C80] rounded-full" style="left: 0%; width: 100%;"></div>
+                    <!-- Minimal thumb slider -->
+                    <input type="range" id="salary-min" min="1000000" max="50000000" step="500000" value="5000000" class="absolute pointer-events-none appearance-none bg-transparent w-full h-2 top-0 left-0 outline-none slider-input">
+                    <!-- Maksimal thumb slider -->
+                    <input type="range" id="salary-max" min="1000000" max="50000000" step="500000" value="20000000" class="absolute pointer-events-none appearance-none bg-transparent w-full h-2 top-0 left-0 outline-none slider-input">
+                </div>
+                <div class="flex items-center justify-between gap-4 mt-2">
+                    <div class="flex-1 bg-black/20 border border-[#374D49] rounded-xl px-4 py-2 flex items-center">
+                        <span class="text-xs text-[#B1CDCE] mr-1">IDR</span>
+                        <input type="text" id="salary-min-display" class="bg-transparent border-none outline-none text-white text-sm font-semibold w-full" value="5.000.000">
+                    </div>
+                    <span class="text-[#B1CDCE]">—</span>
+                    <div class="flex-1 bg-black/20 border border-[#374D49] rounded-xl px-4 py-2 flex items-center">
+                        <span class="text-xs text-[#B1CDCE] mr-1">IDR</span>
+                        <input type="text" id="salary-max-display" class="bg-transparent border-none outline-none text-white text-sm font-semibold w-full" value="20.000.000">
+                    </div>
+                </div>
+                <input type="hidden" name="salary" id="salary-hidden-input">
+            </div>
+
+            <!-- Lokasi dengan Peta Leaflet -->
+            <div class="mb-4">
+                <label class="form-label">Lokasi Perusahaan <span class="text-red-500">*</span></label>
+                <div class="flex gap-2 mb-2">
+                    <input type="text" name="location" id="job-location-input" class="form-input" style="margin-bottom:0" required placeholder="Contoh: Jakarta Selatan">
+                    <button type="button" id="btn-search-location" class="btn-primary shrink-0" style="padding: 10px 16px; border-radius: 12px;"><i class="bi bi-search"></i> Cari</button>
+                </div>
+                <div id="map-container" class="relative w-full h-[220px] rounded-xl overflow-hidden border border-[#374D49] mb-4">
+                    <div id="map" class="w-full h-full" style="z-index: 1;"></div>
                 </div>
             </div>
 
@@ -842,14 +914,51 @@ if (!function_exists('time_elapsed_string')) {
 
             <label class="form-label">Upload CV <span class="text-[#B1CDCE]/50 font-normal">(opsional)</span></label>
             <p class="text-[10px] text-[#B1CDCE]/60 mb-2">Format: PDF, DOC, DOCX, JPG, PNG. Maks 2MB.</p>
-            
+
+            <?php if ($my_open_to_work && !empty($my_open_to_work->cv_path)): ?>
+            <!-- Preview CV yang sudah ada (mode Edit) -->
+            <div id="otwCurrentCvBox" class="mb-3 rounded-xl border border-[#374D49] bg-black/20 overflow-hidden">
+                <div class="px-4 py-2 flex items-center justify-between bg-[#1a2a28] border-b border-[#374D49]">
+                    <span class="text-[10px] font-bold text-[#B1CDCE] uppercase tracking-wider">
+                        <i class="bi bi-file-earmark-check mr-1 text-[#7ecdd1]"></i>CV Saat Ini
+                    </span>
+                    <a href="<?= base_url($my_open_to_work->cv_path) ?>" target="_blank" download
+                       class="text-[10px] text-[#7ecdd1] hover:text-white flex items-center gap-1 transition-colors">
+                        <i class="bi bi-download"></i> Unduh
+                    </a>
+                </div>
+                <?php
+                    $cvExt = strtolower(pathinfo($my_open_to_work->cv_path, PATHINFO_EXTENSION));
+                    $cvUrl = base_url($my_open_to_work->cv_path);
+                ?>
+                <?php if (in_array($cvExt, ['jpg','jpeg','png','webp','gif'])): ?>
+                    <img src="<?= $cvUrl ?>" alt="Preview CV"
+                         class="w-full max-h-[280px] object-contain bg-black/30 p-2">
+                <?php elseif ($cvExt === 'pdf'): ?>
+                    <iframe src="<?= $cvUrl ?>" class="w-full h-[280px] border-0" loading="lazy"></iframe>
+                <?php else: ?>
+                    <div class="flex items-center gap-3 px-4 py-4">
+                        <i class="bi bi-file-earmark-word text-3xl text-blue-400"></i>
+                        <span class="text-xs text-[#B1CDCE]"><?= htmlspecialchars(basename($my_open_to_work->cv_path)) ?></span>
+                    </div>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
+
             <div id="otwDropzone" class="border-2 border-dashed border-[#374D49] hover:border-[#377C80] rounded-xl p-6 text-center cursor-pointer transition-all bg-black/25 flex flex-col items-center justify-center gap-2 mb-4 group">
                 <input type="file" name="cv_file" id="otwCvInput" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="hidden">
                 <div id="otwDropzonePrompt" class="flex flex-col items-center gap-2 text-[#B1CDCE]">
                     <i class="bi bi-cloud-arrow-up text-3xl text-[#377C80] group-hover:scale-110 transition-transform"></i>
+                    <?php if ($my_open_to_work && !empty($my_open_to_work->cv_path)): ?>
+                    <span class="text-xs font-semibold">Ganti CV — <span class="text-[#E49438] underline">pilih file baru</span></span>
+                    <span class="text-[10px] text-[#B1CDCE]/50">Biarkan kosong jika tidak ingin mengganti</span>
+                    <?php else: ?>
                     <span class="text-xs font-semibold">Tarik &amp; lepas file CV di sini, atau <span class="text-[#E49438] underline">pilih file</span></span>
+                    <?php endif; ?>
                 </div>
                 <div id="otwDropzonePreview" class="hidden flex flex-col items-center gap-2 w-full">
+                    <!-- Preview gambar baru (jika image) -->
+                    <img id="otwNewImgPreview" src="" alt="Preview" class="hidden w-full max-h-[200px] object-contain rounded-lg mb-2">
                     <div id="otwPreviewIconContainer" class="text-4xl text-[#E49438]">
                         <i class="bi bi-file-earmark-pdf"></i>
                     </div>
@@ -884,7 +993,7 @@ if (!function_exists('time_elapsed_string')) {
     <div class="modal-content custom-scrollbar" onclick="event.stopPropagation()">
         <div class="flex justify-between items-center mb-6 border-b border-[#374D49] pb-4">
             <h3 class="font-bold text-lg text-white flex items-center gap-2">
-                <i class="bi bi-person-circle text-[#377C80]"></i> Detail Pekerja
+                <i class="bi bi-person-circle text-[#377C80]"></i> Detail Rekan Kerja
             </h3>
             <button onclick="closeModal('workerDetailModal')" class="text-[#B1CDCE]/60 hover:text-white transition-colors">
                 <i class="bi bi-x-lg"></i>
@@ -958,10 +1067,154 @@ if (!function_exists('time_elapsed_string')) {
     function openModal(id) {
         document.getElementById(id).classList.add('open');
         document.body.style.overflow = 'hidden';
+        if (id === 'addJobModal') {
+            setTimeout(initMapAndSlider, 200);
+        }
     }
     function closeModal(id) {
         document.getElementById(id).classList.remove('open');
         document.body.style.overflow = '';
+    }
+
+    let jobMap = null;
+    let jobMarker = null;
+
+    function initMapAndSlider() {
+        initSalarySlider();
+
+        if (!jobMap) {
+            const defaultLat = -6.175392;
+            const defaultLng = 106.827153;
+            
+            jobMap = L.map('map').setView([defaultLat, defaultLng], 13);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(jobMap);
+            
+            jobMarker = L.marker([defaultLat, defaultLng], { draggable: true }).addTo(jobMap);
+            
+            jobMarker.on('dragend', function (e) {
+                const position = jobMarker.getLatLng();
+                updateLocationFromCoords(position.lat, position.lng);
+            });
+            
+            jobMap.on('click', function(e) {
+                jobMarker.setLatLng(e.latlng);
+                updateLocationFromCoords(e.latlng.lat, e.latlng.lng);
+            });
+
+            const btnSearch = document.getElementById('btn-search-location');
+            if (btnSearch) {
+                btnSearch.addEventListener('click', function() {
+                    const query = document.getElementById('job-location-input').value;
+                    if (!query) return;
+                    
+                    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data && data.length > 0) {
+                                const lat = parseFloat(data[0].lat);
+                                const lon = parseFloat(data[0].lon);
+                                jobMap.setView([lat, lon], 15);
+                                jobMarker.setLatLng([lat, lon]);
+                            }
+                        });
+                });
+            }
+        } else {
+            setTimeout(() => {
+                jobMap.invalidateSize();
+            }, 100);
+        }
+    }
+
+    function updateLocationFromCoords(lat, lng) {
+        const locationInput = document.getElementById('job-location-input');
+        locationInput.value = `Memuat alamat... (${lat.toFixed(6)}, ${lng.toFixed(6)})`;
+        
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.display_name) {
+                    locationInput.value = data.display_name;
+                } else {
+                    locationInput.value = `Lokasi (${lat.toFixed(6)}, ${lng.toFixed(6)})`;
+                }
+            })
+            .catch(err => {
+                locationInput.value = `Lokasi (${lat.toFixed(6)}, ${lng.toFixed(6)})`;
+            });
+    }
+
+    let sliderInitialized = false;
+    function initSalarySlider() {
+        if (sliderInitialized) return;
+        sliderInitialized = true;
+
+        const minInput = document.getElementById('salary-min');
+        const maxInput = document.getElementById('salary-max');
+        const minDisplay = document.getElementById('salary-min-display');
+        const maxDisplay = document.getElementById('salary-max-display');
+        const track = document.getElementById('slider-track');
+        const hiddenInput = document.getElementById('salary-hidden-input');
+
+        function formatRupiah(value) {
+            return new Intl.NumberFormat('id-ID', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(value);
+        }
+
+        function parseRupiah(value) {
+            return parseInt(value.replace(/[^0-9]/g, '')) || 0;
+        }
+
+        function updateSlider() {
+            let minVal = parseInt(minInput.value);
+            let maxVal = parseInt(maxInput.value);
+
+            if (minVal > maxVal) {
+                let temp = minVal;
+                minVal = maxVal;
+                maxVal = temp;
+                minInput.value = minVal;
+                maxInput.value = maxVal;
+            }
+
+            const minPercent = ((minVal - minInput.min) / (minInput.max - minInput.min)) * 100;
+            const maxPercent = ((maxVal - maxInput.min) / (maxInput.max - maxInput.min)) * 100;
+
+            track.style.left = minPercent + '%';
+            track.style.width = (maxPercent - minPercent) + '%';
+
+            minDisplay.value = formatRupiah(minVal);
+            maxDisplay.value = formatRupiah(maxVal);
+
+            hiddenInput.value = `Rp ${formatRupiah(minVal)} - Rp ${formatRupiah(maxVal)}`;
+        }
+
+        minInput.addEventListener('input', updateSlider);
+        maxInput.addEventListener('input', updateSlider);
+
+        minDisplay.addEventListener('change', function() {
+            let val = parseRupiah(minDisplay.value);
+            if (val < parseInt(minInput.min)) val = parseInt(minInput.min);
+            if (val > parseInt(maxInput.value)) val = parseInt(maxInput.value);
+            minInput.value = val;
+            updateSlider();
+        });
+
+        maxDisplay.addEventListener('change', function() {
+            let val = parseRupiah(maxDisplay.value);
+            if (val > parseInt(maxInput.max)) val = parseInt(maxInput.max);
+            if (val < parseInt(minInput.value)) val = parseInt(minInput.value);
+            maxInput.value = val;
+            updateSlider();
+        });
+
+        updateSlider();
     }
     function closeModalOutside(e, id) {
         if (e.target.id === id) {
@@ -1277,15 +1530,28 @@ if (!function_exists('time_elapsed_string')) {
         otwPreviewFileName.textContent = file.name;
         otwPreviewFileSize.textContent = formatBytes(file.size);
         
-        let icon = '<i class="bi bi-file-earmark"></i>';
-        if (file.type.includes('pdf')) {
-            icon = '<i class="bi bi-file-earmark-pdf-fill text-red-400"></i>';
-        } else if (file.type.includes('word') || file.name.endsWith('.doc') || file.name.endsWith('.docx')) {
-            icon = '<i class="bi bi-file-earmark-word-fill text-blue-400"></i>';
-        } else if (file.type.includes('image')) {
-            icon = '<i class="bi bi-file-earmark-image-fill text-green-400"></i>';
+        const imgPreview = document.getElementById('otwNewImgPreview');
+
+        if (file.type.includes('image')) {
+            // Tampilkan preview gambar langsung
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                imgPreview.src = ev.target.result;
+                imgPreview.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+            otwPreviewIconContainer.innerHTML = '';
+        } else {
+            imgPreview.classList.add('hidden');
+            imgPreview.src = '';
+            let icon = '<i class="bi bi-file-earmark"></i>';
+            if (file.type.includes('pdf')) {
+                icon = '<i class="bi bi-file-earmark-pdf-fill text-red-400"></i>';
+            } else if (file.type.includes('word') || file.name.endsWith('.doc') || file.name.endsWith('.docx')) {
+                icon = '<i class="bi bi-file-earmark-word-fill text-blue-400"></i>';
+            }
+            otwPreviewIconContainer.innerHTML = icon;
         }
-        otwPreviewIconContainer.innerHTML = icon;
         
         otwDropzonePrompt.classList.add('hidden');
         otwDropzonePreview.classList.remove('hidden');
@@ -1296,5 +1562,7 @@ if (!function_exists('time_elapsed_string')) {
         otwCvInput.value = '';
         otwDropzonePrompt.classList.remove('hidden');
         otwDropzonePreview.classList.add('hidden');
+        const imgPreview = document.getElementById('otwNewImgPreview');
+        if (imgPreview) { imgPreview.classList.add('hidden'); imgPreview.src = ''; }
     }
 </script>

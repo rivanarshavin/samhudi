@@ -60,10 +60,8 @@ body[data-theme="dark"] {
 .detail-breadcrumb-bar a:hover { color: #C8A84E; }
 .detail-breadcrumb-bar .current { color: var(--bd-title); font-weight: 600; }
 
-/* Hero Section */
-.detail-hero {
-    padding: 40px 0 20px;
-}
+/* Hero + Body digabung jadi satu section, satu row */
+.detail-hero-body { padding: 40px 0 50px; }
 
 /* Judul & Meta */
 .detail-title {
@@ -104,25 +102,30 @@ body[data-theme="dark"] {
     transform: scale(1.05);
 }
 
-/* Thumbnail kanan */
+/* Thumbnail kanan atas (sejajar sidebar) */
 .detail-thumbnail-wrap {
-    height: 100%;
-    min-height: 260px;
-    max-height: 400px;
+    width: 100%;
+    min-height: 200px;
+    max-height: 320px;
+    border-radius: 18px;
+    overflow: hidden;
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
+    align-items: center;
 }
 .detail-thumbnail-wrap img {
-    max-width: 100%;
+    width: 100%;
     height: auto;
-    max-height: 400px;
-    object-fit: contain;
+    max-height: 320px;
+    object-fit: cover;
     display: block;
+    border-radius: 18px;
 }
 .detail-thumbnail-wrap .no-img {
     width: 100%;
     height: 100%;
-    min-height: 260px;
+    min-height: 200px;
+    border-radius: 18px;
     background: var(--bd-sidebar-bg);
     display: flex;
     align-items: center;
@@ -133,14 +136,9 @@ body[data-theme="dark"] {
     font-size: 3rem;
 }
 
-/* Body Content Area */
-.detail-body {
-    padding: 30px 0 50px;
-}
-
-/* Konten berita (Tidak pakai card lagi) */
+/* Konten berita — sekarang menyatu di kolom yang sama dengan judul */
 .detail-content-card {
-    padding: 10px 0;
+    padding: 30px 0 10px;
 }
 .detail-content-card p,
 .detail-content-card .content-text {
@@ -168,10 +166,13 @@ body[data-theme="dark"] {
     font-size: 1rem;
 }
 
-/* Sidebar berita lain */
+/* Kolom kanan: thumbnail + sidebar berita lain */
 .sidebar-other-news {
     position: sticky;
     top: 90px;
+}
+.sidebar-other-news.mt-block {
+    margin-top: 22px;
 }
 .sidebar-title {
     font-family: 'Plus Jakarta Sans', sans-serif;
@@ -308,12 +309,13 @@ if (!function_exists('fmt_date_detail')) {
         </div>
     </div>
 
-    <!-- Hero: Judul (kiri atas) + Thumbnail (kanan) -->
-    <section class="detail-hero">
+    <!-- Hero + Body dalam satu row: kolom kiri (judul -> konten mengalir), kolom kanan (thumbnail -> sidebar) -->
+    <section class="detail-hero-body">
         <div class="container">
-            <div class="row align-items-center g-4">
-                <!-- Kiri: Judul + Meta -->
-                <div class="col-lg-7">
+            <div class="row g-4">
+
+                <!-- Kiri: Judul + Meta + Isi Berita (satu kolom, mengalir ke bawah) -->
+                <div class="col-lg-8">
                     <h1 class="detail-title"><?= htmlspecialchars($news['title']) ?></h1>
                     <div class="detail-meta">
                         <div class="detail-meta-item">
@@ -336,39 +338,14 @@ if (!function_exists('fmt_date_detail')) {
                             <span id="like-count"><?= number_format($news['likes'] ?? 0) ?> Suka</span>
                         </div>
                     </div>
-                </div>
-                <!-- Kanan: Foto Thumbnail -->
-                <div class="col-lg-5">
-                    <div class="detail-thumbnail-wrap">
-                        <?php if (!empty($news['thumbnail']) && file_exists('./' . $news['thumbnail'])): ?>
-                            <img src="<?= base_url($news['thumbnail']) ?>" alt="<?= htmlspecialchars($news['title']) ?>">
-                        <?php else: ?>
-                            <div class="no-img">
-                                <i class="bi bi-image"></i>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
 
-    <!-- Body: Isi Berita (kiri) + Berita Lain (kanan) -->
-    <section class="detail-body">
-        <div class="container">
-            <div class="row g-4">
-
-                <!-- Kiri: Isi Berita -->
-                <div class="col-lg-8">
                     <div class="detail-content-card">
-                        <h4>
-                        </h4>
                         <?php if (!empty($news['content'])): ?>
                             <div class="content-text"><?= htmlspecialchars($news['content']) ?></div>
                         <?php else: ?>
                             <p style="color:#bbb; font-style: italic;">Konten berita belum tersedia.</p>
                         <?php endif; ?>
-                        
+
                         <div class="mt-5 pt-4 border-top">
                             <button onclick="shareBerita()" class="btn btn-outline-success" style="border-radius: 12px; font-weight: 600; font-family: 'Plus Jakarta Sans', sans-serif;">
                                 <i class="bi bi-share-fill me-2"></i> Bagikan Berita
@@ -377,10 +354,21 @@ if (!function_exists('fmt_date_detail')) {
                     </div>
                 </div>
 
-                <!-- Kanan: Sidebar Berita Lainnya -->
+                <!-- Kanan: Thumbnail (atas) + Berita Lainnya (bawah), sejajar & sticky -->
                 <div class="col-lg-4">
                     <div class="sidebar-other-news">
-                        <div class="sidebar-title">
+
+                        <div class="detail-thumbnail-wrap">
+                            <?php if (!empty($news['thumbnail']) && file_exists('./' . $news['thumbnail'])): ?>
+                                <img src="<?= base_url($news['thumbnail']) ?>" alt="<?= htmlspecialchars($news['title']) ?>">
+                            <?php else: ?>
+                                <div class="no-img">
+                                    <i class="bi bi-image"></i>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="sidebar-title mt-block">
                             <i class="bi bi-newspaper" style="color: #2E564F;"></i>
                             Berita Lainnya
                         </div>
@@ -420,6 +408,7 @@ if (!function_exists('fmt_date_detail')) {
                                 Belum ada berita lain.
                             </div>
                         <?php endif; ?>
+
                     </div>
                 </div>
 

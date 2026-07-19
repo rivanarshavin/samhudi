@@ -251,6 +251,40 @@ class Admin_model extends CI_Model
     }
 
     /**
+     * Set satu berita sebagai highlight (eksklusif — hanya 1 aktif)
+     * Jika berita yang diklik sudah di-highlight, cabut highlight-nya.
+     */
+    public function highlight_news($id)
+    {
+        $news = $this->get_news_by_id($id);
+        if (!$news) return false;
+
+        if (!empty($news['is_highlight'])) {
+            // Sudah highlight → cabut
+            return $this->db->update('news', ['is_highlight' => 0], ['id' => $id]);
+        }
+
+        // Cabut highlight semua berita dulu
+        $this->db->update('news', ['is_highlight' => 0]);
+        // Set highlight pada berita terpilih
+        return $this->db->update('news', ['is_highlight' => 1], ['id' => $id]);
+    }
+
+    /**
+     * Ambil berita yang sedang di-highlight (maksimal 1)
+     */
+    public function get_highlighted_news()
+    {
+        $this->db->select('news.*, users.full_name AS author_name');
+        $this->db->from('news');
+        $this->db->join('users', 'users.id = news.author_id', 'left');
+        $this->db->where('news.is_highlight', 1);
+        $this->db->where('news.status', 'publish');
+        $this->db->limit(1);
+        return $this->db->get()->row_array();
+    }
+
+    /**
      * Ambil berita berdasarkan slug (untuk halaman detail)
      */
     public function get_news_by_slug($slug)

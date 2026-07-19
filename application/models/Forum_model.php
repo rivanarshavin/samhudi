@@ -195,12 +195,15 @@ class Forum_model extends CI_Model {
     public function get_chat_contacts($user_id)
     {
         // Get all members other than the logged-in user
-        $this->db->select('id, full_name, avatar, username');
+        $this->db->select('id, full_name, avatar, username, last_activity');
         $this->db->from('users');
         $this->db->where('id !=', $user_id);
         $users = $this->db->get()->result();
 
+        $ten_minutes_ago = time() - (10 * 60);
+
         foreach ($users as &$u) {
+            $u->is_online = (!empty($u->last_activity) && strtotime($u->last_activity) >= $ten_minutes_ago) ? 1 : 0;
             // Get last message
             $this->db->select('message, created_at');
             $this->db->from('messages');

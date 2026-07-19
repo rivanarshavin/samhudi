@@ -26,6 +26,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 // Base URL production — hardcoded agar aman dari Host Header Injection
 // $config['base_url'] = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://samhudi.com/';
 // $config['base_url'] = 'http://localhost/web_kel_samhudi/';
+// $config['base_url'] = 'http://localhost/PKL/keluarga/samhudi/';
 $config['base_url'] = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://samhudi.test/';
 
 /*
@@ -105,7 +106,7 @@ $config['charset'] = 'UTF-8';
 | setting this variable to TRUE (boolean).  See the user guide for details.
 |
 */
-$config['enable_hooks'] = FALSE;
+$config['enable_hooks'] = TRUE;
 
 /*
 |--------------------------------------------------------------------------
