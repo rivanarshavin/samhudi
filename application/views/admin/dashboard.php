@@ -261,7 +261,7 @@
                 </div>
                 <?php endif; ?>
 
-                <form method="post" enctype="multipart/form-data" class="space-y-4">
+                <form method="post" enctype="multipart/form-data" class="space-y-4" id="banner-form">
                     <input type="hidden" name="upload_banner" value="1">
 
                     <div class="relative group cursor-pointer" onclick="previewBanner(this)">
@@ -278,7 +278,7 @@
                     </div>
 
                     <div class="text-center">
-                        <button type="submit" class="bg-white text-teal-900 font-display font-semibold px-8 py-2.5 rounded-full hover:bg-gray-100 transition-all shadow-lg text-sm">
+                        <button type="submit" id="save-banner-btn" class="bg-white text-teal-900 font-display font-semibold px-8 py-2.5 rounded-full hover:bg-gray-100 transition-all shadow-lg text-sm">
                             <i class="bi bi-check-lg mr-1"></i> Simpan
                         </button>
                     </div>
@@ -331,7 +331,7 @@
 
                     <input type="hidden" name="delete_index" value="">
                     <div class="flex gap-3">
-                        <button type="submit" name="save_carousel" value="1" class="bg-white text-teal-900 font-display font-semibold px-6 py-2.5 rounded-full hover:bg-gray-100 transition-all shadow-lg text-sm">
+                        <button type="submit" id="save-carousel-btn" name="save_carousel" value="1" class="bg-white text-teal-900 font-display font-semibold px-6 py-2.5 rounded-full hover:bg-gray-100 transition-all shadow-lg text-sm">
                             <i class="bi bi-check-lg mr-1"></i> Simpan Carousel
                         </button>
                         <button type="button" onclick="addCarouselCard()" class="border border-dashed border-teal-600 text-teal-400 hover:text-white font-display font-semibold px-6 py-2.5 rounded-full hover:bg-teal-800/50 transition-all text-sm">
@@ -359,7 +359,7 @@
                 </div>
                 <?php endif; ?>
 
-                <form method="post" class="space-y-4">
+                <form method="post" class="space-y-4" id="intro-form">
                     <input type="hidden" name="save_intro" value="1">
                     <div>
                         <label class="text-sm text-teal-400 font-semibold mb-1 block">Teks Intro</label>
@@ -370,7 +370,7 @@
                         <input type="text" name="intro_sender" value="<?= htmlspecialchars($intro_sender) ?>" class="w-full bg-teal-800 border border-teal-700 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" placeholder="From (nama)">
                     </div>
                     <div class="text-center">
-                        <button type="submit" class="bg-white text-teal-900 font-display font-semibold px-8 py-2.5 rounded-full hover:bg-gray-100 transition-all shadow-lg text-sm">
+                        <button type="submit" id="save-intro-btn" class="bg-white text-teal-900 font-display font-semibold px-8 py-2.5 rounded-full hover:bg-gray-100 transition-all shadow-lg text-sm">
                             <i class="bi bi-check-lg mr-1"></i> Simpan
                         </button>
                     </div>
@@ -395,7 +395,7 @@
                 </div>
                 <?php endif; ?>
 
-                <form method="post" class="space-y-4">
+                <form method="post" class="space-y-4" id="sambutan-form">
                     <input type="hidden" name="save_sambutan" value="1">
                     <div>
                         <label class="text-sm text-teal-400 font-semibold mb-1 block">Judul</label>
@@ -415,7 +415,7 @@
                         <input type="text" name="sambutan_sender" value="<?= htmlspecialchars($sambutan_sender) ?>" class="w-full bg-teal-800 border border-teal-700 rounded-lg px-4 py-3 text-white text-sm">
                     </div>
                     <div class="text-center">
-                        <button type="submit" class="bg-white text-teal-900 font-display font-semibold px-8 py-2.5 rounded-full hover:bg-gray-100 transition-all shadow-lg text-sm">
+                        <button type="submit" id="save-sambutan-btn" class="bg-white text-teal-900 font-display font-semibold px-8 py-2.5 rounded-full hover:bg-gray-100 transition-all shadow-lg text-sm">
                             <i class="bi bi-check-lg mr-1"></i> Simpan Sambutan
                         </button>
                     </div>
@@ -440,7 +440,7 @@
                 </div>
                 <?php endif; ?>
 
-                <form method="post" enctype="multipart/form-data" class="space-y-4">
+                <form method="post" enctype="multipart/form-data" class="space-y-4" id="makam-form">
                     <input type="hidden" name="save_makam" value="1">
                     <div>
                         <label class="text-sm text-teal-400 font-semibold mb-1 block">Alamat</label>
@@ -480,7 +480,7 @@
                         </div>
                     </div>
                     <div class="text-center">
-                        <button type="submit" class="bg-white text-teal-900 font-display font-semibold px-8 py-2.5 rounded-full hover:bg-gray-100 transition-all shadow-lg text-sm">
+                        <button type="submit" id="save-makam-btn" class="bg-white text-teal-900 font-display font-semibold px-8 py-2.5 rounded-full hover:bg-gray-100 transition-all shadow-lg text-sm">
                             <i class="bi bi-check-lg mr-1"></i> Simpan
                         </button>
                     </div>
@@ -559,7 +559,7 @@ function addCarouselCard() {
     const grid = document.getElementById('carousel-grid');
     const idx = grid.children.length;
     const card = document.createElement('div');
-    card.className = 'bg-teal-800/40 border border-teal-700 rounded-xl p-4 space-y-3';
+    card.className = 'bg-teal-800/40 border border-teal-700 rounded-xl p-4 space-y-3 carousel-item-card';
     card.innerHTML = `
         <div class="w-full h-36 bg-teal-800 rounded-lg border border-dashed border-teal-600 flex items-center justify-center text-teal-500 text-xs">Preview</div>
         <input type="text" name="captions[]" value="Keluarga" class="w-full bg-teal-800 border border-teal-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" placeholder="Caption">
@@ -569,9 +569,14 @@ function addCarouselCard() {
                 <p class="text-teal-400 mt-1">Ganti</p>
                 <input id="carousel-upload-new-${idx}" type="file" name="carousel_file[]" accept="image/*" class="hidden" onchange="previewCarouselInput(this, -1)">
             </div>
+            <button type="button" onclick="this.closest('.carousel-item-card').remove(); const f = document.getElementById('carousel-form'); if (f && typeof f.checkChanges === 'function') f.checkChanges();" class="px-3 py-1.5 bg-red-500/20 text-red-300 rounded-lg hover:bg-red-500/40 transition-all text-xs">
+                <i class="bi bi-trash"></i>
+            </button>
         </div>
     `;
     grid.appendChild(card);
+    const f = document.getElementById('carousel-form');
+    if (f && typeof f.checkChanges === 'function') f.checkChanges();
 }
 
 function handleCarouselDrop(e, idx) {
@@ -658,6 +663,8 @@ function renderMakamPreviews() {
         };
         reader.readAsDataURL(file);
     });
+    const form = document.getElementById('makam-form');
+    if (form && typeof form.checkChanges === 'function') form.checkChanges();
 }
 
 function handleMakamFiles(input) {
@@ -697,27 +704,180 @@ document.querySelector('form input[name="save_makam"]').closest('form').addEvent
     }
 });
 
-function deleteCarousel(index) {
-    if (confirm('Hapus item ini?')) {
-        const form = document.getElementById('carousel-form');
-        const saveBtn = form.querySelector('button[name="save_carousel"]');
-        if (saveBtn) saveBtn.disabled = true;
-        const saveInput = form.querySelector('input[name="save_carousel"]');
-        if (saveInput) saveInput.remove();
-        const exists = form.querySelector('input[name="delete_carousel"]');
-        if (exists) exists.remove();
-        const inp = document.createElement('input');
-        inp.type = 'hidden';
-        inp.name = 'delete_carousel';
-        inp.value = '1';
-        form.appendChild(inp);
-        const idxInp = document.createElement('input');
-        idxInp.type = 'hidden';
-        idxInp.name = 'delete_index';
-        idxInp.value = index;
-        form.appendChild(idxInp);
-        form.submit();
+// Validate carousel submission (ensure new items have photos)
+document.getElementById('carousel-form').addEventListener('submit', function(e) {
+    const isDelete = this.querySelector('input[name="delete_carousel"]');
+    if (isDelete) return; // Skip validation on delete
+
+    // Remove existing client-side error alert if present
+    const existingAlert = document.getElementById('carousel-error-alert');
+    if (existingAlert) {
+        existingAlert.remove();
     }
+
+    const newInputs = this.querySelectorAll('input[id^="carousel-upload-new-"]');
+    let hasEmpty = false;
+    newInputs.forEach(input => {
+        const zone = input.closest('.drop-zone-carousel');
+        if (!input.files || input.files.length === 0) {
+            hasEmpty = true;
+            if (zone) {
+                zone.classList.add('border-red-500');
+                zone.classList.remove('border-teal-700');
+            }
+        } else {
+            if (zone) {
+                zone.classList.remove('border-red-500');
+                zone.classList.add('border-teal-700');
+            }
+        }
+    });
+
+    if (hasEmpty) {
+        e.preventDefault();
+        
+        // Create error alert div
+        const alertDiv = document.createElement('div');
+        alertDiv.id = 'carousel-error-alert';
+        alertDiv.className = 'bg-red-500/20 border border-red-500/40 text-red-200 px-5 py-3 rounded-lg text-sm mb-4';
+        alertDiv.innerText = 'Gagal menyimpan: Harap pilih/unggah foto untuk semua item carousel baru yang ditambahkan!';
+        
+        // Insert it before the form
+        this.parentNode.insertBefore(alertDiv, this);
+        
+        // Scroll to the carousel section
+        document.getElementById('carousel-section').scrollIntoView({ behavior: 'smooth' });
+    }
+});
+
+// Forms Change Tracking Utility
+function initFormChangeTracker(formId, saveBtnId) {
+    const form = document.getElementById(formId);
+    const saveBtn = document.getElementById(saveBtnId);
+    if (!form || !saveBtn) return;
+
+    // Capture initial states of all non-hidden inputs
+    const inputs = form.querySelectorAll('input:not([type="hidden"]), textarea, select');
+    const initialStates = [];
+    inputs.forEach(input => {
+        if (input.type === 'file') {
+            initialStates.push({ element: input, value: '', filesLength: 0 });
+        } else {
+            initialStates.push({ element: input, value: input.value });
+        }
+    });
+
+    // Special count variable for Carousel dynamic items
+    let initialCount = 0;
+    if (formId === 'carousel-form') {
+        initialCount = form.querySelectorAll('input[name="captions[]"]').length;
+    }
+
+    function checkChanges() {
+        let hasChanges = false;
+
+        // 1. Check Carousel list count
+        if (formId === 'carousel-form') {
+            const currentCount = form.querySelectorAll('input[name="captions[]"]').length;
+            if (currentCount !== initialCount) {
+                hasChanges = true;
+            }
+        }
+
+        // 2. Check Makam draft list length
+        if (formId === 'makam-form' && typeof makamNewFiles !== 'undefined' && makamNewFiles.length > 0) {
+            hasChanges = true;
+        }
+
+        // 3. Compare values of captured inputs
+        if (!hasChanges) {
+            for (let state of initialStates) {
+                const el = state.element;
+                if (!document.body.contains(el)) continue;
+
+                if (el.type === 'file') {
+                    if (el.files && el.files.length > 0) {
+                        hasChanges = true;
+                        break;
+                    }
+                } else {
+                    if (el.value !== state.value) {
+                        hasChanges = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // 4. Verify dynamically added elements
+        if (!hasChanges) {
+            const currentInputs = form.querySelectorAll('input:not([type="hidden"]), textarea, select');
+            if (currentInputs.length !== initialStates.length) {
+                hasChanges = true;
+            } else {
+                for (let input of currentInputs) {
+                    const tracked = initialStates.some(state => state.element === input);
+                    if (!tracked) {
+                        if (input.type === 'file' && input.files && input.files.length > 0) {
+                            hasChanges = true;
+                            break;
+                        } else if (input.type !== 'file' && input.value !== '') {
+                            hasChanges = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Toggle state of button
+        if (hasChanges) {
+            saveBtn.disabled = false;
+            saveBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        } else {
+            saveBtn.disabled = true;
+            saveBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+    }
+
+    // Bind change/input event listeners
+    form.addEventListener('input', checkChanges);
+    form.addEventListener('change', checkChanges);
+
+    // Initial check
+    checkChanges();
+
+    // Export checkChanges on the form element
+    form.checkChanges = checkChanges;
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    initFormChangeTracker('banner-form', 'save-banner-btn');
+    initFormChangeTracker('carousel-form', 'save-carousel-btn');
+    initFormChangeTracker('intro-form', 'save-intro-btn');
+    initFormChangeTracker('sambutan-form', 'save-sambutan-btn');
+    initFormChangeTracker('makam-form', 'save-makam-btn');
+});
+
+function deleteCarousel(index) {
+    const form = document.getElementById('carousel-form');
+    const saveBtn = form.querySelector('button[name="save_carousel"]');
+    if (saveBtn) saveBtn.disabled = true;
+    const saveInput = form.querySelector('input[name="save_carousel"]');
+    if (saveInput) saveInput.remove();
+    const exists = form.querySelector('input[name="delete_carousel"]');
+    if (exists) exists.remove();
+    const inp = document.createElement('input');
+    inp.type = 'hidden';
+    inp.name = 'delete_carousel';
+    inp.value = '1';
+    form.appendChild(inp);
+    const idxInp = document.createElement('input');
+    idxInp.type = 'hidden';
+    idxInp.name = 'delete_index';
+    idxInp.value = index;
+    form.appendChild(idxInp);
+    form.submit();
 }
     </script>
 </body>

@@ -403,7 +403,7 @@ nav {
 }
 
 .carousel-caption {
-    text-align: right;
+    text-align: center;
     font-family: 'Brittany Signature', cursive;
     font-size: 16px;
     margin-top: 4px;
@@ -418,9 +418,24 @@ nav {
     background-color: var(--bg-intro);
 }
 
+.overlap-flex-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin: 0 auto;
+    position: relative;
+    gap: 40px;
+}
+
+.overlap-img-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 480px;
+}
+
 .overlap-img {
-    width: 85%;
-    max-width: 420px;
+    width: 100%;
     object-fit: cover;
 }
 
@@ -438,13 +453,13 @@ nav {
 
 .overlap-box {
     background: var(--bg-card);
-    width: auto;
-    max-width: 480px;
+    width: 100%;
+    max-width: 540px;
     height: auto;
-    margin-left: 20px;
+    margin-left: 0;
     position: relative;
     z-index: 2;
-    padding: clamp(1rem, 3vw, 1.8rem) clamp(1rem, 3vw, 1.8rem);
+    padding: clamp(1.2rem, 3.5vw, 2.2rem);
     box-shadow: 0 15px 30px rgba(0,0,0,.12);
     border: 1px solid var(--border-card);
 }
@@ -487,14 +502,20 @@ nav {
         min-height: auto;
         padding: 50px 0;
     }
-    .overlap-img {
+    .overlap-flex-container {
+        flex-direction: column;
+    }
+    .overlap-img-wrapper {
         width: 100%;
         max-width: 340px;
         margin: 0 auto;
+    }
+    .overlap-img {
+        width: 100%;
         display: block;
     }
     .overlap-box {
-        margin: -35px auto 0 auto;
+        margin: -60px auto 0 auto;
         width: 92%;
         max-width: 440px;
         box-shadow: 0 12px 28px rgba(0,0,0,.15);
@@ -553,6 +574,9 @@ nav {
     }
     .bg-hero-section {
         background-position: 55% center !important;
+    }
+    .overlap-ornament {
+        display: none;
     }
 }
 

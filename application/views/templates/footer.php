@@ -1,37 +1,49 @@
 <script>
-        const cards = document.querySelectorAll('.card');
+        const cards = document.querySelectorAll('.carousel-card');
 
-        const layout = [
-            { x: -630, s: 0.85 },
-            { x: -420, s: 0.90 },
-            { x: -210, s: 0.95 },
-            { x: 0, s: 1.15 },
-            { x: 210, s: 0.95 },
-            { x: 420, s: 0.90 },
-            { x: 630, s: 0.85 }
-        ];
-
-        let active = 2;
+        let active = 0;
 
         function render() {
+            const N = cards.length;
+            if (N === 0) return;
+
+            const layoutMap = {
+                '0': { x: 0, s: 1.15 },
+                '1': { x: 210, s: 0.95 },
+                '-1': { x: -210, s: 0.95 },
+                '2': { x: 420, s: 0.90 },
+                '-2': { x: -420, s: 0.90 },
+                '3': { x: 630, s: 0.85 },
+                '-3': { x: -630, s: 0.85 }
+            };
+
             cards.forEach((card, i) => {
-                let pos = i - active;
-                let idx = pos + 3;
-
-                if (idx < 0) idx += 7;
-                if (idx > 6) idx -= 7;
-
-                let p = layout[idx];
+                let diff = i - active;
+                
+                // Circular layout wrapping calculation
+                while (diff < -Math.floor(N / 2)) diff += N;
+                while (diff >= Math.ceil(N / 2)) diff -= N;
 
                 card.style.position = "absolute";
                 card.style.top = "50%";
                 card.style.left = "50%";
                 card.style.transition = "all .6s ease";
 
-                card.style.transform =
-                    `translate(calc(-50% + ${p.x}px), -50%) scale(${p.s})`;
-
-                card.style.zIndex = Math.round(p.s * 1000);
+                if (layoutMap[diff] !== undefined) {
+                    let p = layoutMap[diff];
+                    card.style.transform = `translate(calc(-50% + ${p.x}px), -50%) scale(${p.s})`;
+                    card.style.zIndex = Math.round(p.s * 1000);
+                    card.style.opacity = "1";
+                    card.style.visibility = "visible";
+                    card.style.pointerEvents = "auto";
+                } else {
+                    // Hide out of bounds cards
+                    card.style.transform = `translate(-50%, -50%) scale(0.5)`;
+                    card.style.zIndex = "0";
+                    card.style.opacity = "0";
+                    card.style.visibility = "hidden";
+                    card.style.pointerEvents = "none";
+                }
             });
         }
 
