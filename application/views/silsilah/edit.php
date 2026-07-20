@@ -37,32 +37,19 @@
                         body: ['Inter', 'sans-serif'],
                     }
                 }
-            }
-        }
-    </script>
-    <style>
-        * { font-family: 'Inter', sans-serif; }
-        .font-display { font-family: 'Plus Jakarta Sans', sans-serif; }
-    </style>
+    <title>Edit Anggota Silsilah - Samhudi</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="<?php echo base_url('assets/css/admin.css?v=' . time()); ?>">
+    <!-- Frontend specific styles -->
+    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=' . time()); ?>">
 </head>
-<body class="bg-teal-950 text-white font-body min-h-screen flex">
+<body class="admin-body">
 
-    <!-- Sidebar -->
-    <?php $this->load->view('admin/sidebar'); ?>
+    <?php $this->load->view('layout/header'); ?>
 
     <!-- Main Content -->
-    <main class="flex-1 flex flex-col overflow-y-auto">
-        
-        <!-- Header -->
-        <?php $this->load->view('admin/header'); ?>
-
-        <!-- Content Area -->
-        <div class="p-8 max-w-4xl mx-auto w-full space-y-8">
-            
-            <!-- Breadcrumbs -->
-            <div class="flex items-center gap-2 text-xs text-brand-light/60">
-                <a href="<?= base_url('admin/silsilah') ?>" class="hover:text-white transition-all">Kelola Silsilah</a>
-                <i class="bi bi-chevron-right"></i>
                 <span class="text-white font-medium">Edit Anggota</span>
             </div>
 

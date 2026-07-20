@@ -49,12 +49,16 @@ function nextStep(stepIndex) {
     // Update step indicator
     if (stepIndex > 0) {
         document.querySelector('.step-num').innerText = stepIndex;
+        
         // Update leaves
         for (let i = 1; i <= 4; i++) {
             const leaf = document.getElementById('leaf' + i);
             if (leaf) {
-                if (i <= stepIndex) leaf.classList.add('active');
-                else leaf.classList.remove('active');
+                if (i <= stepIndex) {
+                    leaf.classList.add('active');
+                } else {
+                    leaf.classList.remove('active');
+                }
             }
         }
     }
@@ -252,6 +256,20 @@ function clearSelectedParent() {
 
 // Event Listeners diletakkan setelah DOM siap
 document.addEventListener('DOMContentLoaded', () => {
+    // Auto-fill generasi dari URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const genParam = urlParams.get('generasi');
+    if (genParam) {
+        const genSelect = document.getElementById('generasi');
+        if (genSelect) {
+            genSelect.value = genParam;
+            // Panggil event onchange manual agar tombol Next aktif
+            if (typeof enableNext === 'function') {
+                enableNext(2);
+            }
+        }
+    }
+
     // Parent search logic
     const parentSearch = document.getElementById('parentSearch');
     let parentSearchTimeout;

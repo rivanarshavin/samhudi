@@ -35,6 +35,7 @@
     <div class="wizard-step" id="step1">
         <p class="step-desc">Pilih peranmu<br>dalam keluarga inti</p>
         <div class="role-cards">
+            <?php if ($this->input->get('generasi') != '1'): ?>
             <label class="role-card">
                 <input type="radio" name="role" value="anak" onchange="enableNext(1)">
                 <div class="role-card-content">
@@ -43,6 +44,7 @@
                     <strong>Anak</strong>
                 </div>
             </label>
+            <?php endif; ?>
             <label class="role-card">
                 <input type="radio" name="role" value="pasangan" onchange="enableNext(1)">
                 <div class="role-card-content">
@@ -72,16 +74,9 @@
             <label>Generasi</label>
             <select id="generasi" onchange="enableNext(2)" style="width: 100%; padding: 12px 15px; border-radius: 12px; border: 1.5px solid var(--border-color); background: var(--input-bg); color: var(--ink); font-family: 'Manrope', sans-serif; margin-bottom: 20px;">
                 <option value="">Pilih Generasi...</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-                <option value="7">7</option>
-                <option value="8">8</option>
-                <option value="9">9</option>
-                <option value="10">10</option>
+                <?php for($i=1; $i<=25; $i++): ?>
+                    <option value="<?= $i ?>"><?= $i ?></option>
+                <?php endfor; ?>
             </select>
         </div>
         <div class="step-footer">
@@ -254,16 +249,9 @@
             <p style="color: var(--ink-soft, #6a7b73); font-size: 13px; margin-bottom: 8px;">Generasi:</p>
             <select id="newRelGenerasi" class="form-control" style="width: 100%; padding: 12px 15px; border-radius: 12px; border: 1.5px solid var(--border-color); background: var(--input-bg); color: var(--ink); font-family: 'Manrope', sans-serif;">
                 <option value="">Pilih Generasi...</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-                <option value="7">7</option>
-                <option value="8">8</option>
-                <option value="9">9</option>
-                <option value="10">10</option>
+                <?php for($i=1; $i<=25; $i++): ?>
+                    <option value="<?= $i ?>"><?= $i ?></option>
+                <?php endfor; ?>
             </select>
             <div id="newRelGenerasiError" style="color: #b3543f; font-size: 12px; margin-top: 5px; display: none;">Generasi harus dipilih</div>
         </div>

@@ -15,24 +15,136 @@ class Family_model extends CI_Model {
 
     public function get_family_tree($rootId = null, $familyId = null)
     {
+        // Fetch all approved members
+        $this->db->where('status', 'approved');
+        if ($familyId) $this->db->where('family_id', (int) $familyId);
+        $this->db->order_by('birth_date', 'ASC');
+        $this->db->order_by('id', 'ASC');
+        $all_members = $this->db->get('family_members')->result_array();
+        
+        // Fetch all marriages
+        $all_marriages = $this->db->get('marriages')->result_array();
+        
+        // Index members by ID for fast lookup
+        $members_by_id = [];
+        foreach ($all_members as $m) {
+            $members_by_id[$m['id']] = $m;
+        }
+        
+        // Index marriages by member ID
+        $spouses_by_member = [];
+        foreach ($all_marriages as $m) {
+            $hus = $m['husband_id'];
+            $wif = $m['wife_id'];
+            
+            if (isset($members_by_id[$wif])) {
+                $spouses_by_member[$hus][] = $members_by_id[$wif];
+            }
+            if (isset($members_by_id[$hus])) {
+                $spouses_by_member[$wif][] = $members_by_id[$hus];
+            }
+        }
+        
+        // Index children by parent ID
+        $children_by_parent = [];
+        foreach ($all_members as $m) {
+            if (!empty($m['father_id'])) {
+                $children_by_parent[$m['father_id']][] = $m;
+            }
+            if (!empty($m['mother_id'])) {
+                $children_by_parent[$m['mother_id']][] = $m;
+            }
+        }
+        
+        // Helper function to fetch node from memory
+        $fetch_node_mem = function($row, $depth, &$visited = []) use (&$fetch_node_mem, &$spouses_by_member, &$children_by_parent) {
+            if (in_array($row['id'], $visited)) {
+                return null;
+            }
+            $visited[] = $row['id'];
+            
+            $person = $this->row_to_person($row, $depth);
+            
+            $spouses = $spouses_by_member[$row['id']] ?? [];
+            if (!empty($spouses)) {
+                $person['pasangan'] = [];
+                foreach ($spouses as $spouseRow) {
+                    $person['pasangan'][] = $this->row_to_person($spouseRow, $depth, $this->spouse_label($spouseRow['gender'] ?? null));
+                }
+            }
+            
+            $children = $children_by_parent[$row['id']] ?? [];
+            
+            $unique_children = [];
+            $child_ids = [];
+            foreach ($children as $child) {
+                if (!in_array($child['id'], $child_ids)) {
+                    $unique_children[] = $child;
+                    $child_ids[] = $child['id'];
+                }
+            }
+            
+            foreach ($unique_children as $childRow) {
+                $childNode = $fetch_node_mem($childRow, $depth + 1, $visited);
+                if ($childNode) {
+                    $person['children'][] = $childNode;
+                }
+            }
+            
+            return $person;
+        };
+
         if ($rootId) {
-            $root = $this->db->get_where('family_members', ['id' => (int) $rootId, 'status' => 'approved'])->row_array();
+            if (!isset($members_by_id[$rootId])) {
+                return ['error' => 'Anggota keluarga tidak ditemukan.'];
+            }
+            $visited = [];
+            return [$fetch_node_mem($members_by_id[$rootId], 0, $visited)];
         } else {
-            $this->db->where('father_id', NULL);
-            $this->db->where('mother_id', NULL);
-            $this->db->where('status', 'approved');
-            if ($familyId) $this->db->where('family_id', (int) $familyId);
-            $this->db->order_by('birth_date', 'ASC');
-            $this->db->order_by('id', 'ASC');
-            $this->db->limit(1);
-            $root = $this->db->get('family_members')->row_array();
+            $roots = [];
+            foreach ($all_members as $m) {
+                if (empty($m['father_id']) && empty($m['mother_id'])) {
+                    $roots[] = $m;
+                }
+            }
+            
+            if (empty($roots)) {
+                return ['error' => 'Data silsilah kosong.'];
+            }
+            
+            $final_roots = [];
+            $processed_ids = [];
+            
+            $extract_ids = function($node) use (&$extract_ids, &$processed_ids) {
+                if (!$node) return;
+                $processed_ids[] = $node['id'];
+                if (!empty($node['pasangan'])) {
+                    if (isset($node['pasangan'][0])) { 
+                        foreach ($node['pasangan'] as $p) $processed_ids[] = $p['id'];
+                    } else { 
+                        $processed_ids[] = $node['pasangan']['id'];
+                    }
+                }
+                if (!empty($node['children'])) {
+                    foreach ($node['children'] as $child) {
+                        $extract_ids($child);
+                    }
+                }
+            };
+            
+            foreach ($roots as $r) {
+                if (in_array($r['id'], $processed_ids)) continue;
+                
+                $visited = [];
+                $node = $fetch_node_mem($r, 0, $visited);
+                if ($node) {
+                    $final_roots[] = $node;
+                    $extract_ids($node);
+                }
+            }
+            
+            return $final_roots;
         }
-
-        if (!$root) {
-            return ['error' => 'Anggota keluarga tertua (tanpa father_id/mother_id) tidak ditemukan. Isi dulu data buyut di tabel family_members, atau kirim ?root_id= manual.'];
-        }
-
-        return $this->fetch_node($root, 0);
     }
 
     public function get_member_full_details($id, $bypass_status = false)
@@ -47,7 +159,8 @@ class Family_model extends CI_Model {
         if (!$memberRow) return null;
 
         $member = $this->row_to_person($memberRow, 0); // depth 0 just for general info
-        $member['agama'] = $memberRow['religion'] ?? 'Islam'; // Defaulting if column doesn't exist, maybe assume Islam or leave empty if not present. I'll check if religion exists, if not just don't output or output what's there. Actually let's just use what's in DB or hardcode standard if needed. Let's just add it manually if it doesn't exist.
+        $member['agama'] = $memberRow['religion'] ?? 'Islam';
+        $member['raw_data'] = $memberRow; // For edit form
         
         // Check if root to set "Generasi" properly
         // Ideally we need depth logic. Since this is detail view, we might not have it exactly.
@@ -264,6 +377,7 @@ class Family_model extends CI_Model {
             'tempat_tinggal' => $row['address'] ?? null,
             'pekerjaan'      => $row['occupation'] ?? null,
             'status'         => $status ?? 'Masih Hidup',
+            'created_by'     => isset($row['created_by']) ? $row['created_by'] : null,
             'pasangan'       => null,
             'children'       => [],
         ];

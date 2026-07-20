@@ -27,7 +27,6 @@ body[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .wizard-wrapper {
-  background: var(--page-bg);
   font-family: 'Manrope', sans-serif;
   color: var(--ink);
   padding: 40px 20px;

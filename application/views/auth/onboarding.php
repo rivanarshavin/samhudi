@@ -89,10 +89,12 @@
     }
     .search-box i {
         position: absolute;
-        left: 15px;
+        left: 20px;
         top: 50%;
         transform: translateY(-50%);
         color: #6a7b73;
+        z-index: 5;
+        pointer-events: none;
     }
     .search-box input {
         width: 100%;

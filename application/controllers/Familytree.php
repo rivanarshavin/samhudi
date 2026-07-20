@@ -205,7 +205,8 @@ class Familytree extends CI_Controller
             'gender' => $this->input->post('gender'), // 'L' atau 'P'
             'generasi' => $this->input->post('generasi') ? (int)$this->input->post('generasi') : NULL,
             'is_alive' => 1,
-            'status' => 'pending'
+            'status' => 'approved',
+            'created_by' => $this->session->userdata('user_id')
         ];
 
         if ($pending_user_id) {
@@ -253,6 +254,89 @@ class Familytree extends CI_Controller
             $msg = $result['message'] ?? 'Gagal menambahkan data, pastikan relasi valid.';
             echo json_encode(['status' => false, 'message' => $msg]);
         }
+    }
+
+    public function edit_member($id = null)
+    {
+        if (!$this->session->userdata('logged_in')) {
+            $this->session->set_flashdata('errors', ['Anda harus login terlebih dahulu.']);
+            redirect('auth');
+            return;
+        }
+
+        if (!$id) {
+            redirect('familytree');
+            return;
+        }
+
+        $this->load->model('Family_model');
+        $member = $this->db->get_where('family_members', ['id' => $id])->row_array();
+
+        if (!$member) {
+            show_404();
+            return;
+        }
+
+        $user_id = $this->session->userdata('user_id');
+        $role = $this->session->userdata('role');
+
+        if ($role !== 'admin' && $role !== 'super_admin' && $member['created_by'] != $user_id) {
+            $this->session->set_flashdata('error', 'Anda tidak memiliki akses untuk mengedit data ini.');
+            redirect('familytree');
+            return;
+        }
+
+        if ($this->input->post()) {
+            $data = [
+                'full_name' => $this->input->post('full_name'),
+                'gender' => $this->input->post('gender'),
+                'birth_place' => $this->input->post('birth_place'),
+                'birth_date' => empty($this->input->post('birth_date')) ? NULL : $this->input->post('birth_date'),
+                'death_date' => empty($this->input->post('death_date')) ? NULL : $this->input->post('death_date'),
+                'is_alive' => $this->input->post('is_alive') ? 1 : 0,
+                'phone' => $this->input->post('phone'),
+                'email' => $this->input->post('email'),
+                'occupation' => $this->input->post('occupation'),
+                'address' => $this->input->post('address'),
+                'generasi' => $this->input->post('generasi') ? (int)$this->input->post('generasi') : NULL,
+                'father_id' => $this->input->post('father_id') ? (int)$this->input->post('father_id') : NULL,
+                'mother_id' => $this->input->post('mother_id') ? (int)$this->input->post('mother_id') : NULL,
+            ];
+
+            // Handle photo upload
+            if (isset($_FILES['photo']) && $_FILES['photo']['name']) {
+                $config['upload_path']   = FCPATH . 'assets/uploads/';
+                $config['allowed_types'] = 'gif|jpg|jpeg|png';
+                $config['max_size']      = 2048; // 2MB
+                $config['file_name']     = time() . '_' . $_FILES['photo']['name'];
+                
+                if (!is_dir($config['upload_path'])) {
+                    mkdir($config['upload_path'], 0777, true);
+                }
+                
+                $this->load->library('upload');
+                $this->upload->initialize($config);
+                
+                if ($this->upload->do_upload('photo')) {
+                    $uploadData = $this->upload->data();
+                    $data['photo'] = 'assets/uploads/' . $uploadData['file_name'];
+                    
+                    if (!empty($member['photo']) && file_exists(FCPATH . $member['photo'])) {
+                        unlink(FCPATH . $member['photo']);
+                    }
+                }
+            }
+
+            $this->db->where('id', $id);
+            $this->db->update('family_members', $data);
+
+            $this->session->set_flashdata('success', 'Data berhasil diubah.');
+            redirect('familytree');
+            return;
+        }
+
+        $data['member'] = $member;
+        $this->load->view('silsilah/edit', $data);
     }
 
     private function _is_nuclear_family($user_id, $target_id)
@@ -307,6 +391,9 @@ class Familytree extends CI_Controller
             return;
         }
         
+        $this->load->model('Silsilah_model');
+        $member['spouses'] = $this->Silsilah_model->get_spouses_by_member_id($id);
+        
         echo json_encode($member);
     }
 
@@ -356,6 +443,11 @@ class Familytree extends CI_Controller
             'address'     => $this->input->post('address'),
             'phone'       => $this->input->post('phone'),
             'email'       => $this->input->post('email'),
+            'generasi'    => $this->input->post('generasi') ? $this->input->post('generasi') : null,
+            'father_id'   => $this->input->post('father_id') ? $this->input->post('father_id') : null,
+            'mother_id'   => $this->input->post('mother_id') ? $this->input->post('mother_id') : null,
+            'is_alive'    => $this->input->post('is_alive') ?? 1,
+            'death_date'  => $this->input->post('is_alive') == 1 ? null : ($this->input->post('death_date') ? $this->input->post('death_date') : null),
         ];
 
         // Handle photo upload if exists
@@ -380,9 +472,17 @@ class Familytree extends CI_Controller
 
         $this->db->where('id', $id);
         if ($this->db->update('family_members', $update_data)) {
+            // Update spouses
+            $spouses = $this->input->post('spouses') ?? [];
+            if (!is_array($spouses)) {
+                $spouses = explode(',', $spouses);
+            }
+            $this->load->model('Silsilah_model');
+            $this->Silsilah_model->sync_marriages($id, $update_data['gender'], $spouses);
+
             echo json_encode(['status' => true, 'message' => 'Data berhasil diperbarui.']);
         } else {
-            echo json_encode(['status' => false, 'message' => 'Terjadi kesalahan sistem saat menyimpan.']);
+            echo json_encode(['status' => false, 'message' => 'Gagal memperbarui data.']);
         }
     }
 }

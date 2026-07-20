@@ -4,7 +4,7 @@
   --cream: #F4F9F5;
   --cream-warm: #EAF2EC;
   --ink: #2a2a24;
-  --ink-soft: #5a5c50;
+  --ink-soft: #4a544c;
   --brass: #E49438;
   --brass-soft: #d9b877;
   --line: #8ba396;
@@ -61,7 +61,7 @@ body {
 }
 
 .silsilah-subtitle {
-  color: var(--ink-soft);
+  color: var(--ink);
   font-size: 14px;
   max-width: 500px;
   margin: 0;
