@@ -284,6 +284,99 @@ body {
 }
 .bl-page-info strong { color: var(--bl-card-title); }
 
+/* ---------- FEATURED / HIGHLIGHT CARD ---------- */
+.bl-featured {
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    border: 2px solid rgba(212,181,113,0.35);
+    box-shadow: 0 8px 40px rgba(212,181,113,0.12), var(--bl-card-shadow);
+    background: var(--bl-surface);
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 2rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.bl-featured:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 56px rgba(212,181,113,0.22);
+}
+.bl-featured-img {
+    width: 100%;
+    height: 320px;
+    object-fit: cover;
+    display: block;
+}
+@media (min-width: 768px) {
+    .bl-featured {
+        flex-direction: row;
+    }
+    .bl-featured-img {
+        width: 45%;
+        height: auto;
+        min-height: 280px;
+        object-fit: cover;
+    }
+}
+.bl-featured-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(212,181,113,0.9);
+    color: #1a160a;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    padding: 4px 12px;
+    border-radius: 50px;
+    margin-bottom: 14px;
+}
+.bl-featured-body {
+    padding: 28px 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+}
+.bl-featured-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 1.45rem;
+    font-weight: 800;
+    color: var(--bl-card-title);
+    line-height: 1.35;
+    margin-bottom: 12px;
+    text-decoration: none;
+    display: block;
+    transition: color 0.2s;
+}
+.bl-featured-title:hover { color: #c29a4e; }
+.bl-featured-excerpt {
+    font-size: 0.88rem;
+    color: var(--bl-card-text);
+    line-height: 1.65;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+.bl-featured-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #c29a4e, #d4b571);
+    color: #1a160a;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    padding: 10px 22px;
+    border-radius: 50px;
+    text-decoration: none;
+    width: fit-content;
+    transition: opacity 0.2s, transform 0.2s;
+}
+.bl-featured-btn:hover { opacity: 0.9; transform: translateX(3px); color: #1a160a; }
+
 /* ---------- SIDEBAR ---------- */
 .bl-sidebar { position: sticky; top: 90px; }
 .bl-sidebar-title {
@@ -380,9 +473,55 @@ body {
 
             <!-- Kiri: Grid Berita -->
             <div class="col-lg-8">
-                <?php if (!empty($news_items)): ?>
+                <?php
+                // Pisahkan highlighted dari list biasa
+                $highlight_id = !empty($highlighted_news) ? $highlighted_news['id'] : null;
+                $regular_items = [];
+                foreach ($news_items as $item) {
+                    if ($item['id'] != $highlight_id) $regular_items[] = $item;
+                }
+                ?>
+
+                <?php if (!empty($highlighted_news) && $highlighted_news['status'] === 'publish'): ?>
+                <?php
+                    $fThumb = !empty($highlighted_news['thumbnail']) && file_exists('./' . $highlighted_news['thumbnail'])
+                        ? $highlighted_news['thumbnail']
+                        : 'assets/images/berita/berita1.png';
+                    $fMonths = [1=>'Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
+                    $fTs = strtotime($highlighted_news['created_at']);
+                ?>
+                <!-- Featured Highlight Card -->
+                <div class="bl-featured">
+                    <img src="<?= base_url($fThumb) ?>"
+                         alt="<?= htmlspecialchars($highlighted_news['title']) ?>"
+                         class="bl-featured-img">
+                    <div class="bl-featured-body">
+                        <span class="bl-featured-badge">
+                            ★ HIGHLIGHT
+                        </span>
+                        <div class="bl-card-meta" style="margin-bottom:12px;">
+                            <i class="bi bi-calendar3"></i>
+                            <?= date('j', $fTs) . ' ' . $fMonths[(int)date('n', $fTs)] . ' ' . date('Y', $fTs) ?>
+                            <span class="dot"></span>
+                            <i class="bi bi-person"></i>
+                            <?= htmlspecialchars($highlighted_news['author_name'] ?? 'Admin') ?>
+                        </div>
+                        <a href="<?= base_url('berita/' . $highlighted_news['slug']) ?>" class="bl-featured-title">
+                            <?= htmlspecialchars($highlighted_news['title']) ?>
+                        </a>
+                        <?php if (!empty($highlighted_news['content'])): ?>
+                        <p class="bl-featured-excerpt"><?= htmlspecialchars(strip_tags($highlighted_news['content'])) ?></p>
+                        <?php endif; ?>
+                        <a href="<?= base_url('berita/' . $highlighted_news['slug']) ?>" class="bl-featured-btn">
+                            BACA SELENGKAPNYA <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <?php endif; ?>
+
+                <?php if (!empty($regular_items)): ?>
                     <div class="row g-4">
-                        <?php foreach ($news_items as $item): ?>
+                        <?php foreach ($regular_items as $item): ?>
                         <?php
                             $thumbPath = !empty($item['thumbnail']) && file_exists('./' . $item['thumbnail'])
                                 ? $item['thumbnail']

@@ -47,6 +47,20 @@
         ::-webkit-scrollbar-track { background: #15201E; }
         ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 999px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+
+        /* Highlighted row glow */
+        .row-highlighted {
+            background: linear-gradient(90deg, rgba(212,181,113,0.08) 0%, rgba(212,181,113,0.04) 100%) !important;
+        }
+        .row-highlighted td:first-child {
+            border-left: 3px solid #D4B571;
+        }
+
+        /* Star button styles */
+        .btn-star-on  { color: #D4B571; background: rgba(212,181,113,0.15); border-color: rgba(212,181,113,0.4); }
+        .btn-star-off { color: rgba(255,255,255,0.25); background: transparent; border-color: rgba(255,255,255,0.08); }
+        .btn-star-on:hover  { background: rgba(212,181,113,0.3); }
+        .btn-star-off:hover { color: #D4B571; background: rgba(212,181,113,0.1); border-color: rgba(212,181,113,0.3); }
     </style>
 </head>
 <body class="bg-teal-950 text-white font-body min-h-screen flex">
@@ -81,7 +95,7 @@
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h2 class="font-display font-extrabold text-2xl text-white">Kelola Berita</h2>
-                    <p class="text-brand-light/70 text-xs mt-1">Tambah dan kelola berita yang ditampilkan di halaman utama.</p>
+                    <p class="text-brand-light/70 text-xs mt-1">Tambah, kelola, dan highlight berita yang ditampilkan di halaman utama.</p>
                 </div>
                 <a href="<?= base_url('admin/berita_add') ?>"
                    class="flex items-center justify-center gap-2 bg-gradient-to-r from-brand-medium to-brand-dark hover:from-brand-medium/90 hover:to-brand-dark/90 border border-brand-medium text-white px-5 py-3 rounded-xl text-sm font-bold shadow-md transition-all">
@@ -89,6 +103,29 @@
                     <span>Tambah Berita</span>
                 </a>
             </div>
+
+            <!-- Highlight Info Banner -->
+            <?php
+            $highlighted_id = null;
+            foreach ($news_list as $n) {
+                if (!empty($n['is_highlight'])) { $highlighted_id = $n['id']; break; }
+            }
+            ?>
+            <?php if ($highlighted_id): ?>
+            <div class="flex items-center gap-3 bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-5 py-3">
+                <i class="bi bi-star-fill text-yellow-400"></i>
+                <span class="text-sm text-yellow-200 font-medium">
+                    Ada 1 berita yang sedang di-highlight — akan tampil sebagai <strong>featured card</strong> di halaman publik.
+                </span>
+            </div>
+            <?php else: ?>
+            <div class="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-5 py-3">
+                <i class="bi bi-star text-white/30"></i>
+                <span class="text-sm text-white/40">
+                    Belum ada berita yang di-highlight. Klik ikon ⭐ pada baris berita untuk men-highlight-nya.
+                </span>
+            </div>
+            <?php endif; ?>
 
             <!-- Filter & Search -->
             <div class="bg-brand-dark/20 border border-brand-medium/20 rounded-2xl p-6 shadow-sm">
@@ -139,28 +176,46 @@
                                 <th class="pb-4 text-xs font-bold text-white/40 uppercase tracking-wider">Penulis</th>
                                 <th class="pb-4 text-xs font-bold text-white/40 uppercase tracking-wider">Status</th>
                                 <th class="pb-4 text-xs font-bold text-white/40 uppercase tracking-wider">Tanggal</th>
+                                <th class="pb-4 text-xs font-bold text-yellow-400/70 uppercase tracking-wider text-center">
+                                    <i class="bi bi-star-fill mr-1"></i>Highlight
+                                </th>
                                 <th class="pb-4 text-xs font-bold text-white/40 uppercase tracking-wider text-right">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-[#4D6B67]/10">
                             <?php if (!empty($news_list)): ?>
                                 <?php foreach ($news_list as $news): ?>
-                                    <tr class="hover:bg-brand-dark/10 transition-colors">
+                                    <?php $isHighlighted = !empty($news['is_highlight']); ?>
+                                    <tr class="transition-colors <?= $isHighlighted ? 'row-highlighted' : 'hover:bg-brand-dark/10' ?>">
                                         <!-- Thumbnail & Judul -->
                                         <td class="py-4 pr-4">
                                             <div class="flex items-center gap-3">
                                                 <?php if (!empty($news['thumbnail']) && file_exists('./' . $news['thumbnail'])): ?>
-                                                    <img src="<?= base_url($news['thumbnail']) ?>"
-                                                         alt="<?= htmlspecialchars($news['title']) ?>"
-                                                         class="w-12 h-10 object-cover rounded-lg border border-brand-medium/20 shrink-0">
+                                                    <div class="relative shrink-0">
+                                                        <img src="<?= base_url($news['thumbnail']) ?>"
+                                                             alt="<?= htmlspecialchars($news['title']) ?>"
+                                                             class="w-12 h-10 object-cover rounded-lg border <?= $isHighlighted ? 'border-yellow-500/50' : 'border-brand-medium/20' ?>">
+                                                        <?php if ($isHighlighted): ?>
+                                                        <span class="absolute -top-1.5 -right-1.5 w-4 h-4 bg-yellow-400 rounded-full flex items-center justify-center">
+                                                            <i class="bi bi-star-fill text-[8px] text-yellow-900"></i>
+                                                        </span>
+                                                        <?php endif; ?>
+                                                    </div>
                                                 <?php else: ?>
-                                                    <div class="w-12 h-10 rounded-lg bg-brand-medium/20 flex items-center justify-center border border-brand-medium/10 shrink-0">
+                                                    <div class="w-12 h-10 rounded-lg <?= $isHighlighted ? 'bg-yellow-500/20 border border-yellow-500/30' : 'bg-brand-medium/20 border border-brand-medium/10' ?> flex items-center justify-center shrink-0">
                                                         <i class="bi bi-newspaper text-white/30 text-lg"></i>
                                                     </div>
                                                 <?php endif; ?>
                                                 <div class="min-w-0">
-                                                    <div class="font-semibold text-white text-sm truncate max-w-[220px]">
-                                                        <?= htmlspecialchars($news['title']) ?>
+                                                    <div class="flex items-center gap-2">
+                                                        <div class="font-semibold text-white text-sm truncate max-w-[200px]">
+                                                            <?= htmlspecialchars($news['title']) ?>
+                                                        </div>
+                                                        <?php if ($isHighlighted): ?>
+                                                        <span class="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-yellow-500/20 text-yellow-300 border border-yellow-500/30">
+                                                            <i class="bi bi-star-fill text-[8px]"></i> HIGHLIGHT
+                                                        </span>
+                                                        <?php endif; ?>
                                                     </div>
                                                     <div class="text-xs text-white/40 mt-0.5">
                                                         <?= number_format($news['views'] ?? 0) ?> views
@@ -216,6 +271,16 @@
                                             ?>
                                         </td>
 
+                                        <!-- Highlight Toggle -->
+                                        <td class="py-4 text-center">
+                                            <a href="<?= base_url('admin/berita_highlight/' . $news['id']) ?>"
+                                               title="<?= $isHighlighted ? 'Cabut Highlight' : 'Set sebagai Highlight' ?>"
+                                               onclick="return confirm('<?= $isHighlighted ? 'Cabut highlight berita ini?' : 'Set berita ini sebagai featured/highlight? Highlight berita lain akan dicabut.' ?>')"
+                                               class="inline-flex items-center justify-center w-9 h-9 rounded-lg border transition-all <?= $isHighlighted ? 'btn-star-on' : 'btn-star-off' ?>">
+                                                <i class="bi bi-star<?= $isHighlighted ? '-fill' : '' ?> text-sm"></i>
+                                            </a>
+                                        </td>
+
                                         <!-- Aksi -->
                                         <td class="py-4 text-right space-x-1.5">
                                             <!-- Toggle Status -->
@@ -242,7 +307,7 @@
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="6" class="py-16 text-center">
+                                    <td colspan="7" class="py-16 text-center">
                                         <div class="flex flex-col items-center gap-3 text-white/30">
                                             <i class="bi bi-newspaper text-4xl"></i>
                                             <span class="text-sm">

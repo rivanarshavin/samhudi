@@ -70,7 +70,9 @@ class Silsilah_model extends CI_Model
                 $depth++;
                 $curr_id = $parent_map[$curr_id]['father_id'] ?: $parent_map[$curr_id]['mother_id'];
             }
-            $m['generasi'] = $depth + 1;
+            
+            // Prioritaskan nilai generasi dari database (jika ada), jika tidak gunakan depth + 1
+            $m['generasi'] = isset($m['generasi']) && $m['generasi'] !== null && $m['generasi'] !== '' ? $m['generasi'] : ($depth + 1);
 
             if ($generasi !== '' && $m['generasi'] != $generasi) {
                 continue;
@@ -187,5 +189,74 @@ class Silsilah_model extends CI_Model
         // Delete the member
         $this->db->where('id', $id);
         return $this->db->delete('family_members');
+    }
+
+    /**
+     * Get Spouses by Member ID
+     */
+    public function get_spouses_by_member_id($id)
+    {
+        $this->db->where('husband_id', $id);
+        $this->db->or_where('wife_id', $id);
+        $marriages = $this->db->get('marriages')->result_array();
+
+        $spouse_ids = [];
+        foreach ($marriages as $m) {
+            $spouse_ids[] = ($m['husband_id'] == $id) ? $m['wife_id'] : $m['husband_id'];
+        }
+        return $spouse_ids;
+    }
+
+    /**
+     * Get Spouse Options (Opposite Gender)
+     */
+    public function get_spouse_options($my_gender, $my_id)
+    {
+        $target_gender = ($my_gender === 'L') ? 'P' : 'L';
+        
+        $sql = "SELECT fm.id, fm.full_name, fm.birth_date 
+                FROM family_members fm 
+                WHERE fm.gender = ? AND fm.status = 'approved'";
+                
+        if ($target_gender === 'P') {
+            // Target is female. She can only have 1 husband.
+            $sql .= " AND fm.id NOT IN (
+                        SELECT wife_id FROM marriages WHERE husband_id != ?
+                      )";
+        } else {
+            // Target is male. He can have up to 4 wives.
+            $sql .= " AND (
+                        (SELECT COUNT(*) FROM marriages WHERE husband_id = fm.id) < 4
+                        OR 
+                        fm.id IN (SELECT husband_id FROM marriages WHERE wife_id = ?)
+                      )";
+        }
+        
+        $sql .= " ORDER BY fm.full_name ASC";
+        
+        return $this->db->query($sql, [$target_gender, $my_id])->result_array();
+    }
+
+    /**
+     * Sync Marriages
+     */
+    public function sync_marriages($member_id, $gender, $spouse_ids)
+    {
+        // 1. Hapus relasi lama
+        $this->db->where('husband_id', $member_id)->or_where('wife_id', $member_id)->delete('marriages');
+
+        // 2. Masukkan relasi baru
+        if (!empty($spouse_ids) && is_array($spouse_ids)) {
+            foreach ($spouse_ids as $spouse_id) {
+                if (empty($spouse_id)) continue;
+                
+                $data = [
+                    'husband_id' => ($gender === 'L') ? $member_id : $spouse_id,
+                    'wife_id'    => ($gender === 'P') ? $member_id : $spouse_id,
+                    'status'     => 'menikah'
+                ];
+                $this->db->insert('marriages', $data);
+            }
+        }
     }
 }

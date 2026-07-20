@@ -21,10 +21,14 @@ class Home extends CI_Controller {
             ['img' => 'family7.png', 'label' => 'Keluarga (g)', 'rot' => -4],
         ];
 
+        // Ambil berita highlight (is_highlight=1, status publish)
+        $highlighted = $this->Admin_model->get_highlighted_news();
+
         // Ambil berita dari database (status publish, urutkan terbaru, maksimal 5 untuk layout grid)
         $this->db->order_by('created_at', 'DESC');
         $this->db->limit(5);
         $data['news_items'] = $this->db->get_where('news', ['status' => 'publish'])->result_array();
+        $data['highlighted_news'] = $highlighted;
 
         $this->load->view('templates/header');
         $this->load->view('partials/navbar');
@@ -32,7 +36,7 @@ class Home extends CI_Controller {
         $this->load->view('home/carousel', ['families' => $data['families']]);
         $this->load->view('home/sambutan');
         $this->load->view('home/intro');
-        $this->load->view('home/berita', ['news_items' => $data['news_items']]);
+        $this->load->view('home/berita', ['news_items' => $data['news_items'], 'highlighted_news' => $highlighted]);
         $this->load->view('home/lokasi_pemakaman');
         $this->load->view('templates/footer');
     }
@@ -87,6 +91,7 @@ class Home extends CI_Controller {
         $data['total_news']       = $total;
         $data['current_offset']   = $offset;
         $data['per_page']         = $per_page;
+        $data['highlighted_news'] = $this->Admin_model->get_highlighted_news();
 
         $this->load->view('templates/header');
         $this->load->view('partials/navbar');

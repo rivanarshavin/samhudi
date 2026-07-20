@@ -139,10 +139,21 @@
 
             <!-- Table Card -->
             <div class="bg-gradient-to-b from-brand-dark/20 to-brand-dark/5 border border-brand-medium/20 rounded-2xl p-6 shadow-lg">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
+                <form id="bulkDeleteForm" action="<?= base_url('admin/silsilah_delete_multiple') ?>" method="POST" onsubmit="showConfirm(event, null, 'Apakah Anda yakin ingin menghapus anggota yang dipilih beserta seluruh data dan akunnya?', true, 'bulkDeleteForm');">
+                    <!-- Bulk Delete Action Bar -->
+                    <div id="bulkActionBar" class="mb-4 hidden">
+                        <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl flex items-center transition-all text-sm font-bold shadow-lg shadow-red-500/20">
+                            <i class="bi bi-trash-fill mr-2"></i> Hapus Terpilih (<span id="selectedCount">0</span>)
+                        </button>
+                    </div>
+                
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="border-b border-[#4D6B67]/20">
+                                <th class="pb-4 px-4 text-xs font-bold text-white/40 uppercase tracking-wider whitespace-nowrap">
+                                    <input type="checkbox" id="selectAllCheckbox" class="w-4 h-4 text-brand-medium bg-transparent border-[#4D6B67]/30 rounded focus:ring-brand-medium/50 focus:ring-2 cursor-pointer transition-all">
+                                </th>
                                 <th class="pb-4 px-4 text-xs font-bold text-white/40 uppercase tracking-wider whitespace-nowrap">Anggota</th>
                                 <th class="pb-4 px-4 text-xs font-bold text-white/40 uppercase tracking-wider whitespace-nowrap">L/P</th>
                                 <th class="pb-4 px-4 text-xs font-bold text-white/40 uppercase tracking-wider whitespace-nowrap">Generasi</th>
@@ -157,6 +168,10 @@
                             <?php if (!empty($members)): ?>
                                 <?php foreach ($members as $member): ?>
                                     <tr>
+                                        <!-- Checkbox -->
+                                        <td class="py-4 px-4 whitespace-nowrap">
+                                            <input type="checkbox" name="ids[]" value="<?= $member['id'] ?>" class="member-checkbox w-4 h-4 text-brand-medium bg-transparent border-[#4D6B67]/30 rounded focus:ring-brand-medium/50 focus:ring-2 cursor-pointer transition-all">
+                                        </td>
                                         <!-- Photo & Name -->
                                         <td class="py-4 px-4 whitespace-nowrap flex items-center gap-3">
                                             <?php if ($member['photo'] && file_exists('./' . $member['photo'])): ?>
@@ -225,10 +240,10 @@
                                         <!-- Actions -->
                                         <td class="py-4 px-4 text-right space-x-2 whitespace-nowrap">
                                             <?php if ($member['status'] == 'pending'): ?>
-                                                <a href="<?= base_url('admin/silsilah_approve/' . $member['id']) ?>" onclick="return confirm('Setujui anggota ini untuk tampil di silsilah keluarga?')" class="inline-flex items-center justify-center px-3 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white border border-emerald-500/20 transition-all text-xs font-bold">
+                                                <a href="<?= base_url('admin/silsilah_approve/' . $member['id']) ?>" onclick="showConfirm(event, this.href, 'Setujui anggota ini untuk tampil di silsilah keluarga?')" class="inline-flex items-center justify-center px-3 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white border border-emerald-500/20 transition-all text-xs font-bold">
                                                     <i class="bi bi-check-lg mr-1"></i> Terima
                                                 </a>
-                                                <a href="<?= base_url('admin/silsilah_reject/' . $member['id']) ?>" onclick="return confirm('Tolak pendaftaran anggota ini?')" class="inline-flex items-center justify-center px-3 h-8 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white border border-red-500/20 transition-all text-xs font-bold">
+                                                <a href="<?= base_url('admin/silsilah_reject/' . $member['id']) ?>" onclick="showConfirm(event, this.href, 'Tolak pendaftaran anggota ini?')" class="inline-flex items-center justify-center px-3 h-8 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white border border-red-500/20 transition-all text-xs font-bold">
                                                     <i class="bi bi-x-lg mr-1"></i> Tolak
                                                 </a>
                                             <?php endif; ?>
@@ -236,7 +251,7 @@
                                             <a href="<?= base_url('admin/silsilah_edit/' . $member['id']) ?>" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500 hover:text-black border border-yellow-500/20 transition-all" title="Edit">
                                                 <i class="bi bi-pencil-square"></i>
                                             </a>
-                                            <a href="<?= base_url('admin/silsilah_delete/' . $member['id']) ?>" onclick="return confirm('Apakah Anda yakin ingin menghapus anggota ini? Data relasi silsilah anak juga akan terputus.')" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-brand-red/10 text-brand-red hover:bg-brand-red hover:text-white border border-brand-red/20 transition-all">
+                                            <a href="<?= base_url('admin/silsilah_delete/' . $member['id']) ?>" onclick="showConfirm(event, this.href, 'Apakah Anda yakin ingin menghapus anggota ini? Data relasi silsilah anak juga akan terputus.')" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-brand-red/10 text-brand-red hover:bg-brand-red hover:text-white border border-brand-red/20 transition-all">
                                                 <i class="bi bi-trash-fill"></i>
                                             </a>
                                         </td>
@@ -244,17 +259,110 @@
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="6" class="py-8 text-center text-white/40 text-sm">Belum ada data anggota silsilah keluarga.</td>
+                                    <td colspan="9" class="py-8 text-center text-white/40 text-sm">Belum ada data anggota silsilah keluarga.</td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
+                </form>
             </div>
 
         </div>
 
     </main>
+    
+    <!-- Modal Confirm -->
+    <div id="confirmModal" class="fixed inset-0 z-50 hidden bg-black/60 flex items-center justify-center p-4">
+        <div class="bg-[#1A2824] border border-[#4D6B67]/30 rounded-2xl p-6 max-w-sm w-full shadow-2xl transform transition-all scale-95 opacity-0" id="confirmModalCard">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-brand-red/20 flex items-center justify-center text-brand-red border border-brand-red/30">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white" id="confirmTitle">Konfirmasi</h3>
+            </div>
+            <p class="text-sm text-white/70 mb-6 leading-relaxed" id="confirmMessage">Apakah Anda yakin?</p>
+            <div class="flex justify-end gap-3">
+                <button type="button" onclick="closeConfirmModal()" class="px-4 py-2 rounded-xl text-sm font-semibold text-white/70 hover:text-white hover:bg-white/10 transition-colors">Batal</button>
+                <button type="button" id="confirmActionBtn" class="px-4 py-2 rounded-xl text-sm font-semibold bg-brand-red text-white hover:bg-red-600 transition-colors shadow-lg shadow-brand-red/20">Ya, Lanjutkan</button>
+            </div>
+        </div>
+    </div>
 
+    <!-- JS untuk Bulk Delete dan Modal -->
+    <script>
+        // Modal Logic
+        function showConfirm(event, url, message, isForm = false, formId = null) {
+            event.preventDefault();
+            const modal = document.getElementById('confirmModal');
+            const card = document.getElementById('confirmModalCard');
+            
+            document.getElementById('confirmMessage').innerText = message;
+            
+            const actionBtn = document.getElementById('confirmActionBtn');
+            
+            actionBtn.onclick = function() {
+                if (isForm && formId) {
+                    document.getElementById(formId).submit();
+                } else {
+                    window.location.href = url;
+                }
+            };
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                card.classList.remove('scale-95', 'opacity-0');
+                card.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+        
+        function closeConfirmModal() {
+            const modal = document.getElementById('confirmModal');
+            const card = document.getElementById('confirmModalCard');
+            card.classList.remove('scale-100', 'opacity-100');
+            card.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200);
+        }
+
+        // Bulk Delete Checkbox Logic
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            const memberCheckboxes = document.querySelectorAll('.member-checkbox');
+            const bulkActionBar = document.getElementById('bulkActionBar');
+            const selectedCount = document.getElementById('selectedCount');
+
+            function updateBulkActionBar() {
+                const checkedCount = document.querySelectorAll('.member-checkbox:checked').length;
+                selectedCount.textContent = checkedCount;
+                if (checkedCount > 0) {
+                    bulkActionBar.classList.remove('hidden');
+                } else {
+                    bulkActionBar.classList.add('hidden');
+                }
+                
+                // Update "Select All" checkbox state
+                if (checkedCount === memberCheckboxes.length && memberCheckboxes.length > 0) {
+                    selectAllCheckbox.checked = true;
+                } else {
+                    selectAllCheckbox.checked = false;
+                }
+            }
+
+            if (selectAllCheckbox) {
+                selectAllCheckbox.addEventListener('change', function() {
+                    memberCheckboxes.forEach(cb => {
+                        cb.checked = selectAllCheckbox.checked;
+                    });
+                    updateBulkActionBar();
+                });
+            }
+
+            memberCheckboxes.forEach(cb => {
+                cb.addEventListener('change', updateBulkActionBar);
+            });
+        });
+    </script>
 </body>
 </html>

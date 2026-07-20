@@ -506,7 +506,7 @@ if (!function_exists('time_elapsed_string')) {
                 <div class="flex items-center justify-between border-b border-[#374D49] mb-6">
                     <div class="flex">
                         <button class="tab-btn active" id="tab-btn-lowongan" onclick="switchTab('lowongan', this)">Lowongan Pekerjaan</button>
-                        <button class="tab-btn" id="tab-btn-pekerja" onclick="switchTab('pekerja', this)">Pekerja</button>
+                        <button class="tab-btn" id="tab-btn-pekerja" onclick="switchTab('pekerja', this)">Rekan Kerja</button>
                     </div>
                 </div>
 
@@ -641,9 +641,9 @@ if (!function_exists('time_elapsed_string')) {
                 <!-- TAB: Pekerja -->
                 <div id="tab-pekerja" class="tab-content hidden">
 
-                    <!-- Header Pekerja + Button OTW -->
+                    <!-- Header Rekan Kerja + Button OTW -->
                     <div class="flex flex-wrap justify-between items-center mb-5 gap-3">
-                        <h2 class="text-xl font-bold text-white">Pekerja</h2>
+                        <h2 class="text-xl font-bold text-white">Rekan Kerja</h2>
                         <?php if ($my_open_to_work): ?>
                             <button onclick="openOTWModal(true)" class="btn-edit-otw" id="btn-otw">
                                 <i class="bi bi-pencil-square"></i> Edit Open to Work
@@ -655,11 +655,11 @@ if (!function_exists('time_elapsed_string')) {
                         <?php endif; ?>
                     </div>
 
-                    <!-- Search Filter Pekerja -->
+                    <!-- Search Filter Rekan Kerja -->
                     <form method="GET" action="<?= base_url('linkedin') ?>" class="mb-5 flex flex-wrap gap-3 items-end" id="worker-search-form">
                         <input type="hidden" name="tab" value="pekerja">
                         <div class="flex-1 min-w-[180px]">
-                            <label class="form-label">Cari Nama Pekerja</label>
+                            <label class="form-label">Cari Nama Rekan Kerja</label>
                             <input type="text" name="worker_search" class="form-input" style="margin-bottom:0" placeholder="Cari nama..." value="<?= htmlspecialchars($filters['worker_search'] ?? '') ?>">
                         </div>
                         <div class="flex-1 min-w-[180px]">
@@ -914,14 +914,51 @@ if (!function_exists('time_elapsed_string')) {
 
             <label class="form-label">Upload CV <span class="text-[#B1CDCE]/50 font-normal">(opsional)</span></label>
             <p class="text-[10px] text-[#B1CDCE]/60 mb-2">Format: PDF, DOC, DOCX, JPG, PNG. Maks 2MB.</p>
-            
+
+            <?php if ($my_open_to_work && !empty($my_open_to_work->cv_path)): ?>
+            <!-- Preview CV yang sudah ada (mode Edit) -->
+            <div id="otwCurrentCvBox" class="mb-3 rounded-xl border border-[#374D49] bg-black/20 overflow-hidden">
+                <div class="px-4 py-2 flex items-center justify-between bg-[#1a2a28] border-b border-[#374D49]">
+                    <span class="text-[10px] font-bold text-[#B1CDCE] uppercase tracking-wider">
+                        <i class="bi bi-file-earmark-check mr-1 text-[#7ecdd1]"></i>CV Saat Ini
+                    </span>
+                    <a href="<?= base_url($my_open_to_work->cv_path) ?>" target="_blank" download
+                       class="text-[10px] text-[#7ecdd1] hover:text-white flex items-center gap-1 transition-colors">
+                        <i class="bi bi-download"></i> Unduh
+                    </a>
+                </div>
+                <?php
+                    $cvExt = strtolower(pathinfo($my_open_to_work->cv_path, PATHINFO_EXTENSION));
+                    $cvUrl = base_url($my_open_to_work->cv_path);
+                ?>
+                <?php if (in_array($cvExt, ['jpg','jpeg','png','webp','gif'])): ?>
+                    <img src="<?= $cvUrl ?>" alt="Preview CV"
+                         class="w-full max-h-[280px] object-contain bg-black/30 p-2">
+                <?php elseif ($cvExt === 'pdf'): ?>
+                    <iframe src="<?= $cvUrl ?>" class="w-full h-[280px] border-0" loading="lazy"></iframe>
+                <?php else: ?>
+                    <div class="flex items-center gap-3 px-4 py-4">
+                        <i class="bi bi-file-earmark-word text-3xl text-blue-400"></i>
+                        <span class="text-xs text-[#B1CDCE]"><?= htmlspecialchars(basename($my_open_to_work->cv_path)) ?></span>
+                    </div>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
+
             <div id="otwDropzone" class="border-2 border-dashed border-[#374D49] hover:border-[#377C80] rounded-xl p-6 text-center cursor-pointer transition-all bg-black/25 flex flex-col items-center justify-center gap-2 mb-4 group">
                 <input type="file" name="cv_file" id="otwCvInput" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="hidden">
                 <div id="otwDropzonePrompt" class="flex flex-col items-center gap-2 text-[#B1CDCE]">
                     <i class="bi bi-cloud-arrow-up text-3xl text-[#377C80] group-hover:scale-110 transition-transform"></i>
+                    <?php if ($my_open_to_work && !empty($my_open_to_work->cv_path)): ?>
+                    <span class="text-xs font-semibold">Ganti CV — <span class="text-[#E49438] underline">pilih file baru</span></span>
+                    <span class="text-[10px] text-[#B1CDCE]/50">Biarkan kosong jika tidak ingin mengganti</span>
+                    <?php else: ?>
                     <span class="text-xs font-semibold">Tarik &amp; lepas file CV di sini, atau <span class="text-[#E49438] underline">pilih file</span></span>
+                    <?php endif; ?>
                 </div>
                 <div id="otwDropzonePreview" class="hidden flex flex-col items-center gap-2 w-full">
+                    <!-- Preview gambar baru (jika image) -->
+                    <img id="otwNewImgPreview" src="" alt="Preview" class="hidden w-full max-h-[200px] object-contain rounded-lg mb-2">
                     <div id="otwPreviewIconContainer" class="text-4xl text-[#E49438]">
                         <i class="bi bi-file-earmark-pdf"></i>
                     </div>
@@ -956,7 +993,7 @@ if (!function_exists('time_elapsed_string')) {
     <div class="modal-content custom-scrollbar" onclick="event.stopPropagation()">
         <div class="flex justify-between items-center mb-6 border-b border-[#374D49] pb-4">
             <h3 class="font-bold text-lg text-white flex items-center gap-2">
-                <i class="bi bi-person-circle text-[#377C80]"></i> Detail Pekerja
+                <i class="bi bi-person-circle text-[#377C80]"></i> Detail Rekan Kerja
             </h3>
             <button onclick="closeModal('workerDetailModal')" class="text-[#B1CDCE]/60 hover:text-white transition-colors">
                 <i class="bi bi-x-lg"></i>
@@ -1493,15 +1530,28 @@ if (!function_exists('time_elapsed_string')) {
         otwPreviewFileName.textContent = file.name;
         otwPreviewFileSize.textContent = formatBytes(file.size);
         
-        let icon = '<i class="bi bi-file-earmark"></i>';
-        if (file.type.includes('pdf')) {
-            icon = '<i class="bi bi-file-earmark-pdf-fill text-red-400"></i>';
-        } else if (file.type.includes('word') || file.name.endsWith('.doc') || file.name.endsWith('.docx')) {
-            icon = '<i class="bi bi-file-earmark-word-fill text-blue-400"></i>';
-        } else if (file.type.includes('image')) {
-            icon = '<i class="bi bi-file-earmark-image-fill text-green-400"></i>';
+        const imgPreview = document.getElementById('otwNewImgPreview');
+
+        if (file.type.includes('image')) {
+            // Tampilkan preview gambar langsung
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                imgPreview.src = ev.target.result;
+                imgPreview.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+            otwPreviewIconContainer.innerHTML = '';
+        } else {
+            imgPreview.classList.add('hidden');
+            imgPreview.src = '';
+            let icon = '<i class="bi bi-file-earmark"></i>';
+            if (file.type.includes('pdf')) {
+                icon = '<i class="bi bi-file-earmark-pdf-fill text-red-400"></i>';
+            } else if (file.type.includes('word') || file.name.endsWith('.doc') || file.name.endsWith('.docx')) {
+                icon = '<i class="bi bi-file-earmark-word-fill text-blue-400"></i>';
+            }
+            otwPreviewIconContainer.innerHTML = icon;
         }
-        otwPreviewIconContainer.innerHTML = icon;
         
         otwDropzonePrompt.classList.add('hidden');
         otwDropzonePreview.classList.remove('hidden');
@@ -1512,5 +1562,7 @@ if (!function_exists('time_elapsed_string')) {
         otwCvInput.value = '';
         otwDropzonePrompt.classList.remove('hidden');
         otwDropzonePreview.classList.add('hidden');
+        const imgPreview = document.getElementById('otwNewImgPreview');
+        if (imgPreview) { imgPreview.classList.add('hidden'); imgPreview.src = ''; }
     }
 </script>

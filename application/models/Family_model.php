@@ -287,7 +287,11 @@ class Family_model extends CI_Model {
     {
         if (empty($photo)) {
             $inisial = !empty($nama) ? strtoupper(substr($nama, 0, 1)) : 'A';
-            return 'https://ui-avatars.com/api/?name=' . urlencode($inisial) . '&background=CBD9CF&color=4A6055&size=100';
+            // Generate inline SVG as data URI instead of relying on external API
+            $bg = '%23CBD9CF'; // #CBD9CF URL encoded
+            $color = '%234A6055'; // #4A6055 URL encoded
+            $svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="'.$bg.'"/><text x="50" y="55" font-family="Arial, sans-serif" font-size="45" font-weight="bold" fill="'.$color.'" text-anchor="middle" dominant-baseline="middle">'.$inisial.'</text></svg>';
+            return 'data:image/svg+xml;charset=UTF-8,' . str_replace('"', "'", $svg);
         }
         if (preg_match('#^https?://#i', $photo)) return $photo;
         

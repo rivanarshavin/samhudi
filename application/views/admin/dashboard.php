@@ -178,6 +178,65 @@
                 </div>
             </div>
 
+            <!-- Berita Highlight Preview -->
+            <div class="bg-gradient-to-r from-yellow-500/10 to-yellow-600/5 border border-yellow-500/25 rounded-2xl p-6 shadow-lg">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-lg bg-yellow-500/20 border border-yellow-500/30 flex items-center justify-center text-yellow-400">
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-display font-bold text-white text-sm">Berita Highlight</h3>
+                            <p class="text-xs text-white/40">Berita yang tampil sebagai featured card di halaman publik</p>
+                        </div>
+                    </div>
+                    <a href="<?= base_url('admin/berita') ?>" class="text-xs text-teal-400 hover:text-teal-300 flex items-center gap-1 transition-colors">
+                        Kelola <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+
+                <?php if (!empty($highlighted_news)): ?>
+                <div class="flex items-center gap-4 bg-white/5 border border-yellow-500/20 rounded-xl p-4">
+                    <?php if (!empty($highlighted_news['thumbnail']) && file_exists('./' . $highlighted_news['thumbnail'])): ?>
+                        <img src="<?= base_url($highlighted_news['thumbnail']) ?>"
+                             alt="<?= htmlspecialchars($highlighted_news['title']) ?>"
+                             class="w-20 h-16 object-cover rounded-lg border border-yellow-500/30 shrink-0">
+                    <?php else: ?>
+                        <div class="w-20 h-16 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center shrink-0">
+                            <i class="bi bi-newspaper text-yellow-400/50 text-2xl"></i>
+                        </div>
+                    <?php endif; ?>
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-yellow-500/20 text-yellow-300 border border-yellow-500/30">
+                                <i class="bi bi-star-fill text-[8px]"></i> HIGHLIGHT AKTIF
+                            </span>
+                        </div>
+                        <p class="font-semibold text-white text-sm leading-snug line-clamp-2">
+                            <?= htmlspecialchars($highlighted_news['title']) ?>
+                        </p>
+                        <p class="text-xs text-white/40 mt-1">
+                            Oleh <?= htmlspecialchars($highlighted_news['author_name'] ?? 'Admin') ?>
+                        </p>
+                    </div>
+                    <a href="<?= base_url('admin/berita_highlight/' . $highlighted_news['id']) ?>"
+                       onclick="return confirm('Cabut highlight berita ini?')"
+                       title="Cabut Highlight"
+                       class="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-yellow-500/15 text-yellow-300 border border-yellow-500/30 hover:bg-yellow-500/30 transition-all">
+                        <i class="bi bi-star-fill"></i> Cabut
+                    </a>
+                </div>
+                <?php else: ?>
+                <div class="flex flex-col items-center justify-center py-6 gap-2 text-white/30">
+                    <i class="bi bi-star text-3xl"></i>
+                    <p class="text-sm">Belum ada berita yang di-highlight.</p>
+                    <a href="<?= base_url('admin/berita') ?>" class="text-xs text-teal-400 hover:text-teal-300 transition-colors">
+                        → Pergi ke Kelola Berita untuk set highlight
+                    </a>
+                </div>
+                <?php endif; ?>
+            </div>
+
             <!-- Banner Settings -->
             <div id="banner-section" class="bg-teal-900/60 border border-teal-800 rounded-2xl p-6 shadow-lg">
                 <div class="flex items-center gap-3 mb-6">

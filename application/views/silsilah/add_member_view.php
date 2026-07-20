@@ -16,6 +16,8 @@
             <img src="<?php echo base_url('assets/img/leaf-2.svg'); ?>" class="leaf" id="leaf2" alt="">
             <div class="leaf-line"></div>
             <img src="<?php echo base_url('assets/img/leaf-3.svg'); ?>" class="leaf" id="leaf3" alt="">
+            <div class="leaf-line"></div>
+            <img src="<?php echo base_url('assets/img/leaf-1.svg'); ?>" class="leaf" id="leaf4" alt="">
         </div>
     </div>
 
@@ -63,8 +65,33 @@
         </div>
     </div>
 
-    <!-- Step 2: Relation -->
+    <!-- Step 2: Generasi -->
     <div class="wizard-step" id="step2">
+        <p class="step-desc">Pilih generasimu</p>
+        <div class="form-group">
+            <label>Generasi</label>
+            <select id="generasi" onchange="enableNext(2)" style="width: 100%; padding: 12px 15px; border-radius: 12px; border: 1.5px solid var(--border-color); background: var(--input-bg); color: var(--ink); font-family: 'Manrope', sans-serif; margin-bottom: 20px;">
+                <option value="">Pilih Generasi...</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+            </select>
+        </div>
+        <div class="step-footer">
+            <button class="btn-secondary" onclick="prevStep(1)"><i class="bi bi-chevron-left"></i> Kembali</button>
+            <button class="btn-primary" id="btnNext2" onclick="nextStep(3)">Lanjut <i class="bi bi-chevron-right"></i></button>
+        </div>
+    </div>
+
+    <!-- Step 3: Relation -->
+    <div class="wizard-step" id="step3">
         <p class="step-desc" id="relationQuestion">Siapa orang tua kamu?</p>
         <div class="search-box">
             <i class="bi bi-search"></i>
@@ -74,17 +101,18 @@
             <button class="btn-secondary" style="font-size: 12px; padding: 5px 10px; border-radius: 8px; border: 1px solid var(--forest-deep, #4a6055); background: transparent; color: var(--forest-deep, #4a6055);" onclick="promptNewRelative(document.getElementById('searchMember').value)"><i class="bi bi-plus"></i> Tambah Manual</button>
         </div>
         <div class="selected-members-container" id="selectedMembers"></div>
+        <div id="relationError" style="color: #b3543f; font-size: 13px; text-align: center; margin-bottom: 10px; padding: 10px; background: #ffebee; border-radius: 8px; display: none;"></div>
         <div class="member-list" id="memberList">
             <!-- List goes here -->
         </div>
         <div class="step-footer">
-            <button class="btn-secondary" onclick="prevStep(1)"><i class="bi bi-chevron-left"></i> Kembali</button>
-            <button class="btn-primary" id="btnNext2" onclick="nextStep(3)" disabled>Lanjut <i class="bi bi-chevron-right"></i></button>
+            <button class="btn-secondary" onclick="prevStep(2)"><i class="bi bi-chevron-left"></i> Kembali</button>
+            <button class="btn-primary" id="btnNext3" onclick="nextStep(4)" disabled>Lanjut <i class="bi bi-chevron-right"></i></button>
         </div>
     </div>
 
-    <!-- Step 3: Profile Info -->
-    <div class="wizard-step" id="step3">
+    <!-- Step 4: Profile Info -->
+    <div class="wizard-step" id="step4">
         <div class="profile-upload" onclick="document.getElementById('photoInput').click()" style="cursor: pointer;">
             <input type="file" id="photoInput" accept="image/*" style="display: none;" onchange="previewUpload(this)">
             <div class="upload-circle">
@@ -100,38 +128,21 @@
                 $signup_basic = $this->session->userdata('signup_basic_info');
                 $default_name = !empty($signup_basic) ? $signup_basic['full_name'] : (isset($pending_user) ? $pending_user->full_name : '');
             ?>
-            <input type="text" id="fullName" placeholder="Masukkan nama lengkap" value="<?= htmlspecialchars($default_name) ?>" oninput="checkForm3()">
+            <input type="text" id="fullName" placeholder="Masukkan nama lengkap" value="<?= htmlspecialchars($default_name) ?>" oninput="checkForm4()">
         </div>
         
         <div class="form-group">
             <label>Tanggal Lahir</label>
-            <input type="date" id="birthDate" onchange="checkForm3()">
-        </div>
-        
-        <div class="form-group">
-            <label>Generasi (Opsional)</label>
-            <select id="generasi" onchange="checkForm3()" style="width: 100%; padding: 12px 15px; border-radius: 12px; border: 1.5px solid var(--border-color); background: var(--input-bg); color: var(--ink); font-family: 'Manrope', sans-serif; margin-bottom: 20px;">
-                <option value="">Pilih Generasi (Biarkan kosong untuk otomatis)</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-                <option value="7">7</option>
-                <option value="8">8</option>
-                <option value="9">9</option>
-                <option value="10">10</option>
-            </select>
+            <input type="date" id="birthDate" onchange="checkForm4()">
         </div>
         
         <div class="gender-selection">
             <label class="gender-radio">
-                <input type="radio" name="gender" value="L" onchange="checkForm3()">
+                <input type="radio" name="gender" value="L" onchange="checkForm4()">
                 <span>Laki-laki</span>
             </label>
             <label class="gender-radio">
-                <input type="radio" name="gender" value="P" onchange="checkForm3()">
+                <input type="radio" name="gender" value="P" onchange="checkForm4()">
                 <span>Perempuan</span>
             </label>
         </div>
@@ -139,13 +150,13 @@
         <div id="errorMsg" style="color: #b3543f; font-size: 13px; text-align: center; margin-bottom: 10px; display: none;"></div>
 
         <div class="step-footer">
-            <button class="btn-secondary" onclick="prevStep(2)"><i class="bi bi-chevron-left"></i> Kembali</button>
+            <button class="btn-secondary" onclick="prevStep(3)"><i class="bi bi-chevron-left"></i> Kembali</button>
             <button class="btn-primary" id="btnSubmit" onclick="submitForm()" disabled>Selesai <i class="bi bi-check2"></i></button>
         </div>
     </div>
 
-    <!-- Step 4: Menunggu Persetujuan (Terakhir) -->
-    <div class="wizard-step" id="step4">
+    <!-- Step 5: Menunggu Persetujuan (Terakhir) -->
+    <div class="wizard-step" id="step5">
         <div style="text-align: center; padding: 20px 0;">
             <h2 style="font-size: 24px; font-weight: 700; color: var(--ink); margin-bottom: 20px;">Menunggu Persetujuan</h2>
             
@@ -166,8 +177,8 @@
         </div>
     </div>
 
-    <!-- Step 5: Posisi Keluarga Inti -->
-    <div class="wizard-step" id="step5">
+    <!-- Step 6: Posisi Keluarga Inti -->
+    <div class="wizard-step" id="step6">
         <div style="text-align: center; margin-bottom: 30px;">
             <h2 style="font-size: 20px; font-weight: 700; color: var(--ink); margin: 0;">Posisi Keluarga Inti</h2>
             <p style="font-size: 13px; color: var(--text-muted); margin-top: 5px;">Berikut adalah posisi Anda dalam keluarga inti</p>
@@ -239,6 +250,24 @@
             <div id="newRelNameError" style="color: #b3543f; font-size: 12px; margin-top: 5px; display: none;">Nama harus diisi</div>
         </div>
         
+        <div style="margin-bottom: 20px;">
+            <p style="color: var(--ink-soft, #6a7b73); font-size: 13px; margin-bottom: 8px;">Generasi:</p>
+            <select id="newRelGenerasi" class="form-control" style="width: 100%; padding: 12px 15px; border-radius: 12px; border: 1.5px solid var(--border-color); background: var(--input-bg); color: var(--ink); font-family: 'Manrope', sans-serif;">
+                <option value="">Pilih Generasi...</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+            </select>
+            <div id="newRelGenerasiError" style="color: #b3543f; font-size: 12px; margin-top: 5px; display: none;">Generasi harus dipilih</div>
+        </div>
+
         <div style="margin-bottom: 25px; position: relative;">
             <p style="color: var(--ink-soft, #6a7b73); font-size: 13px; margin-bottom: 8px;">Tautkan ke orang tua (Opsional jika Anda tahu kakek/neneknya):</p>
             <div class="search-box" style="position: relative;">
@@ -271,6 +300,7 @@
             </div>
         </div>
         <div id="newRelGenderError" style="color: #b3543f; font-size: 12px; text-align: center; margin-top: -15px; margin-bottom: 20px; display: none;">Jenis kelamin harus dipilih</div>
+        <div id="newRelParentError" style="color: #b3543f; font-size: 12px; text-align: center; margin-top: -10px; margin-bottom: 20px; display: none; padding: 8px; background: #ffebee; border-radius: 6px;"></div>
         
         <div style="display: flex; justify-content: flex-end; gap: 10px;">
             <button onclick="closeNewRelModal()" style="padding: 10px 20px; background: none; border: none; color: #6a7b73; font-weight: 600; cursor: pointer;">Batal</button>
