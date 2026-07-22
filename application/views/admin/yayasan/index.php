@@ -246,6 +246,7 @@
                                     <tr class="border-b border-white/10 text-white/40 text-xs uppercase tracking-wider">
                                         <th class="pb-3 pr-6 font-bold whitespace-nowrap">No. Urut</th>
                                         <th class="pb-3 pr-6 font-bold whitespace-nowrap">Nama Calon</th>
+                                        <th class="pb-3 pr-6 font-bold whitespace-nowrap">Sebagai Calon</th>
                                         <th class="pb-3 pr-6 font-bold whitespace-nowrap">Pencalon / Nominator</th>
                                         <th class="pb-3 pr-6 font-bold whitespace-nowrap">Rundayan / Buyut</th>
                                         <th class="pb-3 pr-6 font-bold whitespace-nowrap text-amber-300">Total Dukungan</th>
@@ -257,6 +258,11 @@
                                         <tr>
                                             <td class="py-3.5 pr-6 text-white/55 whitespace-nowrap">#<?= $index + 1 ?></td>
                                             <td class="py-3.5 pr-6 font-bold text-white whitespace-nowrap"><?= htmlspecialchars($c['candidate_name']) ?></td>
+                                            <td class="py-3.5 pr-6 whitespace-nowrap text-xs">
+                                                 <span class="px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/25">
+                                                     <?= htmlspecialchars($c['roles_text']) ?>
+                                                 </span>
+                                            </td>
                                             <td class="py-3.5 pr-6 text-white/80 whitespace-nowrap"><?= htmlspecialchars($c['nominator_name']) ?></td>
                                             <td class="py-3.5 pr-6 text-white/80 whitespace-nowrap"><?= htmlspecialchars($c['ancestor_name']) ?></td>
                                             <td class="py-3.5 pr-6 text-amber-300 font-bold whitespace-nowrap"><?= $c['votes_count'] ?> suara</td>
@@ -283,6 +289,7 @@
                                     <tr class="border-b border-white/10 text-white/40 text-xs uppercase tracking-wider">
                                         <th class="pb-3 pr-6 font-bold whitespace-nowrap">No. Urut</th>
                                         <th class="pb-3 pr-6 font-bold whitespace-nowrap">Nama Calon</th>
+                                        <th class="pb-3 pr-6 font-bold whitespace-nowrap">Sebagai Calon</th>
                                         <th class="pb-3 pr-6 font-bold whitespace-nowrap">Pencalon / Nominator</th>
                                         <th class="pb-3 pr-6 font-bold whitespace-nowrap">Rundayan / Buyut</th>
                                         <th class="pb-3 pr-6 font-bold whitespace-nowrap text-cyan-300">Total Dukungan</th>
@@ -294,6 +301,11 @@
                                         <tr>
                                             <td class="py-3.5 pr-6 text-white/55 whitespace-nowrap">#<?= $index + 1 ?></td>
                                             <td class="py-3.5 pr-6 font-bold text-white whitespace-nowrap"><?= htmlspecialchars($c['candidate_name']) ?></td>
+                                            <td class="py-3.5 pr-6 whitespace-nowrap text-xs">
+                                                 <span class="px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/25">
+                                                     <?= htmlspecialchars($c['roles_text']) ?>
+                                                 </span>
+                                            </td>
                                             <td class="py-3.5 pr-6 text-white/80 whitespace-nowrap"><?= htmlspecialchars($c['nominator_name']) ?></td>
                                             <td class="py-3.5 pr-6 text-white/80 whitespace-nowrap"><?= htmlspecialchars($c['ancestor_name']) ?></td>
                                             <td class="py-3.5 pr-6 text-cyan-300 font-bold whitespace-nowrap"><?= $c['votes_count'] ?> suara</td>

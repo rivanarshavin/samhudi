@@ -45,7 +45,8 @@ class Anggota extends CI_Controller {
                     'nominators'     => [trim($c['nominator_name'])],
                     'ancestors'      => [trim($c['ancestor_name'])],
                     'votes_count'    => 1,
-                    'ancestor_breakdown' => [trim($c['ancestor_name']) => 1]
+                    'ancestor_breakdown' => [trim($c['ancestor_name']) => 1],
+                    'roles'          => [trim($c['description'])]
                 ];
             } else {
                 $grouped[$key]['nominators'][] = trim($c['nominator_name']);
@@ -58,6 +59,7 @@ class Anggota extends CI_Controller {
                 } else {
                     $grouped[$key]['ancestor_breakdown'][$anc] += 1;
                 }
+                $grouped[$key]['roles'][] = trim($c['description']);
             }
         }
 
@@ -65,6 +67,9 @@ class Anggota extends CI_Controller {
         foreach ($grouped as $g) {
             $g['nominator_name'] = implode(', ', array_unique($g['nominators']));
             $g['ancestor_name'] = implode(', ', array_unique($g['ancestors']));
+            
+            $unique_roles = array_filter(array_unique($g['roles']));
+            $g['roles_text'] = !empty($unique_roles) ? implode(', ', $unique_roles) : '-';
             
             $breakdowns = [];
             foreach ($g['ancestor_breakdown'] as $anc_name => $count) {
@@ -173,7 +178,18 @@ class Anggota extends CI_Controller {
             $success_count = 0;
             $failed_names = [];
 
-            foreach ($candidates_input as $cand) {
+            $roles_map = [
+                1 => 'Ketua',
+                2 => 'Bendahara',
+                3 => 'Sekretaris'
+            ];
+
+            for ($i = 1; $i <= 3; $i++) {
+                $cand = trim($this->input->post('candidate_name_' . $i, TRUE));
+                if (empty($cand)) {
+                    continue;
+                }
+
                 // Database Check: Same nominator cannot nominate the same candidate again
                 $this->db->where('LOWER(nominator_name) =', strtolower($nominator));
                 $this->db->where('LOWER(candidate_name) =', strtolower($cand));
@@ -189,7 +205,7 @@ class Anggota extends CI_Controller {
                     'ancestor_name'   => $ancestor,
                     'type'            => $type,
                     'candidate_name'  => $cand,
-                    'description'     => '',
+                    'description'     => $roles_map[$i],
                     'votes_count'     => 1, // Start with 1 support
                     'status'          => 'approved'
                 ];

@@ -268,6 +268,7 @@ if (!function_exists('format_nominators')) {
                                     <tr class="border-b border-<?= $is_rundayan ? 'cyan-500/10' : 'white/10' ?>">
                                         <th class="pb-4 pr-6 text-xs font-bold text-<?= $theme_primary ?>-300 uppercase tracking-wider whitespace-nowrap">No. Urut</th>
                                         <th class="pb-4 pr-6 text-xs font-bold text-<?= $theme_primary ?>-300 uppercase tracking-wider whitespace-nowrap">Nama Calon</th>
+                                        <th class="pb-4 pr-6 text-xs font-bold text-<?= $theme_primary ?>-300 uppercase tracking-wider whitespace-nowrap">Sebagai Calon</th>
                                         <th class="pb-4 pr-6 text-xs font-bold text-<?= $theme_primary ?>-300 uppercase tracking-wider whitespace-nowrap">Pencalon / Nominator</th>
                                         <th class="pb-4 pr-6 text-xs font-bold text-<?= $theme_primary ?>-300 uppercase tracking-wider whitespace-nowrap">Rundayan / Buyut</th>
                                         <th class="pb-4 pr-6 text-xs font-bold text-<?= $theme_primary ?>-300 uppercase tracking-wider whitespace-nowrap">Jumlah Dukungan</th>
@@ -280,6 +281,11 @@ if (!function_exists('format_nominators')) {
                                         <tr>
                                             <td class="py-4 pr-6 text-sm text-white/55 whitespace-nowrap">#<?= $index + 1 ?></td>
                                             <td class="py-4 pr-6 text-sm font-bold text-white whitespace-nowrap"><?= htmlspecialchars($c['candidate_name']) ?></td>
+                                            <td class="py-4 pr-6 text-sm text-white/80 whitespace-nowrap">
+                                                <span class="px-2 py-0.5 rounded text-xs bg-<?= $theme_primary ?>-500/10 text-<?= $theme_primary ?>-300 border border-<?= $theme_primary ?>-500/20">
+                                                    <?= htmlspecialchars($c['roles_text']) ?>
+                                                </span>
+                                            </td>
                                             <td class="py-4 pr-6 text-sm text-white/80 whitespace-nowrap"><?= format_nominators($c['nominator_name']) ?></td>
                                             <td class="py-4 pr-6 text-sm text-white/80 whitespace-nowrap"><?= htmlspecialchars($c['ancestor_name']) ?></td>
                                             <td class="py-4 pr-6 text-sm text-emerald-400 font-bold whitespace-nowrap"><?= $c['votes_count'] ?> suara</td>
@@ -387,30 +393,48 @@ if (!function_exists('format_nominators')) {
  
                             <div class="relative">
                                 <label class="block text-xs font-semibold text-<?= $theme_primary ?>-400/80 uppercase tracking-wider mb-2">Rundayan / Buyut (Keturunan)</label>
-                                <input type="text" name="ancestor_name" id="input_ancestor_name" required placeholder="Contoh: Buyut Ahmad Samhudi" autocomplete="off"
-                                       class="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none transition-all text-white text-sm placeholder-white/30">
-                                <div id="ancestor_suggestions_box" class="absolute left-0 right-0 top-full mt-1 bg-[#1b3638] border border-white/15 rounded-xl shadow-2xl max-h-48 overflow-y-auto hidden z-[11000] divide-y divide-white/5"></div>
+                                <select name="ancestor_name" id="input_ancestor_name" required
+                                        class="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none transition-all text-white text-sm placeholder-white/30 [&>option]:bg-[#1b3638]">
+                                    <option value="" disabled selected class="text-white/40">-- Pilih Rundayan / Buyut --</option>
+                                    <option value="HIDAYAT SAMHUDI">HIDAYAT SAMHUDI</option>
+                                    <option value="HM. SALEH SAMHUDI">HM. SALEH SAMHUDI</option>
+                                    <option value="Hj SA'ADIAH SAMHUDI">Hj SA'ADIAH SAMHUDI</option>
+                                    <option value="H. AMIDIN SAMHUDI">H. AMIDIN SAMHUDI</option>
+                                    <option value="BUSTOMI (TOMI) SAMHUDI">BUSTOMI (TOMI) SAMHUDI</option>
+                                    <option value="ABDUL FATAH (UTUN) SAMHUDI">ABDUL FATAH (UTUN) SAMHUDI</option>
+                                    <option value="Hj DJUMENAH (CUCU) SAMHUDI">Hj DJUMENAH (CUCU) SAMHUDI</option>
+                                    <option value="Hj NANI SOMARNI (ENAN) SAMHUDI">Hj NANI SOMARNI (ENAN) SAMHUDI</option>
+                                    <option value="Hj MARIAM (MARI) SAMHUDI">Hj MARIAM (MARI) SAMHUDI</option>
+                                    <option value="H. ABDUL HAMID (ACEP) SAMHUDI">H. ABDUL HAMID (ACEP) SAMHUDI</option>
+                                    <!-- 
+                                    <option value="SUPRAPTI SAMHUDI (TUTI)">SUPRAPTI SAMHUDI (TUTI)</option>
+                                    <option value="KARTINI SAMHUDI (TINTIN)">KARTINI SAMHUDI (TINTIN)</option>
+                                    <option value="LUKMAN SAMHUDI">LUKMAN SAMHUDI</option>
+                                    <option value="KAMIL SAMHUDI">KAMIL SAMHUDI</option>
+                                    <option value="KARDINAH SAMHUDI">KARDINAH SAMHUDI</option>
+                                    -->
+                                </select>
                             </div>
                         </div>
  
                         <!-- Step 2 Content (Hidden by default) -->
                         <div id="nominateStep-2" class="px-6 py-5 space-y-4 hidden pb-12">
                             <div class="relative">
-                                <label class="block text-xs font-semibold text-<?= $theme_primary ?>-400/80 uppercase tracking-wider mb-2">Nama Calon Formatur 1 <span class="text-red-400">*</span></label>
+                                <label class="block text-xs font-semibold text-<?= $theme_primary ?>-400/80 uppercase tracking-wider mb-2">Nama Calon Ketua (Formatur 1) <span class="text-red-400">*</span></label>
                                 <input type="text" name="candidate_name_1" id="input_candidate_name_1" required placeholder="Contoh: H. Bahrudin" autocomplete="off"
                                        class="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none transition-all text-white text-sm placeholder-white/30">
                                 <div id="candidate_suggestions_box_1" class="absolute left-0 right-0 top-full mt-1 bg-[#1b3638] border border-white/15 rounded-xl shadow-2xl max-h-48 overflow-y-auto hidden z-[11000] divide-y divide-white/5"></div>
                             </div>
  
                             <div class="relative">
-                                <label class="block text-xs font-semibold text-<?= $theme_primary ?>-400/80 uppercase tracking-wider mb-2">Nama Calon Formatur 2 <span class="text-white/30 normal-case font-normal">(opsional)</span></label>
+                                <label class="block text-xs font-semibold text-<?= $theme_primary ?>-400/80 uppercase tracking-wider mb-2">Nama Calon Bendahara (Formatur 2) <span class="text-white/30 normal-case font-normal">(opsional)</span></label>
                                 <input type="text" name="candidate_name_2" id="input_candidate_name_2" placeholder="Masukkan calon kedua..." autocomplete="off"
                                        class="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none transition-all text-white text-sm placeholder-white/30">
                                 <div id="candidate_suggestions_box_2" class="absolute left-0 right-0 top-full mt-1 bg-[#1b3638] border border-white/15 rounded-xl shadow-2xl max-h-48 overflow-y-auto hidden z-[11000] divide-y divide-white/5"></div>
                             </div>
  
                             <div class="relative">
-                                <label class="block text-xs font-semibold text-<?= $theme_primary ?>-400/80 uppercase tracking-wider mb-2">Nama Calon Formatur 3 <span class="text-white/30 normal-case font-normal">(opsional)</span></label>
+                                <label class="block text-xs font-semibold text-<?= $theme_primary ?>-400/80 uppercase tracking-wider mb-2">Nama Calon Sekretaris (Formatur 3) <span class="text-white/30 normal-case font-normal">(opsional)</span></label>
                                 <input type="text" name="candidate_name_3" id="input_candidate_name_3" placeholder="Masukkan calon ketiga..." autocomplete="off"
                                        class="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none transition-all text-white text-sm placeholder-white/30">
                                 <div id="candidate_suggestions_box_3" class="absolute left-0 right-0 top-full mt-1 bg-[#1b3638] border border-white/15 rounded-xl shadow-2xl max-h-48 overflow-y-auto hidden z-[11000] divide-y divide-white/5"></div>
@@ -599,7 +623,6 @@ if (!function_exists('format_nominators')) {
 
     document.addEventListener('DOMContentLoaded', () => {
         setupSuggestions('input_nominator_name', 'nominator_suggestions_box', namesData);
-        setupSuggestions('input_ancestor_name', 'ancestor_suggestions_box', ancestorsData);
         setupSuggestions('input_candidate_name_1', 'candidate_suggestions_box_1', namesData);
         setupSuggestions('input_candidate_name_2', 'candidate_suggestions_box_2', namesData);
         setupSuggestions('input_candidate_name_3', 'candidate_suggestions_box_3', namesData);

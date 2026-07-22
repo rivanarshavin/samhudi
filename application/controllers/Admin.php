@@ -1155,7 +1155,8 @@ class Admin extends CI_Controller
                     'nominators'     => [trim($c['nominator_name'])],
                     'ancestors'      => [trim($c['ancestor_name'])],
                     'votes_count'    => 1,
-                    'ancestor_breakdown' => [trim($c['ancestor_name']) => 1]
+                    'ancestor_breakdown' => [trim($c['ancestor_name']) => 1],
+                    'roles'          => [trim($c['description'])]
                 ];
             } else {
                 $grouped[$key]['nominators'][] = trim($c['nominator_name']);
@@ -1168,6 +1169,7 @@ class Admin extends CI_Controller
                 } else {
                     $grouped[$key]['ancestor_breakdown'][$anc] += 1;
                 }
+                $grouped[$key]['roles'][] = trim($c['description']);
             }
         }
 
@@ -1177,6 +1179,9 @@ class Admin extends CI_Controller
         foreach ($grouped as $g) {
             $g['nominator_name'] = implode(', ', array_unique($g['nominators']));
             $g['ancestor_name'] = implode(', ', array_unique($g['ancestors']));
+            
+            $unique_roles = array_filter(array_unique($g['roles']));
+            $g['roles_text'] = !empty($unique_roles) ? implode(', ', $unique_roles) : '-';
             
             $breakdowns = [];
             foreach ($g['ancestor_breakdown'] as $anc_name => $count) {
