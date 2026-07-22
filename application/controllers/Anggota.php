@@ -196,7 +196,19 @@ class Anggota extends CI_Controller {
                 $existing = $this->db->get('yayasan_candidates')->row_array();
 
                 if ($existing) {
-                    $failed_names[] = $cand;
+                    // If description (role) and ancestor are already identical, block submission
+                    if ($existing['description'] === $roles_map[$i] && $existing['ancestor_name'] === $ancestor) {
+                        $failed_names[] = $cand;
+                        continue;
+                    }
+                    
+                    // If different role/ancestor, update it
+                    $this->db->where('id', $existing['id']);
+                    $this->db->update('yayasan_candidates', [
+                        'description' => $roles_map[$i],
+                        'ancestor_name' => $ancestor
+                    ]);
+                    $success_count++;
                     continue;
                 }
 
@@ -215,15 +227,11 @@ class Anggota extends CI_Controller {
             }
 
             if ($success_count > 0) {
-                $msg = $success_count . ' calon berhasil didaftarkan.';
-                if (!empty($failed_names)) {
-                    $msg .= ' Beberapa nama dilewati karena sudah diusulkan sebelumnya.';
-                }
-                $this->session->set_flashdata('success', $msg);
+                redirect('anggota/bukti?nominator=' . urlencode($nominator) . '&ancestor=' . urlencode($ancestor) . '&type=' . $type);
             } else {
                 $this->session->set_flashdata('error', 'Gagal mendaftarkan calon. Semua nama calon yang Anda isi sudah diusulkan sebelumnya.');
+                redirect('anggota');
             }
-            redirect('anggota');
         }
     }
 
@@ -402,6 +410,43 @@ class Anggota extends CI_Controller {
         $this->load->view('templates/header');
         $this->load->view('partials/navbar');
         $this->load->view('yayasan/detail', $data);
+        $this->load->view('templates/footer');
+    }
+
+    public function bukti()
+    {
+        $nominator = $this->input->get('nominator', TRUE);
+        $ancestor = $this->input->get('ancestor', TRUE);
+        $type = $this->input->get('type', TRUE) === 'rundayan' ? 'rundayan' : 'individu';
+
+        if (empty($nominator) || empty($ancestor)) {
+            show_404();
+            return;
+        }
+
+        // Query the nominated candidates
+        $this->db->where('LOWER(nominator_name) =', strtolower($nominator));
+        $this->db->where('LOWER(ancestor_name) =', strtolower($ancestor));
+        $this->db->where('type', $type);
+        $this->db->where('status', 'approved');
+        $candidates = $this->db->get('yayasan_candidates')->result_array();
+
+        if (empty($candidates)) {
+            $this->db->where('LOWER(nominator_name) =', strtolower($nominator));
+            $this->db->where('LOWER(ancestor_name) =', strtolower($ancestor));
+            $this->db->where('type', $type);
+            $candidates = $this->db->get('yayasan_candidates')->result_array();
+        }
+
+        $data['nominator'] = $nominator;
+        $data['ancestor'] = $ancestor;
+        $data['page_type'] = $type;
+        $data['candidates'] = $candidates;
+        $data['receipt_url'] = current_url() . '?' . $_SERVER['QUERY_STRING'];
+
+        $this->load->view('templates/header');
+        $this->load->view('partials/navbar');
+        $this->load->view('yayasan/bukti', $data);
         $this->load->view('templates/footer');
     }
 }

@@ -86,6 +86,8 @@ $route['admin/lowongan_add']                = 'admin/lowongan_add';
 
 // Yayasan Public Routes
 $route['yayasan']                           = 'yayasan/index';
+$route['yayasan/rekapitulasi']              = 'yayasan/rekapitulasi';
+$route['pembina']                           = 'yayasan/rekapitulasi';
 $route['yayasan/nominate']                  = 'yayasan/nominate';
 $route['yayasan/vote/(:num)']               = 'yayasan/vote/$1';
 $route['yayasan/detail/(:num)']             = 'yayasan/detail/$1';

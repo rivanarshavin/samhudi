@@ -39,5 +39,6 @@
     </script>
 
     <title>Keluarga Besar H.M Samhudi</title>
+    <link rel="icon" type="image/jpeg" href="<?= base_url('assets/favicon.jpeg') ?>">
 </head>
 <body class="has-fixed-nav" data-theme="dark">

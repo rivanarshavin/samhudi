@@ -1123,7 +1123,13 @@ class Admin extends CI_Controller
         $search = $this->input->get('search', TRUE) ?? '';
         $status = $this->input->get('status', TRUE) ?? '';
 
-        // Fetch raw candidates for management (Approve/Reject list)
+        $this->load->library('pagination');
+
+        $limit  = 10;
+        $page   = ($this->input->get('page')) ? (int) $this->input->get('page') : 1;
+        $offset = ($page - 1) * $limit;
+
+        // Set query builder for count
         if ($search) {
             $this->db->group_start();
             $this->db->like('candidate_name', $search);
@@ -1131,12 +1137,55 @@ class Admin extends CI_Controller
             $this->db->or_like('ancestor_name', $search);
             $this->db->group_end();
         }
-
         if ($status) {
             $this->db->where('status', $status);
         }
+        $total_rows = $this->db->count_all_results('yayasan_candidates');
 
+        // Pagination Config
+        $config['base_url']             = base_url('admin/yayasan');
+        $config['total_rows']           = $total_rows;
+        $config['per_page']             = $limit;
+        $config['page_query_string']    = TRUE;
+        $config['query_string_segment'] = 'page';
+        $config['use_page_numbers']     = TRUE;
+        $config['reuse_query_string']   = TRUE;
+
+        $config['full_tag_open']   = '<div class="flex items-center justify-center gap-1.5 mt-6">';
+        $config['full_tag_close']  = '</div>';
+        $config['first_link']      = 'Awal';
+        $config['first_tag_open']  = '<span class="pagination-item">';
+        $config['first_tag_close'] = '</span>';
+        $config['last_link']       = 'Akhir';
+        $config['last_tag_open']   = '<span class="pagination-item">';
+        $config['last_tag_close'] = '</span>';
+        $config['next_link']       = '<i class="bi bi-chevron-right"></i>';
+        $config['next_tag_open']   = '<span class="pagination-item">';
+        $config['next_tag_close']  = '</span>';
+        $config['prev_link']       = '<i class="bi bi-chevron-left"></i>';
+        $config['prev_tag_open']   = '<span class="pagination-item">';
+        $config['prev_tag_close']  = '</span>';
+        $config['cur_tag_open']    = '<span class="px-3.5 py-2 rounded-xl bg-brand-medium text-white text-xs font-bold border border-brand-medium/50 shadow-md shadow-brand-medium/10">';
+        $config['cur_tag_close']   = '</span>';
+        $config['num_tag_open']    = '<span class="pagination-item">';
+        $config['num_tag_close']   = '</span>';
+        $config['attributes']      = ['class' => 'px-3.5 py-2 rounded-xl bg-[#1A2824] hover:bg-[#2c3f3a] text-white text-xs font-semibold border border-[#4D6B67]/30 transition-all duration-200'];
+
+        $this->pagination->initialize($config);
+
+        // Fetch raw candidates for management (Approve/Reject list) paginated
+        if ($search) {
+            $this->db->group_start();
+            $this->db->like('candidate_name', $search);
+            $this->db->or_like('nominator_name', $search);
+            $this->db->or_like('ancestor_name', $search);
+            $this->db->group_end();
+        }
+        if ($status) {
+            $this->db->where('status', $status);
+        }
         $this->db->order_by('created_at', 'DESC');
+        $this->db->limit($limit, $offset);
         $raw_all_candidates = $this->db->get('yayasan_candidates')->result_array();
 
         // Calculate Rekapitulasi Hasil (Approved Candidates Grouped)
@@ -1203,15 +1252,137 @@ class Admin extends CI_Controller
             return $b['votes_count'] <=> $a['votes_count'];
         });
 
+        // 1. INDIVIDU REKAP: Search & Paginate
+        $search_individu = $this->input->get('search_individu', TRUE) ?? '';
+        if (!empty($search_individu)) {
+            $individu_candidates = array_filter($individu_candidates, function($c) use ($search_individu) {
+                return stripos($c['candidate_name'], $search_individu) !== false ||
+                       stripos($c['nominator_name'], $search_individu) !== false ||
+                       stripos($c['ancestor_name'], $search_individu) !== false;
+            });
+        }
+        $total_rows_individu = count($individu_candidates);
+        $limit_individu = 5;
+        $page_individu = $this->input->get('page_individu') ? (int) $this->input->get('page_individu') : 1;
+        $offset_individu = ($page_individu - 1) * $limit_individu;
+        $individu_candidates_paginated = array_slice($individu_candidates, $offset_individu, $limit_individu);
+
+        // 2. RUNDAYAN REKAP: Search & Paginate
+        $search_rundayan = $this->input->get('search_rundayan', TRUE) ?? '';
+        if (!empty($search_rundayan)) {
+            $rundayan_candidates = array_filter($rundayan_candidates, function($c) use ($search_rundayan) {
+                return stripos($c['candidate_name'], $search_rundayan) !== false ||
+                       stripos($c['nominator_name'], $search_rundayan) !== false ||
+                       stripos($c['ancestor_name'], $search_rundayan) !== false;
+            });
+        }
+        $total_rows_rundayan = count($rundayan_candidates);
+        $limit_rundayan = 5;
+        $page_rundayan = $this->input->get('page_rundayan') ? (int) $this->input->get('page_rundayan') : 1;
+        $offset_rundayan = ($page_rundayan - 1) * $limit_rundayan;
+        $rundayan_candidates_paginated = array_slice($rundayan_candidates, $offset_rundayan, $limit_rundayan);
+
+        // 3. BAGAN SILSILAH: Search filter
+        $search_bagan = $this->input->get('search_bagan', TRUE) ?? '';
+        $approved_filtered = $raw_approved;
+        if (!empty($search_bagan)) {
+            $approved_filtered = array_filter($raw_approved, function($c) use ($search_bagan) {
+                return stripos($c['candidate_name'], $search_bagan) !== false ||
+                       stripos($c['nominator_name'], $search_bagan) !== false ||
+                       stripos($c['ancestor_name'], $search_bagan) !== false;
+            });
+        }
+
+        // Fetch all distinct candidate names, nominator names, and ancestor names for autocomplete suggestions
+        $noms = $this->db->select('nominator_name as name')->get('yayasan_candidates')->result_array();
+        $cands = $this->db->select('candidate_name as name')->get('yayasan_candidates')->result_array();
+        $ancs = $this->db->select('ancestor_name as name')->get('yayasan_candidates')->result_array();
+        
+        $all_names_list = [];
+        foreach (array_merge($noms, $cands, $ancs) as $r) {
+            if (!empty($r['name'])) {
+                $all_names_list[] = trim($r['name']);
+            }
+        }
+        $all_names = array_values(array_unique($all_names_list));
+
+        // Data for 3D Pie Chart & Rundayan Hover
+        $chart_data_individu = [];
+        foreach ($individu_candidates as $c) {
+            $chart_data_individu[] = [
+                'name'       => $c['candidate_name'],
+                'y'          => (int) $c['votes_count'],
+                'nominators' => $c['nominator_name'],
+                'ancestors'  => $c['ancestor_name'],
+                'breakdown'  => $c['breakdown_text']
+            ];
+        }
+
+        $chart_data_rundayan = [];
+        foreach ($rundayan_candidates as $c) {
+            $chart_data_rundayan[] = [
+                'name'       => $c['candidate_name'],
+                'y'          => (int) $c['votes_count'],
+                'nominators' => $c['nominator_name'],
+                'ancestors'  => $c['ancestor_name'],
+                'breakdown'  => $c['breakdown_text']
+            ];
+        }
+
+        $rundayan_detail_map = [];
+        foreach ($raw_approved as $c) {
+            $anc = trim($c['ancestor_name']);
+            $nom = trim($c['nominator_name']);
+            if (!isset($rundayan_detail_map[$anc])) {
+                $rundayan_detail_map[$anc] = [
+                    'ancestor_name' => $anc,
+                    'nominators'    => [],
+                    'candidates'    => [],
+                    'total_votes'   => 0
+                ];
+            }
+            $rundayan_detail_map[$anc]['nominators'][] = $nom;
+            $rundayan_detail_map[$anc]['candidates'][] = $c['candidate_name'];
+            $rundayan_detail_map[$anc]['total_votes'] += 1;
+        }
+
+        foreach ($rundayan_detail_map as $anc_key => $data_anc) {
+            $rundayan_detail_map[$anc_key]['nominators'] = array_values(array_unique($data_anc['nominators']));
+            $rundayan_detail_map[$anc_key]['candidates'] = array_values(array_unique($data_anc['candidates']));
+        }
+
         $data = [
             'admin_name'          => $this->session->userdata('full_name'),
             'admin_role'          => $this->session->userdata('role'),
             'active_menu'         => 'yayasan',
             'candidates'          => $raw_all_candidates,
-            'individu_candidates' => $individu_candidates,
-            'rundayan_candidates' => $rundayan_candidates,
+            'approved_candidates' => $approved_filtered,
+            'individu_candidates' => $individu_candidates_paginated,
+            'rundayan_candidates' => $rundayan_candidates_paginated,
             'search'              => $search,
-            'status'              => $status
+            'status'              => $status,
+            'total_rows'          => $total_rows,
+            
+            // Individu rekap paging variables
+            'search_individu'     => $search_individu,
+            'total_rows_individu' => $total_rows_individu,
+            'limit_individu'      => $limit_individu,
+            'page_individu'       => $page_individu,
+
+            // Rundayan rekap paging variables
+            'search_rundayan'     => $search_rundayan,
+            'total_rows_rundayan' => $total_rows_rundayan,
+            'limit_rundayan'      => $limit_rundayan,
+            'page_rundayan'       => $page_rundayan,
+
+            // Bagan search variable
+            'search_bagan'        => $search_bagan,
+            'all_names'           => $all_names,
+
+            // 3D Chart & Hover data
+            'chart_data_individu' => $chart_data_individu,
+            'chart_data_rundayan' => $chart_data_rundayan,
+            'rundayan_detail_map' => $rundayan_detail_map
         ];
 
         $this->load->view('admin/yayasan/index', $data);
