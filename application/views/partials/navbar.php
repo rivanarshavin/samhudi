@@ -127,9 +127,7 @@
             <li>
                 <a href="<?= base_url('Wasiat') ?>" class="mobile-link group block py-2 pl-8 hover:text-white transition-colors duration-200" data-page="wasiat"><span class="arrow-icon" style="display:none;margin-right:8px;">&gt;</span><?php if ($this->session->userdata('logged_in')): ?><img src="<?= base_url('assets/images/3d_wasiat.png') ?>" class="w-7 h-7 inline-block mr-2 align-middle object-contain" alt="Wasiat"><?php endif; ?>Wasiat alm. H.M Samhudi</a>
             </li>
-            <li>
-                <a href="<?= base_url('anggota') ?>" class="mobile-link group block py-2 pl-8 hover:text-white transition-colors duration-200" data-page="anggota"><span class="arrow-icon" style="display:none;margin-right:8px;">&gt;</span><?php if ($this->session->userdata('logged_in')): ?><img src="<?= base_url('assets/images/3d_yayasan.png') ?>" class="w-7 h-7 inline-block mr-2 align-middle object-contain" alt="Anggota"><?php endif; ?>Anggota</a>
-            </li>
+
             <li>
                 <a href="<?= base_url('Familytree') ?>" class="mobile-link group block py-2 pl-8 hover:text-white transition-colors duration-200" data-page="familytree"><span class="arrow-icon" style="display:none;margin-right:8px;">&gt;</span><?php if ($this->session->userdata('logged_in')): ?><img src="<?= base_url('assets/images/3d_silsilah.png') ?>" class="w-7 h-7 inline-block mr-2 align-middle object-contain" alt="Silsilah Keluarga"><?php endif; ?>Silsilah Keluarga</a>
             </li>
